@@ -1,6 +1,7 @@
 {
   "name": "skin-peek",
   "version": "1.0.0",
+  "main": "SkinPeek.js",
   "dependencies": {
     "discord.js": "^13.3.1"
   },
