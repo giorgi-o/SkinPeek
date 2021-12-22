@@ -81,10 +81,18 @@ client.on("interactionCreate", async (interaction) => {
                 await interaction.deferReply();
 
                 const shop = await getSkinOffers(interaction.user.id);
+                if(!shop) return await interaction.followUp({
+                    embeds: [{
+                        description: "Could not fetch your shop, most likely you got logged out. Try logging in again.",
+                        color: VAL_COLOR_1
+                    }],
+                    ephemeral: true
+                });
+
                 const embeds = [{
                     description: `Daily shop for **${valorantUser.username}** (new shop <t:${Math.floor(Date.now() / 1000) + shop.expires}:R>)`,
                     color: VAL_COLOR_1
-                }]
+                }];
 
                 for(const item of shop.offers) {
                     embeds.push({

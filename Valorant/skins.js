@@ -1,7 +1,7 @@
 import fs from "fs";
 
 import {fetch} from "./util.js";
-import {authUser, getUser} from "./auth.js";
+import {authUser, deleteUser, getUser} from "./auth.js";
 
 let skinData = {version: null};
 
@@ -65,6 +65,10 @@ export const getSkinOffers = async (id) => {
     console.assert(req.statusCode === 200, `Valorant skins offers code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
+
+    if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
+        return deleteUser(id);
+    }
 
     const skinOffers = {offers: [], expires: json.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds};
     for(const uuid of json.SkinsPanelLayout.SingleItemOffers) {
