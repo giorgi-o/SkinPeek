@@ -5,7 +5,7 @@ Discord bot to see your daily Valorant item shop without launching the game.
 
 - [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#bot-invite-links) with the `applications.commands` scope
 - Install [node.js](https://nodejs.org/en/)
-- Clone/Download the repo and put your token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
+- Clone/Download the repo and put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
 - Install [discord.js](https://discord.js.org/) in the same folder using `npm i discord.js`
 - Run [SkinPeek.js](https://github.com/giorgi-o/SkinPeek/blob/master/SkinPeek.js) using `node SkinPeek.js`
 - Type `!deploy guild` or `!deploy global` to deploy the commands.
