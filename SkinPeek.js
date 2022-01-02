@@ -1,7 +1,8 @@
 import {Client, Intents} from "discord.js";
 import {getSkinOffers} from "./Valorant/skins.js";
 import {deleteUser, getUser, redeemCookies, redeemUsernamePassword} from "./Valorant/auth.js";
-import fs from "fs";
+import {loadConfig} from "./config.js";
+import {VPEmojiString} from "./emoji.js";
 
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]});
 
@@ -13,7 +14,7 @@ client.on("ready", () => {
 
 const commands = [
     {
-        name: "skins",
+        name: "skins", // might change it to /shop
         description: "Show your current daily shop"
     },
     {
@@ -23,15 +24,13 @@ const commands = [
             {
                 type: "STRING",
                 name: "username",
-                // description: "Your Riot username",
-                description: "Your password is immediately deleted and not stored.",
+                description: "Your Riot username",
                 required: true
             },
             {
                 type: "STRING",
                 name: "password",
-                // description: "Your Riot password. It is immediately deleted and not stored.",
-                description: "Your password is immediately deleted and not stored.",
+                description: "Your Riot password",
                 required: true
             },
         ]
@@ -54,13 +53,18 @@ const commands = [
 
 client.on("messageCreate", async (message) => {
     if(message.content === "!deploy guild") {
+        console.log("deploying commands...");
+
         const guild = client.guilds.cache.get(message.guild.id);
-        await guild.commands.set(commands).then(() => console.log("commands deployed!"));
-        await message.reply("deployed in guild!");
+        await guild.commands.set(commands).then(() => console.log(`Commands deployed in guild ${message.guild.name}!`));
+
+        await message.reply("Deployed in guild!");
     } else if(message.content === "!deploy global") {
-        console.log("deployin commands...");
-        await client.application.commands.set(commands).then(() => console.log("commands deployed!"));
-        await message.reply("deployed globally!");
+        console.log("deploying commands...");
+
+        await client.application.commands.set(commands).then(() => console.log("Commands deployed globally!"));
+
+        await message.reply("Deployed globally!");
     }
 });
 
@@ -78,6 +82,9 @@ client.on("interactionCreate", async (interaction) => {
                     ephemeral: true
                 });
 
+                // start uploading emoji now
+                const emojiPromise = VPEmojiString(interaction.guild);
+
                 await interaction.deferReply();
 
                 const shop = await getSkinOffers(interaction.user.id);
@@ -94,14 +101,18 @@ client.on("interactionCreate", async (interaction) => {
                     color: VAL_COLOR_1
                 }];
 
+                const emojiString = (await emojiPromise) || "Price:";
+
                 for(const item of shop.offers) {
-                    embeds.push({
+                    const embed = {
                         title: item.name,
                         color: VAL_COLOR_2,
-                        image: {
+                        thumbnail: {
                             url: item.icon
                         }
-                    })
+                    };
+                    if(config.showSkinPrices && item.price) embed.description = `${emojiString} ${item.price}`;
+                    embeds.push(embed);
                 }
 
                 await interaction.followUp({embeds});
@@ -117,8 +128,14 @@ client.on("interactionCreate", async (interaction) => {
 
                 const user = getUser(interaction.user.id);
                 let embed;
-                if(success && user) embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
-                else embed = basicEmbed("Invalid username and password!");
+                if(success && user) {
+                    console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`);
+                    embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
+                }
+                else {
+                    console.log(`${interaction.user.tag} login failed`);
+                    embed = basicEmbed("Invalid username or password!");
+                }
 
                 await interaction.followUp({
                     embeds: [embed],
@@ -136,8 +153,14 @@ client.on("interactionCreate", async (interaction) => {
 
                 const user = getUser(interaction.user.id);
                 let embed;
-                if(success && user) embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
-                else embed = basicEmbed("Whoops, that didn't work! Are your cookies formatted correctly?");
+                if(success && user) {
+                    console.log(`${interaction.user.tag} logged in as ${user.username}`)
+                    embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
+                }
+                else {
+                    console.log(`${interaction.user.tag} login failed`)
+                    embed = basicEmbed("Whoops, that didn't work! Are your cookies formatted correctly?");
+                }
 
                 await interaction.followUp({
                     embeds: [embed],
@@ -148,9 +171,10 @@ client.on("interactionCreate", async (interaction) => {
             }
             case "forget": {
                 const user = getUser(interaction.user.id);
-                if(!user) return await interaction.reply({embeds: [basicEmbed("I can't forget you if you are not registered!")], ephemeral: true});
+                if(!user) return await interaction.reply({embeds: [basicEmbed("I can't forget you if you're not registered!")], ephemeral: true});
 
                 deleteUser(interaction.user.id);
+                console.log(`${interaction.user.tag} deleted their account`);
 
                 await interaction.reply({embeds: [basicEmbed("Your account has been deleted from the database!")], ephemeral: true});
                 break;
@@ -170,18 +194,8 @@ const basicEmbed = (content) => {
     }
 }
 
-const login = () => {
-    let config;
-    try {
-        config = fs.readFileSync("config.json", 'utf-8');
-    } catch(e) {return console.error("Could not find config.json file!", e)}
-    try {
-        config = JSON.parse(config);
-    } catch (e) {return console.error("Could not JSON parse config file!", e)}
-
-    if(config.token === "token goes here")
-        return console.error("You forgot to put your bot token in config.json!")
-
+const config = loadConfig();
+if(config) {
     client.login(config.token);
+    console.log("Logging in...")
 }
-login()

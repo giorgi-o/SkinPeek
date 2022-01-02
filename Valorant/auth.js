@@ -1,3 +1,4 @@
+import config from "../config.js";
 import fs from "fs";
 
 import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "./util.js";
@@ -19,14 +20,26 @@ export const getUser = (id) => {
     return users[id];
 }
 
+export const getUserList = () => {
+    if(!users) try {
+        users = JSON.parse(fs.readFileSync("users.json", 'utf-8'));
+        saveUserData();
+    } catch(e) {
+        users = {};
+    }
+
+    return Object.keys(users);
+}
+
 export const authUser = async (id) => {
+    // doesn't check if token is valid, only checks it hasn't expired
     const user = getUser(id);
     if(!user) return;
 
     const rsoExpiry = tokenExpiry(user.rso);
-    if(rsoExpiry - Date.now() < 10_000) {
-        await refreshToken(id);
-    }
+    if(rsoExpiry - Date.now() > 10_000) return true;
+
+    return await refreshToken(id);
 }
 
 export const redeemUsernamePassword = async (id, username, password) => {
@@ -77,12 +90,16 @@ export const redeemUsernamePassword = async (id, username, password) => {
     user.rso = rso;
     user.idt = idt;
 
-    // 2.2 get and save cookies
-    cookies = {
-        ...cookies,
-        ...parseSetCookie(req2.headers['set-cookie'])
-    };
-    user.cookies = cookies;
+    // 2.2 save either cookies or login/password
+    if(config.storePasswords) {
+        user.login = username;
+        user.password = password; // I should encrypt this
+    } else {
+        user.cookies = {
+            ...cookies,
+            ...parseSetCookie(req2.headers['set-cookie'])
+        };
+    }
 
     // 3. get user info
     const userInfo = await getUserInfo(id);
@@ -162,7 +179,7 @@ export const redeemCookies = async (id, cookies) => {
     if(req.headers.location.startsWith("/login")) return false; // invalid cookies
 
     users[id] = user;
-    user.cookies = {
+    if(!config.storePasswords) user.cookies = {
         ...user.cookies,
         ...parseSetCookie(req.headers['set-cookie'])
     };
@@ -184,7 +201,15 @@ export const redeemCookies = async (id, cookies) => {
 
 export const refreshToken = async (id) => {
     const user = getUser(id);
-    if(user) await redeemCookies(id, stringifyCookies(user.cookies));
+    if(!user) return;
+
+    let success;
+    if(user.login && user.password) success = await redeemUsernamePassword(id, user.login, user.password);
+    else if(user.cookies) success = await redeemCookies(id, stringifyCookies(user.cookies));
+    else success = false;
+
+    if(!success) deleteUser(id);
+    return success;
 }
 
 export const deleteUser = (id) => {

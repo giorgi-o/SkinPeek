@@ -1,4 +1,5 @@
 import https from "https";
+import fs from "fs";
 
 // all my homies hate node-fetch
 export const fetch = (url, options={}) => {
@@ -21,6 +22,19 @@ export const fetch = (url, options={}) => {
         req.write(options.body || "");
         req.end();
     });
+}
+
+export const asyncReadFile = (path) => {
+    return new Promise(((resolve, reject) => {
+        fs.readFile(path, (err, data) => {
+            if(err) reject(err);
+            else resolve(data);
+        })
+    }));
+}
+
+export const asyncReadJSONFile = async (path) => {
+    return JSON.parse((await asyncReadFile(path)).toString());
 }
 
 export const parseSetCookie = (setCookie) => {
@@ -58,4 +72,3 @@ export const tokenExpiry = (token) => {
 export const getPUUID = (token) => {
     return decodeToken(token).sub;
 }
-
