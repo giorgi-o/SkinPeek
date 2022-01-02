@@ -23,6 +23,6 @@ Obviously, only log in if you trust whoever's hosting the bot, as they can theor
 
 ## Acknowledgements
 
-- [Hamper](https://github.com/OwOHamper/Valorant-item-shop-discord-bot) for the idea, and the code showing how to do it
+- [Hamper](https://github.com/OwOHamper/) for the idea, and [the code](https://github.com/OwOHamper/Valorant-item-shop-discord-bot/blob/main/item_shop_viewer.py) showing how to do it
 - [Valorant-api](https://dash.valorant-api.com/) for skin names and images
 - [The discord server](https://discord.gg/a9yzrw3KAm), join here!
