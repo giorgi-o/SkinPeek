@@ -17,12 +17,12 @@ Deploying in the guild happens instantly but the commands can only be used in th
 - Login using `/login`
 - Get your daily shop using `/skins`
 
-The bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
+By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
 You can log in using your auth.riotgames.com cookies using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
-Obviously, only log in if you trust whoever's hosting the bot, as they can theoretically do anything with your account.  
+Obviously, only log in if you trust whoever is hosting the bot, as they can theoretically do anything with your account.  
 
 ## Acknowledgements
 
-- [Hamper](https://github.com/OwOHamper/) for the idea, and [the code](https://github.com/OwOHamper/Valorant-item-shop-discord-bot/blob/main/item_shop_viewer.py) showing how to do it
+- [Hamper](https://github.com/OwOHamper/) for the idea and [the code](https://github.com/OwOHamper/Valorant-item-shop-discord-bot/blob/main/item_shop_viewer.py) showing how to do it
 - [Valorant-api](https://dash.valorant-api.com/) for skin names and images
 - [The discord server](https://discord.gg/a9yzrw3KAm), join here!
