@@ -1,17 +1,7 @@
-import {
-    Client,
-    Intents,
-    MessageActionRow,
-    MessageButton,
-    MessageFlags,
-    MessageSelectMenu,
-    Permissions
-} from "discord.js";
 import {getBalance, getSkin, getShop, refreshSkinList, searchSkin} from "./Valorant/skins.js";
 import {authUser, deleteUser, getUser, loadUserData, redeemCookies, redeemUsernamePassword} from "./Valorant/auth.js";
 import {loadConfig} from "./config.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
-import cron from "node-cron";
 import {
     addAlert,
     alertExists, alertsForUser,
@@ -22,6 +12,17 @@ import {
     removeAlertsInChannel
 } from "./alerts.js";
 
+import {
+    Client,
+    Intents,
+    MessageActionRow,
+    MessageButton,
+    MessageFlags,
+    MessageSelectMenu,
+    Permissions
+} from "discord.js";
+import cron from "node-cron";
+
 /* TODO list:
  * (done) Balance
  * (done) Auto fetch skins on startup
@@ -31,6 +32,7 @@ import {
  * See current bundles
  * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
  * Option to send shop automatically every day
+ * More options in config.json (whether to use custom emojis, at what time to check item shop, etc.)
  * Admin commands (delete user, see/edit everyone's alerts, etc.)
  */
 
@@ -45,7 +47,7 @@ client.on("ready", async () => {
     refreshSkinList().then(() => console.log("Skins loaded!"));
 
     // check alerts every day at 00:00:10 GMT
-    cron.schedule("10 0 0 * * *", checkAlerts, {timezone: "GMT"}); // todo make time configurable
+    cron.schedule("10 0 0 * * *", checkAlerts, {timezone: "GMT"});
 });
 
 const commands = [
@@ -569,7 +571,7 @@ export const skinAlerts = async (alerts, expires) => {
     }
 }
 
-const removeAlertButton = (id, uuid) => new MessageButton().setCustomId(`removealert/${uuid}/${id}`).setStyle("DANGER").setLabel("Remove").setEmoji("✖");
+const removeAlertButton = (id, uuid) => new MessageButton().setCustomId(`removealert/${uuid}/${id}`).setStyle("DANGER").setLabel("Remove Alert").setEmoji("✖");
 const removeAlertActionRow = (id, uuid) => new MessageActionRow().addComponents(removeAlertButton(id, uuid));
 
 // apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug

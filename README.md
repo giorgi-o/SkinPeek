@@ -2,7 +2,7 @@
 Discord bot to see your daily Valorant item shop without launching the game and set alerts for skins.
 
 <img src="https://user-images.githubusercontent.com/20621396/148357971-92168c7e-4caa-472d-bbd7-a3d3fff6b76d.png" alt="illustration" width="400" />
-<img src="https://user-images.githubusercontent.com/20621396/148361776-ade68af6-351d-4e96-a81d-f707bc3eb28c.png" alt="illustration" width="600" />
+<img src="https://user-images.githubusercontent.com/20621396/148402162-0e1c5ece-ee84-477f-9544-5a4232f6eeef.png" alt="illustration" width="600" />
 
 ## Installation
 
@@ -20,9 +20,9 @@ The bot should have role that allows it to send messages and create custom emoji
 ### Docker
 
 - [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#bot-invite-links) with the `applications.commands` scope
-- create a docker-compose file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/docker-compose.yml) and a config file likes [this](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
-- put your bot token in config.json
-- login to ghcr.io (`docker login ghcr.io`) and use your GitHub username as username and a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with permissions for reading packages as password
+- Create a docker-compose file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/docker-compose.yml) and a config file likes [this](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
+- Put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
+- Login to ghcr.io (`docker login ghcr.io`) and use your GitHub username as username and a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with the `write:packages` permission as password
 - use `docker-compose up -d` to start the bot, `docker-compose logs -f` to see the logs and `docker-compose down` to stop it.
 - Send `!deploy guild` or `!deploy global` to deploy the commands.
 
@@ -52,4 +52,5 @@ Obviously, only log in if you trust whoever is hosting the bot, as they can theo
 
 - [Hamper](https://github.com/OwOHamper/) for the idea and [the code](https://github.com/OwOHamper/Valorant-item-shop-discord-bot/blob/main/item_shop_viewer.py) showing how to do it
 - [Valorant-api](https://dash.valorant-api.com/) for skin names and images
+- [warriorzz](https://github.com/warriorzz) for setting up the Docker
 - [The discord server](https://discord.gg/a9yzrw3KAm), join here!
