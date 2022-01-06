@@ -1,7 +1,8 @@
 # SkinPeek
-Discord bot to see your daily Valorant item shop without launching the game.
+Discord bot to see your daily Valorant item shop without launching the game and set alerts for skins.
 
 <img src="https://user-images.githubusercontent.com/20621396/148357971-92168c7e-4caa-472d-bbd7-a3d3fff6b76d.png" alt="illustration" width="400" />
+<img src="https://user-images.githubusercontent.com/20621396/148361776-ade68af6-351d-4e96-a81d-f707bc3eb28c.png" alt="illustration" width="600" />
 
 ## Installation
 
