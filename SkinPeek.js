@@ -1,4 +1,12 @@
-import {Client, Intents, MessageActionRow, MessageButton, MessageFlags, MessageSelectMenu} from "discord.js";
+import {
+    Client,
+    Intents,
+    MessageActionRow,
+    MessageButton,
+    MessageFlags,
+    MessageSelectMenu,
+    Permissions
+} from "discord.js";
 import {getBalance, getSkin, getShop, refreshSkinList, searchSkin} from "./Valorant/skins.js";
 import {authUser, deleteUser, getUser, loadUserData, redeemCookies, redeemUsernamePassword} from "./Valorant/auth.js";
 import {loadConfig} from "./config.js";
@@ -33,7 +41,7 @@ const VAL_COLOR_1 = 0xFD4553, VAL_COLOR_2 = 0x0F1923;
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
-    console.debug("Loading skins...");
+    console.log("Loading skins...");
     refreshSkinList().then(() => console.log("Skins loaded!"));
 
     // check alerts every day at 00:00:10 GMT
@@ -131,7 +139,7 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 // start uploading emoji now
-                const emojiPromise = VPEmoji(interaction.guild);
+                const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
 
                 await interaction.deferReply();
 
@@ -147,7 +155,7 @@ client.on("interactionCreate", async (interaction) => {
                     color: VAL_COLOR_1
                 }];
 
-                const emojiString = (await emojiPromise) || "Price:";
+                const emojiString = emojiToString(await emojiPromise) || "Price:";
 
                 for(const uuid of shop.offers) {
                     const item = await getSkin(uuid, interaction.user.id);
@@ -176,14 +184,14 @@ client.on("interactionCreate", async (interaction) => {
 
                 await interaction.deferReply();
 
-                const VPEmojiPromise = VPEmoji(interaction.guild);
-                const RadEmojiPromise = RadEmoji(interaction.guild);
+                const VPEmojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+                const RadEmojiPromise = RadEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
 
                 const balance = await getBalance(interaction.user.id);
 
                 if(balance) {
-                    const VPEmoji = (await VPEmojiPromise) || "Valorant Points:";
-                    const RadEmoji = (await RadEmojiPromise) || "Radianite:";
+                    const VPEmoji = emojiToString(await VPEmojiPromise) || "Valorant Points:";
+                    const RadEmoji = emojiToString(await RadEmojiPromise) || "Radianite:";
                     await interaction.followUp({
                         embeds: [{
                             title: `**${valorantUser.username}**'s wallet:`,
@@ -287,7 +295,7 @@ client.on("interactionCreate", async (interaction) => {
 
                 if(alerts.length === 0) {
                     return await interaction.reply({
-                        embeds: [basicEmbed("**You do not have any alerts set up!** Use `/alert` to get started.")],
+                        embeds: [basicEmbed("**You don't have any alerts set up!** Use `/alert` to get started.")],
                         ephemeral: true
                     });
                 }
@@ -298,7 +306,7 @@ client.on("interactionCreate", async (interaction) => {
                     ephemeral: true
                 });
 
-                const emojiString = await VPEmoji(interaction.guild) || "Price: ";
+                const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel)) || "Price: ");
 
                 const alertFieldDescription = (channel_id, price) => {
                     return channel_id !== interaction.channel.id ? `in <#${channel_id}>` :
@@ -444,6 +452,7 @@ client.on("interactionCreate", async (interaction) => {
             }
         }
     } else if(interaction.isSelectMenu()) {
+        console.log(`${interaction.user.tag} selected an option from the dropdown`);
         switch (interaction.customId) {
             case "skin-select": {
                 if(interaction.message.interaction.user.id !== interaction.user.id) {
@@ -464,6 +473,7 @@ client.on("interactionCreate", async (interaction) => {
             }
         }
     } else if(interaction.isButton()) {
+        console.log(`${interaction.user.tag} clicked ${interaction.component.label}`);
         if(interaction.customId.startsWith("removealert/")) {
             const [, uuid, id] = interaction.customId.split('/');
 
@@ -561,6 +571,10 @@ export const skinAlerts = async (alerts, expires) => {
 
 const removeAlertButton = (id, uuid) => new MessageButton().setCustomId(`removealert/${uuid}/${id}`).setStyle("DANGER").setLabel("Remove").setEmoji("✖");
 const removeAlertActionRow = (id, uuid) => new MessageActionRow().addComponents(removeAlertButton(id, uuid));
+
+// apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
+const externalEmojisAllowed = (channel) => channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
+const emojiToString = (emoji) => `<:${emoji.name}:${emoji.id}>`;
 
 loadUserData();
 loadAlerts();

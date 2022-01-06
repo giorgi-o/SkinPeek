@@ -6,18 +6,20 @@ const VPEmojiFilename = "vp.png"; // https://media.valorant-api.com/currencies/8
 const RadEmojiName = "RadianiteIcon";
 const RadEmojiFilename = "rad.png"; // https://media.valorant-api.com/currencies/e59aa87c-4cbf-517a-5983-6e81511be9b7/displayicon.png
 
-export const VPEmoji = async (guild) => await getOrCreateEmoji(guild, VPEmojiName, VPEmojiFilename);
-export const RadEmoji = async (guild) => await getOrCreateEmoji(guild, RadEmojiName, RadEmojiFilename);
+export const VPEmoji = async (guild, externalEmojisAllowed=false) => await getOrCreateEmoji(guild, VPEmojiName, VPEmojiFilename, externalEmojisAllowed);
+export const RadEmoji = async (guild, externalEmojisAllowed=false) => await getOrCreateEmoji(guild, RadEmojiName, RadEmojiFilename, externalEmojisAllowed);
 
-const getOrCreateEmoji = async (guild, name, filename) => {
+const getOrCreateEmoji = async (guild, name, filename, externalEmojisAllowed) => {
     // see if emoji exists already
     const emoji = emojiInGuild(guild, name);
     if(emoji) return emoji;
 
     // check in other guilds
-    for(const otherGuild of guild.client.guilds.cache.values()) {
-        const emoji = emojiInGuild(otherGuild, name);
-        if(emoji) return emoji;
+    if(externalEmojisAllowed) {
+        for(const otherGuild of guild.client.guilds.cache.values()) {
+            const emoji = emojiInGuild(otherGuild, name);
+            if(emoji) return emoji;
+        }
     }
 
     return await createEmoji(guild, name, filename);
@@ -28,10 +30,11 @@ const emojiInGuild = (guild, name) => {
 }
 
 const createEmoji = async (guild, name, filename) => {
+    console.debug(`Uploading emoji ${name} in ${guild.name}...`);
     try {
         return await guild.emojis.create(await asyncReadFile(filename), name);
     } catch(e) {
         console.error(`Could not create ${name} emoji! Either I don't have the right role or there are no more emoji slots`);
-        console.error(e);
+        console.error(`${e.name}: ${e.message}`);
     }
 }

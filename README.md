@@ -22,7 +22,8 @@ The bot should have role that allows it to send messages and create custom emoji
 - Login using `/login`
 - Get your daily shop using `/skins`
 - Set alerts using `/alert`
-- Show your Valorant Points & Radianite using `/balance`
+- Show your Valorant Points & Radianite using `/balance
+- `
 
 By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
 You can log in using your auth.riotgames.com cookies using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
