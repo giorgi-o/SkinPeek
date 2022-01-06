@@ -1,0 +1,21 @@
+name: Build and push docker image
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build image
+        run: docker build . -t ghcr.io/giorgi-o/skinpeek/skinpeek:latest -t ghcr.io/giorgi-o/skinpeek/skinpeek:"$GITHUB_SHA"
+      - name: Login ghcr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run:  docker login ghcr.io --username giorgi-o --password "$GHCR_TOKEN"
+      - name: Push image to ghcr
+        run: docker push ghcr.io/giorgi-o/skinpeek/skinpeek:latest
+      - name: Push specific tag
+        run: docker push ghcr.io/giorgi-o/skinpeek/skinpeek:"$GITHUB_SHA"
