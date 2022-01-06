@@ -20,7 +20,9 @@ The bot should have role that allows it to send messages and create custom emoji
 ### Docker
 
 - [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#bot-invite-links) with the `applications.commands` scope
-- Clone the repo and put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
+- create a docker-compose file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/docker-compose.yml) and a config file likes [this](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
+- put your bot token in config.json
+- login to ghcr.io (`docker login ghcr.io`) and use your GitHub username as username and a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with permissions for reading packages as password
 - use `docker-compose up -d` to start the bot, `docker-compose logs -f` to see the logs and `docker-compose down` to stop it.
 - Send `!deploy guild` or `!deploy global` to deploy the commands.
 
