@@ -17,6 +17,13 @@ Deploying in the guild happens instantly but the commands can only be used in th
 
 The bot should have role that allows it to send messages and create custom emojis.
 
+### Docker
+
+- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#bot-invite-links) with the `applications.commands` scope
+- Clone the repo and put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
+- use `docker-compose up -d` to start the bot, `docker-compose logs -f` to see the logs and `docker-compose down` to stop it.
+- Send `!deploy guild` or `!deploy global` to deploy the commands.
+
 ## Usage
 
 - Login using `/login`
