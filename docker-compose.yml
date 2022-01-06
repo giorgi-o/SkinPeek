@@ -1,0 +1,8 @@
+version: '3.8'
+
+services:
+  bot:
+    build: .
+    volumes:
+      - ./config.json:/usr/app/config.json
+    container_name: skin_peek_bot
