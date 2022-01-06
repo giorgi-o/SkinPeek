@@ -1,9 +1,11 @@
 {
   "name": "skin-peek",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "main": "SkinPeek.js",
   "dependencies": {
-    "discord.js": "^13.3.1"
+    "discord.js": "^13.3.1",
+    "fuse.js": "^6.5.3",
+    "node-cron": "^3.0.0"
   },
   "type": "module"
 }

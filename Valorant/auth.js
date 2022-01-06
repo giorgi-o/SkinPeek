@@ -5,29 +5,26 @@ import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpi
 
 let users;
 
+export const loadUserData = () => {
+    if(!users) try {
+        users = JSON.parse(fs.readFileSync("users.json", 'utf-8'));
+        saveUserData();
+    } catch(e) {
+        users = {};
+    }
+}
+
 const saveUserData = () => {
     fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
 }
 
 export const getUser = (id) => {
-    if(!users) try {
-        users = JSON.parse(fs.readFileSync("users.json", 'utf-8'));
-        saveUserData();
-    } catch(e) {
-        users = {};
-    }
-
+    loadUserData();
     return users[id];
 }
 
 export const getUserList = () => {
-    if(!users) try {
-        users = JSON.parse(fs.readFileSync("users.json", 'utf-8'));
-        saveUserData();
-    } catch(e) {
-        users = {};
-    }
-
+    loadUserData();
     return Object.keys(users);
 }
 

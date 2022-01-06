@@ -1,31 +1,37 @@
 import {asyncReadFile} from "./Valorant/util.js";
 
-const emojiName = "ValPointsIcon";
-const emojiFilename = "vp.png"; // https://media.valorant-api.com/currencies/85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741/largeicon.png
+const VPEmojiName = "ValPointsIcon";
+const VPEmojiFilename = "vp.png"; // https://media.valorant-api.com/currencies/85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741/largeicon.png
 
-export const VPEmojiString = async (guild) => {
+const RadEmojiName = "RadianiteIcon";
+const RadEmojiFilename = "rad.png"; // https://media.valorant-api.com/currencies/e59aa87c-4cbf-517a-5983-6e81511be9b7/displayicon.png
+
+export const VPEmoji = async (guild) => await getOrCreateEmoji(guild, VPEmojiName, VPEmojiFilename);
+export const RadEmoji = async (guild) => await getOrCreateEmoji(guild, RadEmojiName, RadEmojiFilename);
+
+const getOrCreateEmoji = async (guild, name, filename) => {
     // see if emoji exists already
-    const emoji = emojiInGuild(guild);
+    const emoji = emojiInGuild(guild, name);
     if(emoji) return emoji;
 
     // check in other guilds
     for(const otherGuild of guild.client.guilds.cache.values()) {
-        const emoji = emojiInGuild(otherGuild);
+        const emoji = emojiInGuild(otherGuild, name);
         if(emoji) return emoji;
     }
 
-    return await createEmoji(guild);
+    return await createEmoji(guild, name, filename);
 }
 
-const emojiInGuild = (guild) => {
-    return guild.emojis.cache.find(emoji => emoji.name === emojiName);
+const emojiInGuild = (guild, name) => {
+    return guild.emojis.cache.find(emoji => emoji.name === name);
 }
 
-const createEmoji = async (guild) => {
+const createEmoji = async (guild, name, filename) => {
     try {
-        return await guild.emojis.create(await asyncReadFile(emojiFilename), emojiName);
+        return await guild.emojis.create(await asyncReadFile(filename), name);
     } catch(e) {
-        console.error("Could not create VP emoji! Either I don't have the right role or there are no more emoji slots");
+        console.error(`Could not create ${name} emoji! Either I don't have the right role or there are no more emoji slots`);
         console.error(e);
     }
 }
