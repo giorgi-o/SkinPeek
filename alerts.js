@@ -56,7 +56,7 @@ export const removeAlertsInChannel = (channel_id) => {
 
 export const checkAlerts = () => {
     if(!alerts) return;
-    console.debug("Checking new shop skins...");
+    console.debug("Checking new shop skins for alerts...");
 
     for(const id of getUserList()) {
         const userAlerts = alerts.filter(alert => alert.id === id);

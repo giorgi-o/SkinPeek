@@ -27,7 +27,7 @@ import cron from "node-cron";
  * (done) Balance
  * (done) Auto fetch skins on startup
  * (done) Skin notifier/reminder
- * Auto check for new Valorant version every hour
+ * (done) Auto check for new Valorant version every 15 minutes
  * Password encryptor
  * See current bundles
  * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
@@ -47,13 +47,16 @@ client.on("ready", async () => {
     refreshSkinList().then(() => console.log("Skins loaded!"));
 
     // check alerts every day at 00:00:10 GMT
-    cron.schedule("10 0 0 * * *", checkAlerts, {timezone: "GMT"});
+    cron.schedule(config.refreshSkins, checkAlerts, {timezone: "GMT"});
+
+    // check for new valorant version every 15mins
+    cron.schedule(config.checkGameVersion, () => refreshSkinList(true), {timezone: "GMT"});
 });
 
 const commands = [
     {
         name: "skins",
-        description: "Show your current daily shop"
+        description: "Deprecated, use /shop instead"
     },
     {
         name: "shop",
@@ -169,15 +172,15 @@ client.on("interactionCreate", async (interaction) => {
                 const emojiString = emojiToString(await emojiPromise) || "Price:";
 
                 for(const uuid of shop.offers) {
-                    const item = await getSkin(uuid, interaction.user.id);
+                    const skin = await getSkin(uuid, interaction.user.id);
                     const embed = {
-                        title: await skinNameAndEmoji(item, interaction.channel),
+                        title: await skinNameAndEmoji(skin, interaction.channel),
                         color: VAL_COLOR_2,
                         thumbnail: {
-                            url: item.icon
+                            url: skin.icon
                         }
                     };
-                    if(config.showSkinPrices && item.price) embed.description = `${emojiString} ${item.price}`;
+                    if(config.showSkinPrices && skin.price) embed.description = `${emojiString} ${skin.price}`;
                     embeds.push(embed);
                 }
 
@@ -228,12 +231,12 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 const searchQuery = interaction.options.get("skin").value
-                const searchResults = searchSkin(searchQuery); // filter for skins they already have
+                const searchResults = await searchSkin(searchQuery); // filter for skins they already have
 
                 // filter out results for which the user already has an alert set up
                 const filteredResults = [];
                 for(const result of searchResults) {
-                    const otherAlert = alertExists(interaction.user.id, result.item.uuid);
+                    const otherAlert = alertExists(interaction.user.id, result.uuid);
                     if(otherAlert) { // user already has an alert for this skin
                         // maybe it's in a now deleted channel?
                         const otherChannel = await client.channels.fetch(otherAlert.channel_id).catch(() => {});
@@ -247,14 +250,14 @@ client.on("interactionCreate", async (interaction) => {
                 if(filteredResults.length === 0) {
                     if(searchResults.length === 0) return await interaction.reply({embeds: [basicEmbed("**Couldn't find a skin with that name!** Check the spelling and try again.")], ephemeral: true});
 
-                    const skin = searchResults[0].item;
+                    const skin = searchResults[0];
                     const otherAlert = alertExists(interaction.user.id, skin.uuid);
                     return await interaction.reply({
                         embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
                         ephemeral: true
                     });
-                } else if(filteredResults.length === 1 || filteredResults[0].item.name.toLowerCase() === searchQuery.toLowerCase()) {
-                    const skin = filteredResults[0].item;
+                } else if(filteredResults.length === 1 || filteredResults[0].name.toLowerCase() === searchQuery.toLowerCase()) {
+                    const skin = filteredResults[0];
 
                     addAlert({
                         id: interaction.user.id,
@@ -267,8 +270,8 @@ client.on("interactionCreate", async (interaction) => {
                     const row = new MessageActionRow();
                     const options = filteredResults.splice(0, 25).map(result => {
                         return {
-                            label: result.item.name,
-                            value: `skin-${result.item.uuid}`
+                            label: result.name,
+                            value: `skin-${result.uuid}`
                         }
                     });
                     row.addComponents(new MessageSelectMenu().setCustomId("skin-select").setPlaceholder("Select skin:").addOptions(options));
@@ -536,8 +539,10 @@ const secondaryEmbed = (content) => {
 }
 
 const skinChosenEmbed = async (skin, channel) => {
+    let  description = `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`;
+    if(!skin.rarity) description += "\n***Note:** This is a battle pass skin!*";
     return {
-        description: `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`,
+        description: description,
         color: VAL_COLOR_1,
         thumbnail: {
             url: skin.icon
@@ -585,6 +590,7 @@ export const skinAlerts = async (alerts, expires) => {
 }
 
 const skinNameAndEmoji = async (skin, channel) => {
+    if(!skin.rarity) return skin.name;
     const rarityIcon = await rarityEmoji(channel.guild, skin.rarity.name, skin.rarity.icon, externalEmojisAllowed(channel));
     return rarityIcon ? `${rarityIcon} ${skin.name}` : skin.name;
 }

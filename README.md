@@ -48,7 +48,7 @@ Obviously, only log in if you trust whoever is hosting the bot, as they can theo
 * ~~Auto fetch skins on startup~~
 * ~~Skin notifier/reminder~~
 * ~~Show weapon rarity~~
-* Auto check for new Valorant version
+* ~~Auto check for new Valorant version~~
 * See current bundles
 * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
 * Option to send shop automatically every day

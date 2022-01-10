@@ -2,5 +2,7 @@
   "token": "token goes here",
   "showSkinPrices": true,
   "showSkinRarities": true,
+  "refreshSkins": "10 0 0 * * *",
+  "checkGameVersion": "*/15 * * * *",
   "storePasswords": false
 }

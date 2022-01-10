@@ -55,7 +55,7 @@ export const refreshSkinList = async (checkVersion=false) => {
             await getPrices();
             await getRarities();
             saveSkinsJSON();
-        } else if(prices.timestamp === null) await getPrices();
+        } else if(!prices.timestamp || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) await getPrices();
 
         formatSearchableSkinList();
     }
@@ -171,16 +171,19 @@ export const getSkin = async (uuid, id=null, checkVersion=false) => {
         skin.price = prices[uuid];
     }
 
-    const rarity = rarities[skin.rarity];
+    const rarity = rarities[skin.rarity] || null;
 
     return {
+        uuid,
         ...skin,
         rarity
     };
 }
 
-export const searchSkin = (query) => {
-    return fuse.search(query).filter(result => result.score < 0.3);
+export const searchSkin = async (query) => {
+    await refreshSkinList();
+    const results = fuse.search(query).filter(result => result.score < 0.3);
+    return await Promise.all(results.map(result => getSkin(result.item.uuid)));
 }
 
 export const getShop = async (id) => {
