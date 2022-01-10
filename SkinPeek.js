@@ -1,7 +1,7 @@
 import {getBalance, getSkin, getShop, refreshSkinList, searchSkin} from "./Valorant/skins.js";
 import {authUser, deleteUser, getUser, loadUserData, redeemCookies, redeemUsernamePassword} from "./Valorant/auth.js";
 import {loadConfig} from "./config.js";
-import {RadEmoji, VPEmoji} from "./emoji.js";
+import {RadEmoji, rarityEmoji, VPEmoji} from "./emoji.js";
 import {
     addAlert,
     alertExists, alertsForUser,
@@ -125,6 +125,15 @@ client.on("messageCreate", async (message) => {
         await client.application.commands.set(commands).then(() => console.log("Commands deployed globally!"));
 
         await message.reply("Deployed globally!");
+    } else if(message.content === "!undeploy") {
+        console.log("Undeploying commands...");
+
+        await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
+
+        const guild = client.guilds.cache.get(message.guild.id);
+        await guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
+
+        await message.reply("Undeployed in guild and globally!");
     }
 });
 
@@ -162,7 +171,7 @@ client.on("interactionCreate", async (interaction) => {
                 for(const uuid of shop.offers) {
                     const item = await getSkin(uuid, interaction.user.id);
                     const embed = {
-                        title: item.name,
+                        title: await skinNameAndEmoji(item, interaction.channel),
                         color: VAL_COLOR_2,
                         thumbnail: {
                             url: item.icon
@@ -253,7 +262,7 @@ client.on("interactionCreate", async (interaction) => {
                         channel_id: interaction.channel.id
                     });
 
-                    return await interaction.reply({embeds: [skinChosenEmbed(skin.name, skin.icon)], components: [removeAlertActionRow(interaction.user.id, skin.uuid)]});
+                    return await interaction.reply({embeds: [await skinChosenEmbed(skin, interaction.channel)], components: [removeAlertActionRow(interaction.user.id, skin.uuid)]});
                 } else {
                     const row = new MessageActionRow();
                     const options = filteredResults.splice(0, 25).map(result => {
@@ -312,7 +321,8 @@ client.on("interactionCreate", async (interaction) => {
 
                 const alertFieldDescription = (channel_id, price) => {
                     return channel_id !== interaction.channel.id ? `in <#${channel_id}>` :
-                        price ? `${emojiString} ${price}` : "Not for sale";
+                        price ? `${emojiString} ${price}` :
+                        config.showSkinPrices ? "Not for sale" : "Prices not shown";
                 }
 
                 if(alerts.length === 1) {
@@ -323,7 +333,7 @@ client.on("interactionCreate", async (interaction) => {
                         embeds: [{
                             title: "You have one alert set up:",
                             color: VAL_COLOR_1,
-                            description: `**${skin.name}**\n${alertFieldDescription(alert.channel_id, skin.price)}`,
+                            description: `**${await skinNameAndEmoji(skin, interaction.channel)}**\n${alertFieldDescription(alert.channel_id, skin.price)}`,
                             thumbnail: {
                                 url: skin.icon
                             }
@@ -341,7 +351,7 @@ client.on("interactionCreate", async (interaction) => {
                 }
                 alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
 
-                const embed = {
+                const embed = { // todo switch this to a "one embed per alert" message, kinda like /shop
                     title: "The alerts you currently have set up:",
                     color: VAL_COLOR_1,
                     footer: {
@@ -351,15 +361,13 @@ client.on("interactionCreate", async (interaction) => {
                 }
                 const buttons = [];
 
-                const inlineFields = alerts.length >= 6;
-
                 let n = 1;
                 for(const alert of alerts) {
                     const skin = await getSkin(alert.uuid, interaction.user.id);
                     embed.fields.push({
-                        name: `**${n}.** ${skin.name}`,
+                        name: `**${n}.** ${await skinNameAndEmoji(skin, interaction.channel)}`,
                         value: alertFieldDescription(alert.channel_id, skin.price),
-                        inline: inlineFields
+                        inline: false
                     });
                     buttons.push(removeAlertButton(interaction.user.id, alert.uuid).setLabel(`${n}.`).setEmoji(""));
                     n++;
@@ -454,7 +462,7 @@ client.on("interactionCreate", async (interaction) => {
             }
         }
     } else if(interaction.isSelectMenu()) {
-        console.log(`${interaction.user.tag} selected an option from the dropdown`);
+        console.log(`${interaction.user.tag} selected an option a the dropdown`);
         switch (interaction.customId) {
             case "skin-select": {
                 if(interaction.message.interaction.user.id !== interaction.user.id) {
@@ -462,8 +470,13 @@ client.on("interactionCreate", async (interaction) => {
                 }
 
                 const chosenSkin = interaction.values[0].substr(5);
-
                 const skin = await getSkin(chosenSkin);
+
+                const otherAlert = alertExists(interaction.user.id, chosenSkin);
+                if(otherAlert) return await interaction.reply({
+                    embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
+                    ephemeral: true
+                });
 
                 addAlert({
                     id: interaction.user.id,
@@ -471,7 +484,7 @@ client.on("interactionCreate", async (interaction) => {
                     channel_id: interaction.channel.id
                 });
 
-                await interaction.update({embeds: [skinChosenEmbed(skin.name, skin.icon)], components: [removeAlertActionRow(interaction.user.id, chosenSkin)]});
+                await interaction.update({embeds: [await skinChosenEmbed(skin, interaction.channel)], components: [removeAlertActionRow(interaction.user.id, chosenSkin)]});
             }
         }
     } else if(interaction.isButton()) {
@@ -485,7 +498,7 @@ client.on("interactionCreate", async (interaction) => {
             if(success) {
                 const skin = await getSkin(uuid);
 
-                await interaction.reply({embeds: [basicEmbed(`Removed the alert for the **${skin.name}**!`)], ephemeral: true});
+                await interaction.reply({embeds: [basicEmbed(`Removed the alert for the **${await skinNameAndEmoji(skin, interaction.channel)}**!`)], ephemeral: true});
 
                 if(interaction.message.flags.has(MessageFlags.FLAGS.EPHEMERAL)) return; // message is ephemeral
 
@@ -522,12 +535,12 @@ const secondaryEmbed = (content) => {
     }
 }
 
-const skinChosenEmbed = (name, skinIcon) => {
+const skinChosenEmbed = async (skin, channel) => {
     return {
-        description: `Successfully set an alert for **${name}**!`,
+        description: `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`,
         color: VAL_COLOR_1,
         thumbnail: {
-            url: skinIcon
+            url: skin.icon
         }
     }
 }
@@ -551,7 +564,7 @@ export const skinAlerts = async (alerts, expires) => {
         await channel.send({
             content: `<@${alert.id}>`,
             embeds: [{
-                description: `:tada: <@${alert.id}> The **${skin.name}** is in your daily shop!\nIt will be gone <t:${expiresTimestamp}:R>.`,
+                description: `:tada: <@${alert.id}> The **${await skinNameAndEmoji(skin, channel)}** is in your daily shop!\nIt will be gone <t:${expiresTimestamp}:R>.`,
                 color: VAL_COLOR_1,
                 thumbnail: {
                     url: skin.icon
@@ -562,7 +575,7 @@ export const skinAlerts = async (alerts, expires) => {
             console.error(`Could not send alert message in #${channel.name}! Do I have the right role?`);
 
             try { // try to log the alert to the console
-                const user = await fetch(alert.id).catch(() => {});
+                const user = await client.users.fetch(alert.id).catch(() => {});
                 if(user) console.error(`Please tell ${user.tag} that the ${skin.name} is in their item shop!`);
             } catch(e) {}
 
@@ -571,7 +584,12 @@ export const skinAlerts = async (alerts, expires) => {
     }
 }
 
-const removeAlertButton = (id, uuid) => new MessageButton().setCustomId(`removealert/${uuid}/${id}`).setStyle("DANGER").setLabel("Remove Alert").setEmoji("✖");
+const skinNameAndEmoji = async (skin, channel) => {
+    const rarityIcon = await rarityEmoji(channel.guild, skin.rarity.name, skin.rarity.icon, externalEmojisAllowed(channel));
+    return rarityIcon ? `${rarityIcon} ${skin.name}` : skin.name;
+}
+
+const removeAlertButton = (id, uuid) => new MessageButton().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 10000)}`).setStyle("DANGER").setLabel("Remove Alert").setEmoji("✖");
 const removeAlertActionRow = (id, uuid) => new MessageActionRow().addComponents(removeAlertButton(id, uuid));
 
 // apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug

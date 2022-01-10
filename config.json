@@ -1,5 +1,6 @@
 {
   "token": "token goes here",
   "showSkinPrices": true,
+  "showSkinRarities": true,
   "storePasswords": false
 }

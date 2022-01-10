@@ -6,8 +6,12 @@ import {asyncReadJSONFile, fetch} from "./util.js";
 import {authUser, deleteUser, getUser, getUserList} from "./auth.js";
 import config from "../config.js";
 
-let skinData = {version: null};
+const formatVersion = 2;
+let gameVersion = null;
+
+let skins = {};
 let prices = {timestamp: null};
+let rarities = {};
 
 let searchableSkinList = [];
 let fuse;
@@ -28,29 +32,36 @@ const loadSkinsJSON = async (filename="skins.json") => {
     const jsonData = await asyncReadJSONFile(filename).catch(() => {});
     if(!jsonData) return;
 
-    skinData = jsonData.skins;
+    gameVersion = jsonData.gameVersion;
+    skins = jsonData.skins;
     prices = jsonData.prices;
+    rarities = jsonData.rarities;
+
+    return jsonData.formatVersion;
 }
 
 const saveSkinsJSON = (filename="skins.json") => {
-    fs.writeFileSync(filename, JSON.stringify({skins: skinData, prices: prices}, null, 2));
+    fs.writeFileSync(filename, JSON.stringify({formatVersion, gameVersion, skins, prices, rarities}, null, 2));
 }
 
 export const refreshSkinList = async (checkVersion=false) => {
-    if(checkVersion || !skinData.version) {
-        await loadSkinsJSON();
+    if(checkVersion || !gameVersion) {
+        const fileFormatVersion = await loadSkinsJSON();
 
         const version = await getValorantVersion();
-        if(version !== skinData.version) {
+        if(version !== gameVersion || formatVersion !== fileFormatVersion) {
+            gameVersion = version;
             await getSkinList(version);
             await getPrices();
+            await getRarities();
+            saveSkinsJSON();
         } else if(prices.timestamp === null) await getPrices();
 
         formatSearchableSkinList();
     }
 }
 
-const getSkinList = async (valorantVersion=null) => {
+const getSkinList = async () => {
     console.debug("Fetching Valorant skin list...");
 
     const req = await fetch("https://valorant-api.com/v1/weapons/skins");
@@ -59,26 +70,22 @@ const getSkinList = async (valorantVersion=null) => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant skins data status code is ${json.status}!`, json);
 
-    const skins = {};
+    skins = {};
     for(const skin of json.data) {
         const levelOne = skin.levels[0];
         skins[levelOne.uuid] = {
             name: skin.displayName,
-            icon: levelOne.displayIcon
+            icon: levelOne.displayIcon,
+            rarity: skin.contentTierUuid
         }
-    }
-
-    skinData = {
-        version: valorantVersion || await getValorantVersion(),
-        skins: skins
     }
 
     saveSkinsJSON();
 }
 
 const formatSearchableSkinList = () => {
-    searchableSkinList = Object.entries(skinData.skins).map(entry => {
-        return {uuid: entry[0], ...entry[1]}
+    searchableSkinList = Object.entries(skins).map(entry => {
+        return {uuid: entry[0], ...entry[1]};
     });
 
     fuse = new Fuse(searchableSkinList, {keys: ['name'], includeScore: true});
@@ -118,10 +125,34 @@ const getPrices = async (id=null) => {
     }
 
     for(const offer of json.Offers) {
-        if(offer.OfferID in skinData.skins) prices[offer.OfferID] = offer.Cost[Object.keys(offer.Cost)[0]];
+        if(offer.OfferID in skins) prices[offer.OfferID] = offer.Cost[Object.keys(offer.Cost)[0]];
     }
 
     prices.timestamp = Date.now();
+
+    saveSkinsJSON();
+
+    return true;
+}
+
+const getRarities = async () => {
+    if(!config.showSkinRarities) return false;
+
+    console.debug("Fetching skin rarities list...");
+
+    const req = await fetch("https://valorant-api.com/v1/contenttiers/");
+    console.assert(req.statusCode === 200, `Valorant rarities status code is ${req.statusCode}!`, req);
+
+    const json = JSON.parse(req.body);
+    console.assert(json.status === 200, `Valorant rarities data status code is ${json.status}!`, json);
+
+    rarities = {};
+    for(const rarity of json.data) {
+        rarities[rarity.uuid] = {
+            name: rarity.devName,
+            icon: rarity.displayIcon
+        }
+    }
 
     saveSkinsJSON();
 
@@ -133,14 +164,19 @@ export const getSkin = async (uuid, id=null, checkVersion=false) => {
 
     await refreshSkinList(checkVersion);
 
-    let skin = skinData.skins[uuid];
+    let skin = skins[uuid];
 
     if(id && config.showSkinPrices) {
         if(prices.timestamp === null) await getPrices(id);
         skin.price = prices[uuid];
     }
 
-    return skin;
+    const rarity = rarities[skin.rarity];
+
+    return {
+        ...skin,
+        rarity
+    };
 }
 
 export const searchSkin = (query) => {
