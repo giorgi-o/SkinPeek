@@ -24,6 +24,8 @@ export const fetch = (url, options={}) => {
     });
 }
 
+// file utils
+
 export const asyncReadFile = (path) => {
     return new Promise(((resolve, reject) => {
         fs.readFile(path, (err, data) => {
@@ -36,6 +38,8 @@ export const asyncReadFile = (path) => {
 export const asyncReadJSONFile = async (path) => {
     return JSON.parse((await asyncReadFile(path)).toString());
 }
+
+// riot utils
 
 export const parseSetCookie = (setCookie) => {
     const cookies = {};
@@ -72,3 +76,50 @@ export const tokenExpiry = (token) => {
 export const getPUUID = (token) => {
     return decodeToken(token).sub;
 }
+
+// discord utils
+
+import {rarityEmoji} from "./emoji.js";
+import {MessageActionRow, MessageButton, Permissions} from "discord.js";
+
+export const VAL_COLOR_1 = 0xFD4553;
+export const VAL_COLOR_2 = 0x0F1923;
+
+export const basicEmbed = (content) => {
+    return {
+        description: content,
+        color: VAL_COLOR_1
+    }
+}
+
+export const secondaryEmbed = (content) => {
+    return {
+        description: content,
+        color: VAL_COLOR_2
+    }
+}
+
+export const skinChosenEmbed = async (skin, channel) => {
+    let  description = `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`;
+    if(!skin.rarity) description += "\n***Note:** This is a battle pass skin!*";
+    return {
+        description: description,
+        color: VAL_COLOR_1,
+        thumbnail: {
+            url: skin.icon
+        }
+    }
+}
+
+export const skinNameAndEmoji = async (skin, channel) => {
+    if(!skin.rarity) return skin.name;
+    const rarityIcon = await rarityEmoji(channel.guild, skin.rarity.name, skin.rarity.icon, externalEmojisAllowed(channel));
+    return rarityIcon ? `${rarityIcon} ${skin.name}` : skin.name;
+}
+
+export const removeAlertButton = (id, uuid) => new MessageButton().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 10000)}`).setStyle("DANGER").setLabel("Remove Alert").setEmoji("✖");
+export const removeAlertActionRow = (id, uuid) => new MessageActionRow().addComponents(removeAlertButton(id, uuid));
+
+// apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
+export const externalEmojisAllowed = (channel) => channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
+export const emojiToString = (emoji) => `<:${emoji.name}:${emoji.id}>`;

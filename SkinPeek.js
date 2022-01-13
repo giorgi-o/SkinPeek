@@ -1,7 +1,7 @@
 import {getBalance, getSkin, getShop, refreshSkinList, searchSkin} from "./Valorant/skins.js";
 import {authUser, deleteUser, getUser, loadUserData, redeemCookies, redeemUsernamePassword} from "./Valorant/auth.js";
 import {loadConfig} from "./config.js";
-import {RadEmoji, rarityEmoji, VPEmoji} from "./emoji.js";
+import {RadEmoji, VPEmoji} from "./emoji.js";
 import {
     addAlert,
     alertExists, alertsForUser,
@@ -9,17 +9,27 @@ import {
     loadAlerts,
     removeAlert,
     removeAlertsFromUser,
-    removeAlertsInChannel
+    removeAlertsInChannel, setClient
 } from "./alerts.js";
+import {
+    VAL_COLOR_2,
+    VAL_COLOR_1,
+    basicEmbed,
+    secondaryEmbed,
+    skinChosenEmbed,
+    skinNameAndEmoji,
+    removeAlertActionRow,
+    removeAlertButton,
+    externalEmojisAllowed,
+    emojiToString
+} from "./util.js";
 
 import {
     Client,
     Intents,
     MessageActionRow,
-    MessageButton,
     MessageFlags,
-    MessageSelectMenu,
-    Permissions
+    MessageSelectMenu
 } from "discord.js";
 import cron from "node-cron";
 
@@ -38,13 +48,14 @@ import cron from "node-cron";
 
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]}); // what intents does the bot need
 
-const VAL_COLOR_1 = 0xFD4553, VAL_COLOR_2 = 0x0F1923;
-
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}!`);
 
     console.log("Loading skins...");
     refreshSkinList().then(() => console.log("Skins loaded!"));
+
+    setClient(client);
+    checkAlerts();
 
     // check alerts every day at 00:00:10 GMT
     cron.schedule(config.refreshSkins, checkAlerts, {timezone: "GMT"});
@@ -240,7 +251,7 @@ client.on("interactionCreate", async (interaction) => {
                     if(otherAlert) { // user already has an alert for this skin
                         // maybe it's in a now deleted channel?
                         const otherChannel = await client.channels.fetch(otherAlert.channel_id).catch(() => {});
-                        if(!otherChannel || otherChannel.deleted) {
+                        if(!otherChannel) {
                             removeAlertsInChannel(otherAlert.channel_id);
                             filteredResults.push(result);
                         }
@@ -523,84 +534,6 @@ client.on("interactionCreate", async (interaction) => {
 client.on("channelDelete", channel => {
     removeAlertsInChannel(channel.id);
 })
-
-const basicEmbed = (content) => {
-    return {
-        description: content,
-        color: VAL_COLOR_1
-    }
-}
-
-const secondaryEmbed = (content) => {
-    return {
-        description: content,
-        color: VAL_COLOR_2
-    }
-}
-
-const skinChosenEmbed = async (skin, channel) => {
-    let  description = `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`;
-    if(!skin.rarity) description += "\n***Note:** This is a battle pass skin!*";
-    return {
-        description: description,
-        color: VAL_COLOR_1,
-        thumbnail: {
-            url: skin.icon
-        }
-    }
-}
-
-export const skinAlerts = async (alerts, expires) => {
-    const expiresTimestamp = Math.floor(Date.now() / 1000) + expires;
-
-    for(let i = 0; i < alerts.length; i++) {
-        let alert = alerts[i];
-
-        const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
-        if(!channel || channel.deleted) {
-            removeAlertsInChannel(alert.channel_id);
-            while(i < alerts.length && (i === alerts.length - 1 || alerts[i].channel_id === alerts[i+1].channel_id)) {
-                i++;
-            }
-            continue;
-        }
-
-        const skin = await getSkin(alert.uuid);
-        await channel.send({
-            content: `<@${alert.id}>`,
-            embeds: [{
-                description: `:tada: <@${alert.id}> The **${await skinNameAndEmoji(skin, channel)}** is in your daily shop!\nIt will be gone <t:${expiresTimestamp}:R>.`,
-                color: VAL_COLOR_1,
-                thumbnail: {
-                    url: skin.icon
-                }
-            }],
-            components: [removeAlertActionRow(alert.id, alert.uuid)]
-        }).catch(async e => {
-            console.error(`Could not send alert message in #${channel.name}! Do I have the right role?`);
-
-            try { // try to log the alert to the console
-                const user = await client.users.fetch(alert.id).catch(() => {});
-                if(user) console.error(`Please tell ${user.tag} that the ${skin.name} is in their item shop!`);
-            } catch(e) {}
-
-            console.error(e);
-        });
-    }
-}
-
-const skinNameAndEmoji = async (skin, channel) => {
-    if(!skin.rarity) return skin.name;
-    const rarityIcon = await rarityEmoji(channel.guild, skin.rarity.name, skin.rarity.icon, externalEmojisAllowed(channel));
-    return rarityIcon ? `${rarityIcon} ${skin.name}` : skin.name;
-}
-
-const removeAlertButton = (id, uuid) => new MessageButton().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 10000)}`).setStyle("DANGER").setLabel("Remove Alert").setEmoji("✖");
-const removeAlertActionRow = (id, uuid) => new MessageActionRow().addComponents(removeAlertButton(id, uuid));
-
-// apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
-const externalEmojisAllowed = (channel) => channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
-const emojiToString = (emoji) => `<:${emoji.name}:${emoji.id}>`;
 
 loadUserData();
 loadAlerts();

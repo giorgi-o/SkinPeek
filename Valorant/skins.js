@@ -2,7 +2,7 @@ import fs from "fs";
 
 import Fuse from "fuse.js";
 
-import {asyncReadJSONFile, fetch} from "./util.js";
+import {asyncReadJSONFile, fetch} from "../util.js";
 import {authUser, deleteUser, getUser, getUserList} from "./auth.js";
 import config from "../config.js";
 
