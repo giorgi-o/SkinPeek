@@ -55,7 +55,6 @@ client.on("ready", async () => {
     refreshSkinList().then(() => console.log("Skins loaded!"));
 
     setClient(client);
-    checkAlerts();
 
     // check alerts every day at 00:00:10 GMT
     cron.schedule(config.refreshSkins, checkAlerts, {timezone: "GMT"});
