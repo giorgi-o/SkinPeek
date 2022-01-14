@@ -2,7 +2,7 @@ import fs from "fs";
 
 import Fuse from "fuse.js";
 
-import {asyncReadJSONFile, fetch} from "../util.js";
+import {asyncReadJSONFile, fetch, isMaintenance, MAINTENANCE} from "../util.js";
 import {authUser, deleteUser, getUser, getUserList} from "./auth.js";
 import config from "../config.js";
 
@@ -111,6 +111,7 @@ const getPrices = async (id=null) => {
 
     console.debug(`Fetching skin prices using ${user.username}'s access token...`);
 
+    // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetOffers.md
     const req = await fetch(`https://pd.${user.region}.a.pvp.net/store/v1/offers/`, {
         headers: {
             "Authorization": "Bearer " + user.rso,
@@ -122,7 +123,7 @@ const getPrices = async (id=null) => {
     const json = JSON.parse(req.body);
     if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
         return false; // user rso is invalid, should we delete the user as well?
-    }
+    } else if(isMaintenance(json)) return false;
 
     for(const offer of json.Offers) {
         if(offer.OfferID in skins) prices[offer.OfferID] = offer.Cost[Object.keys(offer.Cost)[0]];
@@ -193,6 +194,7 @@ export const getShop = async (id) => {
     const user = getUser(id);
     console.debug(`Fetching shop for ${user.username}...`);
 
+    // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetStorefrontV2.md
     const req = await fetch(`https://pd.${user.region}.a.pvp.net/store/v2/storefront/${user.puuid}`, {
         headers: {
             "Authorization": "Bearer " + user.rso,
@@ -204,7 +206,7 @@ export const getShop = async (id) => {
     const json = JSON.parse(req.body);
     if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
         return deleteUser(id);
-    }
+    } else if(isMaintenance(json)) return MAINTENANCE;
 
     return {
         offers: json.SkinsPanelLayout.SingleItemOffers,
@@ -230,6 +232,7 @@ export const getBalance = async (id) => {
 
     const json = JSON.parse(req.body);
     if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") return;
+    else if(isMaintenance(json)) return MAINTENANCE;
 
     return {
         vp: json.Balances["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"],

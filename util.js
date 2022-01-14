@@ -73,8 +73,10 @@ export const tokenExpiry = (token) => {
     return decodeToken(token).exp * 1000;
 }
 
-export const getPUUID = (token) => {
-    return decodeToken(token).sub;
+export const MAINTENANCE = "MAINTENANCE";
+
+export const isMaintenance = (json) => {
+    return json.httpStatus === 403 && json.errorCode === "SCHEDULED_DOWNTIME";
 }
 
 // discord utils

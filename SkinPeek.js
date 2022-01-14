@@ -12,6 +12,7 @@ import {
     removeAlertsInChannel, setClient
 } from "./alerts.js";
 import {
+    MAINTENANCE,
     VAL_COLOR_2,
     VAL_COLOR_1,
     basicEmbed,
@@ -43,6 +44,7 @@ import cron from "node-cron";
  * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
  * Option to send shop automatically every day
  * More options in config.json (whether to use custom emojis, at what time to check item shop, etc.)
+ * Simple analytics to see how many servers the bot is in
  * Admin commands (delete user, see/edit everyone's alerts, etc.)
  */
 
@@ -173,6 +175,10 @@ client.on("interactionCreate", async (interaction) => {
                     embeds: [basicEmbed("Could not fetch your shop, most likely you got logged out. Try logging in again.")],
                     ephemeral: true
                 });
+                if(shop === MAINTENANCE) return await interaction.followUp({
+                    embeds: [basicEmbed("**Valorant servers are currently down for maintenance!** Try again later.")],
+                    ephemeral: true
+                });
 
                 const embeds = [{
                     description: `Daily shop for **${valorantUser.username}** (new shop <t:${Math.floor(Date.now() / 1000) + shop.expires}:R>)`,
@@ -212,6 +218,11 @@ client.on("interactionCreate", async (interaction) => {
                 const RadEmojiPromise = RadEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
 
                 const balance = await getBalance(interaction.user.id);
+
+                if(balance === MAINTENANCE) return await interaction.followUp({
+                    embeds: [basicEmbed("**Riot servers are down for maintenance!** Try again later.")],
+                    ephemeral: true
+                });
 
                 if(balance) {
                     const VPEmoji = emojiToString(await VPEmojiPromise) || "Valorant Points:";
