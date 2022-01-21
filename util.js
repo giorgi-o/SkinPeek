@@ -82,10 +82,12 @@ export const isMaintenance = (json) => {
 // discord utils
 
 import {rarityEmoji} from "./emoji.js";
-import {MessageActionRow, MessageButton, Permissions} from "discord.js";
+import {MessageActionRow, MessageButton, Permissions, Util} from "discord.js";
 
 export const VAL_COLOR_1 = 0xFD4553;
 export const VAL_COLOR_2 = 0x0F1923;
+
+export const escapeMarkdown = Util.escapeMarkdown;
 
 export const basicEmbed = (content) => {
     return {

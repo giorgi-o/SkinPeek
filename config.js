@@ -20,6 +20,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "showSkinRarities", true);
     applyConfig(loadedConfig, "refreshSkins", "10 0 0 * * *");
     applyConfig(loadedConfig, "checkGameVersion", "*/15 * * * *");
+    applyConfig(loadedConfig, "cleanupAccounts", "0 * * * *");
     applyConfig(loadedConfig, "storePasswords", false);
 
     saveConfig(filename, {...loadedConfig, ...config});

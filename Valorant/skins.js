@@ -107,7 +107,7 @@ const getPrices = async (id=null) => {
     if(!user) return;
 
     const authSuccess = await authUser(id);
-    if(!authSuccess) return false;
+    if(!authSuccess || !user.rso || !user.ent || !user.region) return false;
 
     console.debug(`Fetching skin prices using ${user.username}'s access token...`);
 

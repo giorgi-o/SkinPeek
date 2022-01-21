@@ -1,5 +1,13 @@
 import {getBalance, getSkin, getShop, refreshSkinList, searchSkin} from "./Valorant/skins.js";
-import {authUser, deleteUser, getUser, loadUserData, redeemCookies, redeemUsernamePassword} from "./Valorant/auth.js";
+import {
+    authUser, cleanupAccounts,
+    deleteUser,
+    getUser,
+    loadUserData,
+    redeem2FACode,
+    redeemCookies,
+    redeemUsernamePassword
+} from "./Valorant/auth.js";
 import {loadConfig} from "./config.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
 import {
@@ -15,6 +23,7 @@ import {
     MAINTENANCE,
     VAL_COLOR_2,
     VAL_COLOR_1,
+    escapeMarkdown,
     basicEmbed,
     secondaryEmbed,
     skinChosenEmbed,
@@ -30,7 +39,7 @@ import {
     Intents,
     MessageActionRow,
     MessageFlags,
-    MessageSelectMenu
+    MessageSelectMenu,
 } from "discord.js";
 import cron from "node-cron";
 
@@ -62,7 +71,11 @@ client.on("ready", async () => {
     cron.schedule(config.refreshSkins, checkAlerts, {timezone: "GMT"});
 
     // check for new valorant version every 15mins
-    cron.schedule(config.checkGameVersion, () => refreshSkinList(true), {timezone: "GMT"});
+    cron.schedule(config.checkGameVersion, () => refreshSkinList(true));
+
+    // cleanup accounts every hour
+    cron.schedule(config.checkGameVersion, cleanupAccounts);
+    cleanupAccounts()
 });
 
 const commands = [
@@ -109,6 +122,18 @@ const commands = [
                 required: true
             },
         ]
+    },
+    {
+        name: "2fa",
+        description: "Enter your 2FA code if needed",
+        options: [{
+            type: "INTEGER",
+            name: "code",
+            description: "The 2FA Code",
+            required: true,
+            minValue: 0,
+            maxValue: 999999
+        }]
     },
     {
         name: "cookies",
@@ -420,16 +445,56 @@ client.on("interactionCreate", async (interaction) => {
                 const username = interaction.options.get("username").value;
                 const password = interaction.options.get("password").value;
 
-                const success = await redeemUsernamePassword(interaction.user.id, username, password);
+                const login = await redeemUsernamePassword(interaction.user.id, username, password);
+
+                const user = getUser(interaction.user.id);
+                let embed;
+                if(login && user) {
+                    if(login.success) {
+                        console.log(`${interaction.user.tag} logged in as ${user.username}`);
+                        embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
+                    } else if(login.mfa) {
+                        console.log(`${interaction.user.tag} needs 2FA code`);
+                        if(login.method === "email") embed = basicEmbed(`**Riot have sent a code to ${escapeMarkdown(login.email)}!** Use \`/2fa\` to complete your login.`);
+                        else embed = basicEmbed("**You have 2FA enabled!** use `/2fa` to enter your code.");
+                    }
+                } else {
+                    console.log(`${interaction.user.tag} login failed`);
+                    embed = basicEmbed("Invalid username or password!");
+                }
+
+                await interaction.followUp({
+                    embeds: [embed],
+                    ephemeral: true
+                });
+
+                break;
+            }
+            case "2fa": {
+                const valorantUser = getUser(interaction.user.id);
+                if(!valorantUser) return await interaction.reply({
+                    embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                    ephemeral: true
+                });
+                else if(!valorantUser.waiting2FA) return await interaction.reply({
+                    embeds: [basicEmbed("**Not expecting a 2FA code!** Try `/login` if you're not logged in.")],
+                    ephemeral: true
+                });
+
+                await interaction.deferReply({ephemeral: true});
+
+                const code = interaction.options.get("code").value.toString().padStart(6, '0');
+
+                const success = await redeem2FACode(interaction.user.id, code);
 
                 const user = getUser(interaction.user.id);
                 let embed;
                 if(success && user) {
-                    console.log(`${interaction.user.tag} logged in as ${user.username}`);
+                    console.log(`${interaction.user.tag} logged in as ${user.username} with 2FA code`);
                     embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
                 } else {
-                    console.log(`${interaction.user.tag} login failed`);
-                    embed = basicEmbed("Invalid username or password!");
+                    console.log(`${interaction.user.tag} 2FA code failed`);
+                    embed = basicEmbed("Invalid 2FA code!");
                 }
 
                 await interaction.followUp({

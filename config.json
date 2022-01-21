@@ -4,5 +4,6 @@
   "showSkinRarities": true,
   "refreshSkins": "10 0 0 * * *",
   "checkGameVersion": "*/15 * * * *",
+  "cleanupAccounts": "0 * * * *",
   "storePasswords": false
 }
