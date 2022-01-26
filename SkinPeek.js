@@ -75,7 +75,6 @@ client.on("ready", async () => {
 
     // cleanup accounts every hour
     cron.schedule(config.checkGameVersion, cleanupAccounts);
-    cleanupAccounts()
 });
 
 const commands = [
@@ -455,7 +454,7 @@ client.on("interactionCreate", async (interaction) => {
                         embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
                     } else if(login.mfa) {
                         console.log(`${interaction.user.tag} needs 2FA code`);
-                        if(login.method === "email") embed = basicEmbed(`**Riot have sent a code to ${escapeMarkdown(login.email)}!** Use \`/2fa\` to complete your login.`);
+                        if(login.method === "email") embed = basicEmbed(`**Riot sent a code to ${escapeMarkdown(login.email)}!** Use \`/2fa\` to complete your login.`);
                         else embed = basicEmbed("**You have 2FA enabled!** use `/2fa` to enter your code.");
                     }
                 } else {

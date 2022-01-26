@@ -233,7 +233,7 @@ export const redeemCookies = async (id, cookies) => {
     if(req.headers.location.startsWith("/login")) return false; // invalid cookies
 
     users[id] = user;
-    if(user.cookies) user.cookies = {
+    if(!user.username || !user.password) user.cookies = {
         ...user.cookies,
         ...parseSetCookie(req.headers['set-cookie'])
     };
