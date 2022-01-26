@@ -4,9 +4,9 @@ Discord bot to see your daily Valorant item shop without launching the game and 
 <img src="https://user-images.githubusercontent.com/20621396/148746123-445eca70-1afe-43bc-9c2f-8242a557ec86.png" alt="/shop demo" width="400" />
 <img src="https://user-images.githubusercontent.com/20621396/148747282-42e49099-a4be-4569-b812-4ec09564f897.png" alt="alert demo" width="600" />
 
-## UPDATE: Password authentication not working
+## UPDATE: Password authentication might not work
 
-See [this issue](https://github.com/giorgi-o/SkinPeek/issues/4#issuecomment-1022316597) for more info.
+I've implemented a few fixes, let me know if it still doesn't work. See [this issue](https://github.com/giorgi-o/SkinPeek/issues/4#issuecomment-1022316597) for more info.
 
 ## Installation
 
