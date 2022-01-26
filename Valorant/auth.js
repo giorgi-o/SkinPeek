@@ -39,6 +39,8 @@ export const authUser = async (id) => {
     return await refreshToken(id);
 }
 
+const userAgent = "RiotClient/43.0.1.4195386.4190634 rso-auth (Windows;10;;Professional, x64)";
+
 export const redeemUsernamePassword = async (id, username, password) => {
     const user = getUser(id) || {};
 
@@ -46,7 +48,8 @@ export const redeemUsernamePassword = async (id, username, password) => {
     const req1 = await fetch("https://auth.riotgames.com/api/v1/authorization", {
         method: "POST",
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'user-agent': userAgent
         },
         body: JSON.stringify({
             'client_id': 'play-valorant-web-prod',
@@ -64,6 +67,7 @@ export const redeemUsernamePassword = async (id, username, password) => {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
+            'user-agent': userAgent,
             'cookie': stringifyCookies(cookies)
         },
         body: JSON.stringify({
@@ -113,6 +117,7 @@ export const redeem2FACode = async (id, code) => {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
+            'user-agent': userAgent,
             'cookie': stringifyCookies(cookies)
         },
         body: JSON.stringify({
