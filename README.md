@@ -6,7 +6,7 @@ Discord bot to see your daily Valorant item shop without launching the game and 
 
 ## UPDATE: Password authentication might not work
 
-I've implemented a few fixes, let me know if it still doesn't work. See [this issue](https://github.com/giorgi-o/SkinPeek/issues/4#issuecomment-1022316597) for more info.
+As a side effect of Riot cracking down on account cracking, they've broken most skin-fetching bots and other community projects. I've implemented a few bypasses, let me know if it still doesn't work. Read [this](https://github.com/giorgi-o/SkinPeek/issues/4#issuecomment-1022316597) for more info.
 
 ## Installation
 
