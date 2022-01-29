@@ -74,7 +74,7 @@ client.on("ready", async () => {
     cron.schedule(config.checkGameVersion, () => refreshSkinList(true));
 
     // cleanup accounts every hour
-    cron.schedule(config.checkGameVersion, cleanupAccounts);
+    cron.schedule(config.cleanupAccounts, cleanupAccounts);
 });
 
 const commands = [
