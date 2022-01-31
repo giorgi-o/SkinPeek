@@ -1,4 +1,4 @@
-import {getBalance, getSkin, getShop, refreshSkinList, searchSkin} from "./Valorant/skins.js";
+import {getBalance, getSkin, getShop, refreshSkinList, searchSkin, getCurrentMatchId, getMatch, getPlayers, getMMR, getLatestCompTiers, getAgents} from "./Valorant/skins.js";
 import {
     authUser, cleanupAccounts,
     deleteUser,
@@ -74,17 +74,17 @@ client.on("ready", async () => {
     cron.schedule(config.checkGameVersion, () => refreshSkinList(true));
 
     // cleanup accounts every hour
-    cron.schedule(config.cleanupAccounts, cleanupAccounts);
+    cron.schedule(config.checkGameVersion, cleanupAccounts);
 });
 
 const commands = [
     {
-        name: "skins",
-        description: "Deprecated, use /shop instead"
+        name: "shop",
+        description: "Show your current daily shop to yourself"
     },
     {
-        name: "shop",
-        description: "Show your current daily shop"
+        name: "shop-share",
+        description: "Show your current daily shop to the channel"
     },
     {
         name: "balance",
@@ -106,7 +106,7 @@ const commands = [
     },
     {
         name: "login",
-        description: "Log in with your Riot username/password",
+        description: "Log in with your Riot username/password. Preferred way is to use /cookies instead",
         options: [
             {
                 type: "STRING",
@@ -147,6 +147,10 @@ const commands = [
     {
         name: "forget",
         description: "Forget and permanently delete your account from the bot"
+    },
+    {
+        name: "match",
+        description: "Fetch your current match information"
     }
 ];
 
@@ -180,7 +184,7 @@ client.on("interactionCreate", async (interaction) => {
     if(interaction.isCommand()) {
         console.log(`${interaction.user.tag} used /${interaction.commandName}`);
         switch (interaction.commandName) {
-            case "skins":
+            case "shop-share":
             case "shop": {
                 const valorantUser = getUser(interaction.user.id);
                 if(!valorantUser) return await interaction.reply({
@@ -191,7 +195,7 @@ client.on("interactionCreate", async (interaction) => {
                 // start uploading emoji now
                 const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
 
-                await interaction.deferReply();
+                await interaction.deferReply({ephemeral: interaction.commandName !== "shop-share"});
 
                 const shop = await getShop(interaction.user.id);
 
@@ -293,7 +297,10 @@ client.on("interactionCreate", async (interaction) => {
                 }
 
                 if(filteredResults.length === 0) {
-                    if(searchResults.length === 0) return await interaction.reply({embeds: [basicEmbed("**Couldn't find a skin with that name!** Check the spelling and try again.")], ephemeral: true});
+                    if(searchResults.length === 0) return await interaction.reply({
+                        embeds: [basicEmbed("**Couldn't find a skin with that name!** Check the spelling and try again.")], 
+                        ephemeral: true
+                    });
 
                     const skin = searchResults[0];
                     const otherAlert = alertExists(interaction.user.id, skin.uuid);
@@ -310,7 +317,11 @@ client.on("interactionCreate", async (interaction) => {
                         channel_id: interaction.channel.id
                     });
 
-                    return await interaction.reply({embeds: [await skinChosenEmbed(skin, interaction.channel)], components: [removeAlertActionRow(interaction.user.id, skin.uuid)]});
+                    return await interaction.reply({ 
+                        embeds: [await skinChosenEmbed(skin, interaction.channel)], 
+                        components: [removeAlertActionRow(interaction.user.id, skin.uuid)], 
+                        ephemeral: true
+                    });
                 } else {
                     const row = new MessageActionRow();
                     const options = filteredResults.splice(0, 25).map(result => {
@@ -323,7 +334,8 @@ client.on("interactionCreate", async (interaction) => {
 
                     await interaction.reply({
                         embeds: [secondaryEmbed("Which skin would you like to set a reminder for?")],
-                        components: [row]
+                        components: [row],
+                        ephemeral: true
                     });
                 }
 
@@ -544,6 +556,71 @@ client.on("interactionCreate", async (interaction) => {
                 });
                 break;
             }
+            case "match": {
+                const valorantUser = getUser(interaction.user.id);
+                if(!valorantUser) return await interaction.reply({
+                    embeds: [basicEmbed("**You're not registered with the bot!** Try `/login` or `/cookies`.")],
+                    ephemeral: true
+                });
+
+                //todo what is this and why is it needed if we just await everything anyways
+                await interaction.deferReply({ephemeral: false});
+
+                const currMatchId = await getCurrentMatchId(interaction.user.id);
+
+                if(!currMatchId) return await interaction.followUp({
+                    embeds: [basicEmbed("Could not fetch your current match, you are either not logged in or not in a match. Try logging in again.")],
+                    ephemeral: true
+                });
+                if(currMatchId === MAINTENANCE) return await interaction.followUp({
+                    embeds: [basicEmbed("**Valorant servers are currently down for maintenance!** Try again later.")],
+                    ephemeral: true
+                });
+
+                const agents = await getAgents()
+                const matchPlayers = (await getMatch(interaction.user.id, currMatchId)).map(player => {
+                    return {
+                        Subject: player.Subject,
+                        Team: player.TeamID,
+                        Agent: agents.find(agent => agent.uuid === player.CharacterID).displayName,
+                        AccountLevel: player.PlayerIdentity.AccountLevel
+                    }
+                });
+
+                const embeds = [{
+                    description: `Player data for current match`,
+                    color: VAL_COLOR_1
+                }];
+
+                const allPlayerDetails = await getPlayers(interaction.user.id, matchPlayers.map(player => player.Subject));
+                const compTiers = await getLatestCompTiers()
+
+                const players = matchPlayers.map(matchPlayer => {
+                    const playerDetails = allPlayerDetails.find(playerDetail => playerDetail.Subject === matchPlayer.Subject)
+                    return {
+                        ...matchPlayer,
+                        GameName: playerDetails.GameName,
+                        TagLine: playerDetails.TagLine
+                    }
+                })
+
+                console.log(players)
+
+                for await (const player of players.slice(0, 9)) {
+                    const playerLatestTier = (await getMMR(interaction.user.id, player.Subject)).TierAfterUpdate;
+
+                    const embed = {
+                        title: `${player.Agent}\t${player.GameName}\t${compTiers.find(tier => tier.tier === playerLatestTier).tierName}\t${player.AccountLevel}`,
+                        color: VAL_COLOR_2
+                    };
+                    embeds.push(embed);
+                }
+
+                await interaction.followUp({embeds});
+                console.log(`Sent ${interaction.user.tag}'s current match!`);
+
+                break;
+            }
             default: {
                 await interaction.reply("Yer a wizard harry!");
                 break;
@@ -572,7 +649,7 @@ client.on("interactionCreate", async (interaction) => {
                     channel_id: interaction.channel.id
                 });
 
-                await interaction.update({embeds: [await skinChosenEmbed(skin, interaction.channel)], components: [removeAlertActionRow(interaction.user.id, chosenSkin)]});
+                await interaction.update({embeds: [await skinChosenEmbed(skin, interaction.channel)], components: [removeAlertActionRow(interaction.user.id, chosenSkin)], ephemeral: true});
             }
         }
     } else if(interaction.isButton()) {

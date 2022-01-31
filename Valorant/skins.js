@@ -239,3 +239,104 @@ export const getBalance = async (id) => {
         rad: json.Balances["e59aa87c-4cbf-517a-5983-6e81511be9b7"]
     };
 }
+
+export const getCurrentMatchId = async (id) => {
+    const authSuccess = await authUser(id);
+    if(!authSuccess) return;
+
+    const user = getUser(id);
+    console.debug(`Fetching current match id for ${user.username}...`);
+    
+    const req = await fetch(`https://glz-${user.region}-1.${user.region}.a.pvp.net/core-game/v1/players/${user.puuid}`, {
+        headers: {
+            "Authorization": "Bearer " + user.rso,
+            "X-Riot-Entitlements-JWT": user.ent
+        }
+    });
+    console.assert(req.statusCode === 200, `Valorant get current match code is ${req.statusCode}!`, req);
+
+    const json = JSON.parse(req.body);
+    if(isMaintenance(json)) return MAINTENANCE;
+
+    return json.MatchID;
+}
+
+export const getMatch = async (userId, matchId) => {
+    const authSuccess = await authUser(userId);
+    if(!authSuccess) return;
+
+    const user = getUser(userId);
+    console.debug(`Fetching current match details for ${user.username}...`);
+    
+    const req = await fetch(`https://glz-${user.region}-1.${user.region}.a.pvp.net/core-game/v1/matches/${matchId}`, {
+        headers: {
+            "Authorization": "Bearer " + user.rso,
+            "X-Riot-Entitlements-JWT": user.ent
+        }
+    });
+    console.assert(req.statusCode === 200, `Valorant get match details code is ${req.statusCode}!`, req);
+
+    const json = JSON.parse(req.body);
+    if(isMaintenance(json)) return MAINTENANCE;
+
+    return json.Players;
+}
+
+export const getPlayers = async (userId, playerIds) => {
+    const authSuccess = await authUser(userId);
+    if(!authSuccess) return;
+
+    const user = getUser(userId);
+    
+    const req = await fetch(`https://pd.${user.region}.a.pvp.net/name-service/v2/players`, {
+        headers: {
+            "Authorization": "Bearer " + user.rso,
+            "X-Riot-Entitlements-JWT": user.ent
+        },
+        method: "PUT",
+        body: JSON.stringify(playerIds)
+    });
+    console.assert(req.statusCode === 200, `Valorant get players is ${req.statusCode}!`, req);
+
+    const json = JSON.parse(req.body);
+    if(isMaintenance(json)) return MAINTENANCE;
+
+    return json;
+}
+
+export const getMMR = async (userId, mmrToGet) => {
+    const authSuccess = await authUser(userId);
+    if(!authSuccess) return;
+
+    const user = getUser(userId);
+    
+    const req = await fetch(`https://pd.${user.region}.a.pvp.net/mmr/v1/players/${mmrToGet}/competitiveupdates?queue=competitive`, {
+        headers: {
+            "Authorization": "Bearer " + user.rso,
+            "X-Riot-Entitlements-JWT": user.ent,
+            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
+        }
+    });
+    console.assert(req.statusCode === 200, `Valorant get MMR for player ${mmrToGet} is ${req.statusCode}!`, req);
+
+    const json = JSON.parse(req.body);
+    if(isMaintenance(json)) return MAINTENANCE;
+
+    return json.Matches[0];
+}
+
+export const getLatestCompTiers = async () => {
+    const response = await fetch(`https://valorant-api.com/v1/competitivetiers`);
+    console.assert(response.statusCode === 200, `Valorant get comp tiers is ${response.statusCode}!`, response);
+    const jsonData = JSON.parse(response.body).data
+    return jsonData[jsonData.length - 1].tiers;
+}
+
+export const getAgents = async () => {
+    const response = await fetch(`https://valorant-api.com/v1/agents`);
+    console.assert(response.statusCode === 200, `Valorant get agents is ${response.statusCode}!`, response);
+    const jsonData = JSON.parse(response.body).data
+    return jsonData;
+}
+
+
