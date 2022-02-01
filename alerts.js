@@ -60,24 +60,30 @@ export const checkAlerts = () => {
     if(!alerts) return;
     console.debug("Checking new shop skins for alerts...");
 
-    for(const id of getUserList()) {
-        const userAlerts = alerts.filter(alert => alert.id === id);
-        if(!userAlerts.length) continue;
+    try {
+        for(const id of getUserList()) {
+            const userAlerts = alerts.filter(alert => alert.id === id);
+            if(!userAlerts.length) continue;
 
-        getShop(id).then(shop => {
-            if(!shop) {
-                const channelsSent = [];
-                for(const alert of alerts) {
-                    if(!channelsSent.includes(alert.channel_id)) {
-                        sendCredentialsExpired(alert);
-                        channelsSent.push(alert.channel_id);
+            getShop(id).then(shop => {
+                if(!shop) {
+                    const channelsSent = [];
+                    for(const alert of alerts) {
+                        if(!channelsSent.includes(alert.channel_id)) {
+                            sendCredentialsExpired(alert);
+                            channelsSent.push(alert.channel_id);
+                        }
                     }
+                    return;
                 }
-                return;
-            }
-            const positiveAlerts = userAlerts.filter(alert => shop.offers.includes(alert.uuid));
-            if(positiveAlerts.length) sendAlert(positiveAlerts, shop.expires);
-        });
+                const positiveAlerts = userAlerts.filter(alert => shop.offers.includes(alert.uuid));
+                if(positiveAlerts.length) sendAlert(positiveAlerts, shop.expires);
+            });
+        }
+    } catch(e) {
+        // should I send messages in the discord channels?
+        console.error("There was an error while trying to send alerts!");
+        console.error(e);
     }
 }
 

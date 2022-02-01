@@ -272,9 +272,14 @@ export const refreshToken = async (id) => {
 }
 
 export const cleanupAccounts = () => {
-    for(const [id, user] of Object.entries(users)) {
-        if(user.waiting2FA && Date.now() - user.waiting2FA > 10 * 60 * 1000) deleteUser(id);
-        else if(!user.cookies && (!user.login || !user.password)) deleteUser(id);
+    try {
+        for(const [id, user] of Object.entries(users)) {
+            if(user.waiting2FA && Date.now() - user.waiting2FA > 10 * 60 * 1000) deleteUser(id);
+            else if(!user.cookies && (!user.login || !user.password)) deleteUser(id);
+        }
+    } catch(e) {
+        console.error("There was an error while trying to cleanup accounts!");
+        console.error(e);
     }
 }
 

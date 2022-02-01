@@ -45,19 +45,24 @@ const saveSkinsJSON = (filename="skins.json") => {
 }
 
 export const refreshSkinList = async (checkVersion=false) => {
-    if(checkVersion || !gameVersion) {
-        const fileFormatVersion = await loadSkinsJSON();
+    try {
+        if(checkVersion || !gameVersion) {
+            const fileFormatVersion = await loadSkinsJSON();
 
-        const version = await getValorantVersion();
-        if(version !== gameVersion || formatVersion !== fileFormatVersion) {
-            gameVersion = version;
-            await getSkinList(version);
-            await getPrices();
-            await getRarities();
-            saveSkinsJSON();
-        } else if(!prices.timestamp || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) await getPrices();
+            const version = await getValorantVersion();
+            if(version !== gameVersion || formatVersion !== fileFormatVersion) {
+                gameVersion = version;
+                await getSkinList(version);
+                await getPrices();
+                await getRarities();
+                saveSkinsJSON();
+            } else if(!prices.timestamp || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) await getPrices();
 
-        formatSearchableSkinList();
+            formatSearchableSkinList();
+        }
+    } catch(e) {
+        console.error("There was an error while trying to fetch the game version!");
+        console.error(e);
     }
 }
 
