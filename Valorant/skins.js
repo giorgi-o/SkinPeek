@@ -210,7 +210,7 @@ export const getShop = async (id) => {
 
     return {
         offers: json.SkinsPanelLayout.SingleItemOffers,
-        expires: json.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds
+        expires: Math.floor(Date.now() / 1000) + json.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds
     };
 }
 
@@ -228,7 +228,7 @@ export const getBalance = async (id) => {
             "X-Riot-Entitlements-JWT": user.ent
         }
     });
-    console.assert(req.statusCode === 200, `Valorant skins offers code is ${req.statusCode}!`, req);
+    console.assert(req.statusCode === 200, `Valorant balance code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
     if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") return;

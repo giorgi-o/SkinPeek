@@ -205,7 +205,7 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 const embeds = [{
-                    description: `Daily shop for **${valorantUser.username}** (new shop <t:${Math.floor(Date.now() / 1000) + shop.expires}:R>)`,
+                    description: `Daily shop for **${valorantUser.username}** (new shop <t:${shop.expires}:R>)`,
                     color: VAL_COLOR_1
                 }];
 
