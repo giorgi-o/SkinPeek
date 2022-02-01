@@ -178,436 +178,488 @@ client.on("messageCreate", async (message) => {
 
 client.on("interactionCreate", async (interaction) => {
     if(interaction.isCommand()) {
-        console.log(`${interaction.user.tag} used /${interaction.commandName}`);
-        switch (interaction.commandName) {
-            case "skins":
-            case "shop": {
-                const valorantUser = getUser(interaction.user.id);
-                if(!valorantUser) return await interaction.reply({
-                    embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
-                    ephemeral: true
-                });
-
-                // start uploading emoji now
-                const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
-
-                await interaction.deferReply();
-
-                const shop = await getShop(interaction.user.id);
-
-                if(!shop) return await interaction.followUp({
-                    embeds: [basicEmbed("Could not fetch your shop, most likely you got logged out. Try logging in again.")],
-                    ephemeral: true
-                });
-                if(shop === MAINTENANCE) return await interaction.followUp({
-                    embeds: [basicEmbed("**Valorant servers are currently down for maintenance!** Try again later.")],
-                    ephemeral: true
-                });
-
-                const embeds = [{
-                    description: `Daily shop for **${valorantUser.username}** (new shop <t:${shop.expires}:R>)`,
-                    color: VAL_COLOR_1
-                }];
-
-                const emojiString = emojiToString(await emojiPromise) || "Price:";
-
-                for(const uuid of shop.offers) {
-                    const skin = await getSkin(uuid, interaction.user.id);
-                    const embed = {
-                        title: await skinNameAndEmoji(skin, interaction.channel),
-                        color: VAL_COLOR_2,
-                        thumbnail: {
-                            url: skin.icon
-                        }
-                    };
-                    if(config.showSkinPrices && skin.price) embed.description = `${emojiString} ${skin.price}`;
-                    embeds.push(embed);
-                }
-
-                await interaction.followUp({embeds});
-                console.log(`Sent ${interaction.user.tag}'s shop!`);
-
-                break;
-            }
-            case "balance": {
-                const valorantUser = getUser(interaction.user.id);
-                if(!valorantUser) return await interaction.reply({
-                    embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
-                    ephemeral: true
-                });
-
-                await interaction.deferReply();
-
-                const VPEmojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
-                const RadEmojiPromise = RadEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
-
-                const balance = await getBalance(interaction.user.id);
-
-                if(balance === MAINTENANCE) return await interaction.followUp({
-                    embeds: [basicEmbed("**Riot servers are down for maintenance!** Try again later.")],
-                    ephemeral: true
-                });
-
-                if(balance) {
-                    const VPEmoji = emojiToString(await VPEmojiPromise) || "Valorant Points:";
-                    const RadEmoji = emojiToString(await RadEmojiPromise) || "Radianite:";
-                    await interaction.followUp({
-                        embeds: [{
-                            title: `**${valorantUser.username}**'s wallet:`,
-                            color: VAL_COLOR_1,
-                            fields: [
-                                {name: "Valorant Points", value: `${VPEmoji} ${balance.vp}`, inline: true},
-                                {name: "Radianite", value: `${RadEmoji} ${balance.rad}`, inline: true}
-                            ]
-                        }]
-                    });
-                    console.log(`Sent ${interaction.user.tag}'s balance!`);
-                } else await interaction.followUp({
-                    embeds: [basicEmbed("**Could not fetch your balance**, most likely you got logged out. Try logging in again.")]
-                });
-
-                break;
-            }
-            case "alert": {
-                const valorantUser = getUser(interaction.user.id);
-                if(!valorantUser) return await interaction.reply({
-                    embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
-                    ephemeral: true
-                });
-
-                const searchQuery = interaction.options.get("skin").value
-                const searchResults = await searchSkin(searchQuery); // filter for skins they already have
-
-                // filter out results for which the user already has an alert set up
-                const filteredResults = [];
-                for(const result of searchResults) {
-                    const otherAlert = alertExists(interaction.user.id, result.uuid);
-                    if(otherAlert) { // user already has an alert for this skin
-                        // maybe it's in a now deleted channel?
-                        const otherChannel = await client.channels.fetch(otherAlert.channel_id).catch(() => {});
-                        if(!otherChannel) {
-                            removeAlertsInChannel(otherAlert.channel_id);
-                            filteredResults.push(result);
-                        }
-                    } else filteredResults.push(result);
-                }
-
-                if(filteredResults.length === 0) {
-                    if(searchResults.length === 0) return await interaction.reply({embeds: [basicEmbed("**Couldn't find a skin with that name!** Check the spelling and try again.")], ephemeral: true});
-
-                    const skin = searchResults[0];
-                    const otherAlert = alertExists(interaction.user.id, skin.uuid);
-                    return await interaction.reply({
-                        embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
+        try {
+            console.log(`${interaction.user.tag} used /${interaction.commandName}`);
+            switch (interaction.commandName) {
+                case "skins":
+                case "shop": {
+                    const valorantUser = getUser(interaction.user.id);
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
                         ephemeral: true
                     });
-                } else if(filteredResults.length === 1 || filteredResults[0].name.toLowerCase() === searchQuery.toLowerCase()) {
-                    const skin = filteredResults[0];
 
-                    addAlert({
-                        id: interaction.user.id,
-                        uuid: skin.uuid,
-                        channel_id: interaction.channel.id
-                    });
+                    // start uploading emoji now
+                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
 
-                    return await interaction.reply({embeds: [await skinChosenEmbed(skin, interaction.channel)], components: [removeAlertActionRow(interaction.user.id, skin.uuid)]});
-                } else {
-                    const row = new MessageActionRow();
-                    const options = filteredResults.splice(0, 25).map(result => {
-                        return {
-                            label: result.name,
-                            value: `skin-${result.uuid}`
-                        }
-                    });
-                    row.addComponents(new MessageSelectMenu().setCustomId("skin-select").setPlaceholder("Select skin:").addOptions(options));
+                    await defer(interaction);
 
-                    await interaction.reply({
-                        embeds: [secondaryEmbed("Which skin would you like to set a reminder for?")],
-                        components: [row]
-                    });
-                }
+                    const shop = await getShop(interaction.user.id);
 
-                break;
-            }
-            case "alerts": {
-                const valorantUser = getUser(interaction.user.id);
-                if(!valorantUser) return await interaction.reply({
-                    embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
-                    ephemeral: true
-                });
-
-                let alerts = alertsForUser(interaction.user.id);
-                alerts.splice(0, 25); // todo create a page system when there are >25 alerts
-
-                // filter out alerts for deleted channels
-                const removedChannels = [];
-                for(const alert of alerts) {
-                    if(removedChannels.includes(alert.channel_id)) continue;
-
-                    const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
-                    if(!channel) {
-                        removeAlertsInChannel(alert.channel_id);
-                        removedChannels.push(alert.channel_id);
-                    }
-                }
-                if(removedChannels) alerts = alertsForUser(interaction.user.id);
-
-                if(alerts.length === 0) {
-                    return await interaction.reply({
-                        embeds: [basicEmbed("**You don't have any alerts set up!** Use `/alert` to get started.")],
+                    if(!shop) return await interaction.followUp({
+                        embeds: [basicEmbed("Could not fetch your shop, most likely you got logged out. Try logging in again.")],
                         ephemeral: true
                     });
-                }
+                    if(shop === MAINTENANCE) return await interaction.followUp({
+                        embeds: [basicEmbed("**Valorant servers are currently down for maintenance!** Try again later.")],
+                        ephemeral: true
+                    });
 
-                const success = await authUser(interaction.user.id);
-                if(!success) return await interaction.reply({
-                    embeds: [basicEmbed("**Your alerts won't work because you got logged out!** Please `/login` again.")],
-                    ephemeral: true
-                });
+                    const embeds = [{
+                        description: `Daily shop for **${valorantUser.username}** (new shop <t:${shop.expires}:R>)`,
+                        color: VAL_COLOR_1
+                    }];
 
-                const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel)) || "Price: ");
+                    const emojiString = emojiToString(await emojiPromise) || "Price:";
 
-                const alertFieldDescription = (channel_id, price) => {
-                    return channel_id !== interaction.channel.id ? `in <#${channel_id}>` :
-                        price ? `${emojiString} ${price}` :
-                        config.showSkinPrices ? "Not for sale" : "Prices not shown";
-                }
-
-                if(alerts.length === 1) {
-                    const alert = alerts[0];
-                    const skin = await getSkin(alert.uuid, interaction.user.id);
-
-                    return await interaction.reply({
-                        embeds: [{
-                            title: "You have one alert set up:",
-                            color: VAL_COLOR_1,
-                            description: `**${await skinNameAndEmoji(skin, interaction.channel)}**\n${alertFieldDescription(alert.channel_id, skin.price)}`,
+                    for(const uuid of shop.offers) {
+                        const skin = await getSkin(uuid, interaction.user.id);
+                        const embed = {
+                            title: await skinNameAndEmoji(skin, interaction.channel),
+                            color: VAL_COLOR_2,
                             thumbnail: {
                                 url: skin.icon
                             }
-                        }],
-                        components: [removeAlertActionRow(interaction.user.id, alert.uuid)],
+                        };
+                        if(config.showSkinPrices && skin.price) embed.description = `${emojiString} ${skin.price}`;
+                        embeds.push(embed);
+                    }
+
+                    await interaction.followUp({embeds});
+                    console.log(`Sent ${interaction.user.tag}'s shop!`);
+
+                    break;
+                }
+                case "balance": {
+                    const valorantUser = getUser(interaction.user.id);
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
                         ephemeral: true
                     });
-                }
 
-                // bring the alerts in this channel to the top
-                const alertPriority = (alert) => {
-                    if(alert.channel_id === interaction.channel.id) return 2;
-                    if(client.channels.cache.get(alert.channel_id).guild.id === interaction.guild.id) return 1;
-                    return 0;
-                }
-                alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
+                    await defer(interaction);
 
-                const embed = { // todo switch this to a "one embed per alert" message, kinda like /shop
-                    title: "The alerts you currently have set up:",
-                    color: VAL_COLOR_1,
-                    footer: {
-                        text: "Click on a button to remove the alert"
-                    },
-                    fields: []
-                }
-                const buttons = [];
+                    const VPEmojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+                    const RadEmojiPromise = RadEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
 
-                let n = 1;
-                for(const alert of alerts) {
-                    const skin = await getSkin(alert.uuid, interaction.user.id);
-                    embed.fields.push({
-                        name: `**${n}.** ${await skinNameAndEmoji(skin, interaction.channel)}`,
-                        value: alertFieldDescription(alert.channel_id, skin.price),
-                        inline: false
+                    const balance = await getBalance(interaction.user.id);
+
+                    if(balance === MAINTENANCE) return await interaction.followUp({
+                        embeds: [basicEmbed("**Riot servers are down for maintenance!** Try again later.")],
+                        ephemeral: true
                     });
-                    buttons.push(removeAlertButton(interaction.user.id, alert.uuid).setLabel(`${n}.`).setEmoji(""));
-                    n++;
-                }
 
-                const actionRows = [];
-                for(let i = 0; i < alerts.length; i += 5) {
-                    const actionRow = new MessageActionRow();
-                    for(let j = i; j < i + 5 && j < alerts.length; j++) {
-                        actionRow.addComponents(buttons[j]);
+                    if(balance) {
+                        const VPEmoji = emojiToString(await VPEmojiPromise) || "Valorant Points:";
+                        const RadEmoji = emojiToString(await RadEmojiPromise) || "Radianite:";
+                        await interaction.followUp({
+                            embeds: [{
+                                title: `**${valorantUser.username}**'s wallet:`,
+                                color: VAL_COLOR_1,
+                                fields: [
+                                    {name: "Valorant Points", value: `${VPEmoji} ${balance.vp}`, inline: true},
+                                    {name: "Radianite", value: `${RadEmoji} ${balance.rad}`, inline: true}
+                                ]
+                            }]
+                        });
+                        console.log(`Sent ${interaction.user.tag}'s balance!`);
+                    } else await interaction.followUp({
+                        embeds: [basicEmbed("**Could not fetch your balance**, most likely you got logged out. Try logging in again.")]
+                    });
+
+                    break;
+                }
+                case "alert": {
+                    const valorantUser = getUser(interaction.user.id);
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        ephemeral: true
+                    });
+
+                    const searchQuery = interaction.options.get("skin").value
+                    const searchResults = await searchSkin(searchQuery); // filter for skins they already have
+
+                    // filter out results for which the user already has an alert set up
+                    const filteredResults = [];
+                    for(const result of searchResults) {
+                        const otherAlert = alertExists(interaction.user.id, result.uuid);
+                        if(otherAlert) { // user already has an alert for this skin
+                            // maybe it's in a now deleted channel?
+                            const otherChannel = await client.channels.fetch(otherAlert.channel_id).catch(() => {});
+                            if(!otherChannel) {
+                                removeAlertsInChannel(otherAlert.channel_id);
+                                filteredResults.push(result);
+                            }
+                        } else filteredResults.push(result);
                     }
-                    actionRows.push(actionRow);
+
+                    if(filteredResults.length === 0) {
+                        if(searchResults.length === 0) return await interaction.reply({
+                            embeds: [basicEmbed("**Couldn't find a skin with that name!** Check the spelling and try again.")],
+                            ephemeral: true
+                        });
+
+                        const skin = searchResults[0];
+                        const otherAlert = alertExists(interaction.user.id, skin.uuid);
+                        return await interaction.reply({
+                            embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
+                            ephemeral: true
+                        });
+                    } else if(filteredResults.length === 1 || filteredResults[0].name.toLowerCase() === searchQuery.toLowerCase()) {
+                        const skin = filteredResults[0];
+
+                        addAlert({
+                            id: interaction.user.id,
+                            uuid: skin.uuid,
+                            channel_id: interaction.channel.id
+                        });
+
+                        return await interaction.reply({
+                            embeds: [await skinChosenEmbed(skin, interaction.channel)],
+                            components: [removeAlertActionRow(interaction.user.id, skin.uuid)]
+                        });
+                    } else {
+                        const row = new MessageActionRow();
+                        const options = filteredResults.splice(0, 25).map(result => {
+                            return {
+                                label: result.name,
+                                value: `skin-${result.uuid}`
+                            }
+                        });
+                        row.addComponents(new MessageSelectMenu().setCustomId("skin-select").setPlaceholder("Select skin:").addOptions(options));
+
+                        await interaction.reply({
+                            embeds: [secondaryEmbed("Which skin would you like to set a reminder for?")],
+                            components: [row]
+                        });
+                    }
+
+                    break;
                 }
+                case "alerts": {
+                    const valorantUser = getUser(interaction.user.id);
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        ephemeral: true
+                    });
 
-                await interaction.reply({
-                    embeds: [embed],
-                    components: actionRows,
-                    ephemeral: true
-                });
+                    let alerts = alertsForUser(interaction.user.id);
+                    alerts.splice(0, 25); // todo create a page system when there are >25 alerts
 
-                break;
-            }
-            case "login": {
-                await interaction.deferReply({ephemeral: true});
+                    // filter out alerts for deleted channels
+                    const removedChannels = [];
+                    for(const alert of alerts) {
+                        if(removedChannels.includes(alert.channel_id)) continue;
 
-                const username = interaction.options.get("username").value;
-                const password = interaction.options.get("password").value;
+                        const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
+                        if(!channel) {
+                            removeAlertsInChannel(alert.channel_id);
+                            removedChannels.push(alert.channel_id);
+                        }
+                    }
+                    if(removedChannels) alerts = alertsForUser(interaction.user.id);
 
-                const login = await redeemUsernamePassword(interaction.user.id, username, password);
+                    if(alerts.length === 0) {
+                        return await interaction.reply({
+                            embeds: [basicEmbed("**You don't have any alerts set up!** Use `/alert` to get started.")],
+                            ephemeral: true
+                        });
+                    }
 
-                const user = getUser(interaction.user.id);
-                let embed;
-                if(login && user) {
-                    if(login.success) {
-                        console.log(`${interaction.user.tag} logged in as ${user.username}`);
+                    const success = await authUser(interaction.user.id);
+                    if(!success) return await interaction.reply({
+                        embeds: [basicEmbed("**Your alerts won't work because you got logged out!** Please `/login` again.")],
+                        ephemeral: true
+                    });
+
+                    const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel)) || "Price: ");
+
+                    const alertFieldDescription = (channel_id, price) => {
+                        return channel_id !== interaction.channel.id ? `in <#${channel_id}>` :
+                            price ? `${emojiString} ${price}` :
+                            config.showSkinPrices ? "Not for sale" : "Prices not shown";
+                    }
+
+                    if(alerts.length === 1) {
+                        const alert = alerts[0];
+                        const skin = await getSkin(alert.uuid, interaction.user.id);
+
+                        return await interaction.reply({
+                            embeds: [{
+                                title: "You have one alert set up:",
+                                color: VAL_COLOR_1,
+                                description: `**${await skinNameAndEmoji(skin, interaction.channel)}**\n${alertFieldDescription(alert.channel_id, skin.price)}`,
+                                thumbnail: {
+                                    url: skin.icon
+                                }
+                            }],
+                            components: [removeAlertActionRow(interaction.user.id, alert.uuid)],
+                            ephemeral: true
+                        });
+                    }
+
+                    // bring the alerts in this channel to the top
+                    const alertPriority = (alert) => {
+                        if(alert.channel_id === interaction.channel.id) return 2;
+                        if(client.channels.cache.get(alert.channel_id).guild.id === interaction.guild.id) return 1;
+                        return 0;
+                    }
+                    alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
+
+                    const embed = { // todo switch this to a "one embed per alert" message, kinda like /shop
+                        title: "The alerts you currently have set up:",
+                        color: VAL_COLOR_1,
+                        footer: {
+                            text: "Click on a button to remove the alert"
+                        },
+                        fields: []
+                    }
+                    const buttons = [];
+
+                    let n = 1;
+                    for(const alert of alerts) {
+                        const skin = await getSkin(alert.uuid, interaction.user.id);
+                        embed.fields.push({
+                            name: `**${n}.** ${await skinNameAndEmoji(skin, interaction.channel)}`,
+                            value: alertFieldDescription(alert.channel_id, skin.price),
+                            inline: false
+                        });
+                        buttons.push(removeAlertButton(interaction.user.id, alert.uuid).setLabel(`${n}.`).setEmoji(""));
+                        n++;
+                    }
+
+                    const actionRows = [];
+                    for(let i = 0; i < alerts.length; i += 5) {
+                        const actionRow = new MessageActionRow();
+                        for(let j = i; j < i + 5 && j < alerts.length; j++) {
+                            actionRow.addComponents(buttons[j]);
+                        }
+                        actionRows.push(actionRow);
+                    }
+
+                    await interaction.reply({
+                        embeds: [embed],
+                        components: actionRows,
+                        ephemeral: true
+                    });
+
+                    break;
+                }
+                case "login": {
+                    await defer(interaction, true);
+
+                    const username = interaction.options.get("username").value;
+                    const password = interaction.options.get("password").value;
+
+                    const login = await redeemUsernamePassword(interaction.user.id, username, password);
+
+                    const user = getUser(interaction.user.id);
+                    let embed;
+                    if(login && user) {
+                        if(login.success) {
+                            console.log(`${interaction.user.tag} logged in as ${user.username}`);
+                            embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
+                        } else if(login.mfa) {
+                            console.log(`${interaction.user.tag} needs 2FA code`);
+                            if(login.method === "email") embed = basicEmbed(`**Riot sent a code to ${escapeMarkdown(login.email)}!** Use \`/2fa\` to complete your login.`);
+                            else embed = basicEmbed("**You have 2FA enabled!** use `/2fa` to enter your code.");
+                        }
+                    } else {
+                        console.log(`${interaction.user.tag} login failed`);
+                        embed = basicEmbed("Invalid username or password!");
+                    }
+
+                    await interaction.followUp({
+                        embeds: [embed],
+                        ephemeral: true
+                    });
+
+                    break;
+                }
+                case "2fa": {
+                    const valorantUser = getUser(interaction.user.id);
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        ephemeral: true
+                    });
+                    else if(!valorantUser.waiting2FA) return await interaction.reply({
+                        embeds: [basicEmbed("**Not expecting a 2FA code!** Try `/login` if you're not logged in.")],
+                        ephemeral: true
+                    });
+
+                    await defer(interaction, true);
+
+                    const code = interaction.options.get("code").value.toString().padStart(6, '0');
+
+                    const success = await redeem2FACode(interaction.user.id, code);
+
+                    const user = getUser(interaction.user.id);
+                    let embed;
+                    if(success && user) {
+                        console.log(`${interaction.user.tag} logged in as ${user.username} with 2FA code`);
                         embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
-                    } else if(login.mfa) {
-                        console.log(`${interaction.user.tag} needs 2FA code`);
-                        if(login.method === "email") embed = basicEmbed(`**Riot sent a code to ${escapeMarkdown(login.email)}!** Use \`/2fa\` to complete your login.`);
-                        else embed = basicEmbed("**You have 2FA enabled!** use `/2fa` to enter your code.");
+                    } else {
+                        console.log(`${interaction.user.tag} 2FA code failed`);
+                        embed = basicEmbed("Invalid 2FA code!");
                     }
-                } else {
-                    console.log(`${interaction.user.tag} login failed`);
-                    embed = basicEmbed("Invalid username or password!");
+
+                    await interaction.followUp({
+                        embeds: [embed],
+                        ephemeral: true
+                    });
+
+                    break;
                 }
+                case "cookies": {
+                    await defer(interaction, true);
 
-                await interaction.followUp({
-                    embeds: [embed],
-                    ephemeral: true
-                });
+                    const cookies = interaction.options.get("cookies").value;
 
-                break;
-            }
-            case "2fa": {
-                const valorantUser = getUser(interaction.user.id);
-                if(!valorantUser) return await interaction.reply({
-                    embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
-                    ephemeral: true
-                });
-                else if(!valorantUser.waiting2FA) return await interaction.reply({
-                    embeds: [basicEmbed("**Not expecting a 2FA code!** Try `/login` if you're not logged in.")],
-                    ephemeral: true
-                });
+                    const success = await redeemCookies(interaction.user.id, cookies);
 
-                await interaction.deferReply({ephemeral: true});
+                    const user = getUser(interaction.user.id);
+                    let embed;
+                    if(success && user) {
+                        console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
+                        embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
+                    } else {
+                        console.log(`${interaction.user.tag} cookies login failed`);
+                        embed = basicEmbed("Whoops, that didn't work! Are your cookies formatted correctly?");
+                    }
 
-                const code = interaction.options.get("code").value.toString().padStart(6, '0');
+                    await interaction.followUp({
+                        embeds: [embed],
+                        ephemeral: true
+                    });
 
-                const success = await redeem2FACode(interaction.user.id, code);
-
-                const user = getUser(interaction.user.id);
-                let embed;
-                if(success && user) {
-                    console.log(`${interaction.user.tag} logged in as ${user.username} with 2FA code`);
-                    embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
-                } else {
-                    console.log(`${interaction.user.tag} 2FA code failed`);
-                    embed = basicEmbed("Invalid 2FA code!");
+                    break;
                 }
+                case "forget": {
+                    const user = getUser(interaction.user.id);
+                    if(!user) return await interaction.reply({
+                        embeds: [basicEmbed("I can't forget you if you're not registered!")],
+                        ephemeral: true
+                    });
 
-                await interaction.followUp({
-                    embeds: [embed],
-                    ephemeral: true
-                });
+                    deleteUser(interaction.user.id);
+                    removeAlertsFromUser(interaction.user.id);
+                    console.log(`${interaction.user.tag} deleted their account`);
 
-                break;
-            }
-            case "cookies": {
-                await interaction.deferReply({ephemeral: true});
-
-                const cookies = interaction.options.get("cookies").value;
-
-                const success = await redeemCookies(interaction.user.id, cookies);
-
-                const user = getUser(interaction.user.id);
-                let embed;
-                if(success && user) {
-                    console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
-                    embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
-                } else {
-                    console.log(`${interaction.user.tag} cookies login failed`);
-                    embed = basicEmbed("Whoops, that didn't work! Are your cookies formatted correctly?");
+                    await interaction.reply({
+                        embeds: [basicEmbed("Your account has been deleted from the database!")],
+                        ephemeral: true
+                    });
+                    break;
                 }
-
-                await interaction.followUp({
-                    embeds: [embed],
-                    ephemeral: true
-                });
-
-                break;
+                default: {
+                    await interaction.reply("Yer a wizard harry!");
+                    break;
+                }
             }
-            case "forget": {
-                const user = getUser(interaction.user.id);
-                if(!user) return await interaction.reply({
-                    embeds: [basicEmbed("I can't forget you if you're not registered!")],
-                    ephemeral: true
-                });
-
-                deleteUser(interaction.user.id);
-                removeAlertsFromUser(interaction.user.id);
-                console.log(`${interaction.user.tag} deleted their account`);
-
-                await interaction.reply({
-                    embeds: [basicEmbed("Your account has been deleted from the database!")],
-                    ephemeral: true
-                });
-                break;
-            }
-            default: {
-                await interaction.reply("Yer a wizard harry!");
-                break;
-            }
+        } catch(e) {
+            await handleError(e, interaction);
         }
     } else if(interaction.isSelectMenu()) {
-        console.log(`${interaction.user.tag} selected an option a the dropdown`);
-        switch (interaction.customId) {
-            case "skin-select": {
-                if(interaction.message.interaction.user.id !== interaction.user.id) {
-                    return await interaction.reply({embeds: [basicEmbed("**That's not your message!** Use `/alert` to set your own alert.")], ephemeral: true});
+        try {
+            console.log(`${interaction.user.tag} selected an option from the dropdown`);
+            switch (interaction.customId) {
+                case "skin-select": {
+                    if(interaction.message.interaction.user.id !== interaction.user.id) {
+                        return await interaction.reply({
+                            embeds: [basicEmbed("**That's not your message!** Use `/alert` to set your own alert.")],
+                            ephemeral: true
+                        });
+                    }
+
+                    const chosenSkin = interaction.values[0].substr(5);
+                    const skin = await getSkin(chosenSkin);
+
+                    const otherAlert = alertExists(interaction.user.id, chosenSkin);
+                    if(otherAlert) return await interaction.reply({
+                        embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
+                        ephemeral: true
+                    });
+
+                    addAlert({
+                        id: interaction.user.id,
+                        uuid: chosenSkin,
+                        channel_id: interaction.channel.id
+                    });
+
+                    await interaction.update({
+                        embeds: [await skinChosenEmbed(skin, interaction.channel)],
+                        components: [removeAlertActionRow(interaction.user.id, chosenSkin)]
+                    });
                 }
+            }
+        } catch(e) {
+            await handleError(e, interaction);
+        }
+    } else if(interaction.isButton()) {
+        try {
+            console.log(`${interaction.user.tag} clicked ${interaction.component.label}`);
+            if(interaction.customId.startsWith("removealert/")) {
+                const [, uuid, id] = interaction.customId.split('/');
 
-                const chosenSkin = interaction.values[0].substr(5);
-                const skin = await getSkin(chosenSkin);
-
-                const otherAlert = alertExists(interaction.user.id, chosenSkin);
-                if(otherAlert) return await interaction.reply({
-                    embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
+                if(id !== interaction.user.id) return await interaction.reply({
+                    embeds: [basicEmbed("**That's not your alert!** Use `/alerts` to manage your alerts.")],
                     ephemeral: true
                 });
 
-                addAlert({
-                    id: interaction.user.id,
-                    uuid: chosenSkin,
-                    channel_id: interaction.channel.id
-                });
+                const success = removeAlert(id, uuid);
+                if(success) {
+                    const skin = await getSkin(uuid);
 
-                await interaction.update({embeds: [await skinChosenEmbed(skin, interaction.channel)], components: [removeAlertActionRow(interaction.user.id, chosenSkin)]});
-            }
-        }
-    } else if(interaction.isButton()) {
-        console.log(`${interaction.user.tag} clicked ${interaction.component.label}`);
-        if(interaction.customId.startsWith("removealert/")) {
-            const [, uuid, id] = interaction.customId.split('/');
+                    await interaction.reply({
+                        embeds: [basicEmbed(`Removed the alert for the **${await skinNameAndEmoji(skin, interaction.channel)}**!`)],
+                        ephemeral: true
+                    });
 
-            if(id !== interaction.user.id) return await interaction.reply({embeds: [basicEmbed("**That's not your alert!** Use `/alerts` to manage your alerts.")], ephemeral: true});
+                    if(interaction.message.flags.has(MessageFlags.FLAGS.EPHEMERAL)) return; // message is ephemeral
 
-            const success = removeAlert(id, uuid);
-            if(success) {
-                const skin = await getSkin(uuid);
+                    if(interaction.message.interaction) { // if the message is an interaction, aka is the response to /alert
+                        await interaction.message.delete().catch(() => {});
+                    } else { // the message is an automatic alert
+                        const actionRow = removeAlertActionRow(interaction.user.id, uuid);
+                        actionRow.components[0].setDisabled(true).setLabel("Removed");
 
-                await interaction.reply({embeds: [basicEmbed(`Removed the alert for the **${await skinNameAndEmoji(skin, interaction.channel)}**!`)], ephemeral: true});
-
-                if(interaction.message.flags.has(MessageFlags.FLAGS.EPHEMERAL)) return; // message is ephemeral
-
-                if(interaction.message.interaction) { // if the message is an interaction, aka is the response to /alert
-                    await interaction.message.delete().catch(() => {});
-                } else { // the message is an automatic alert
-                    const actionRow = removeAlertActionRow(interaction.user.id, uuid);
-                    actionRow.components[0].setDisabled(true).setLabel("Removed");
-
-                    await interaction.message.edit({components: [actionRow]}).catch(() => {});
+                        await interaction.message.edit({components: [actionRow]}).catch(() => {});
+                    }
+                } else {
+                    await interaction.reply({embeds: [basicEmbed("That alert doesn't exist anymore!")], ephemeral: true});
                 }
-            } else {
-                await interaction.reply({embeds: [basicEmbed("That alert doesn't exist anymore!")], ephemeral: true});
             }
+        } catch(e) {
+            await handleError(e, interaction);
         }
     }
 });
 
 client.on("channelDelete", channel => {
     removeAlertsInChannel(channel.id);
-})
+});
+
+const defer = async (interaction, ephemeral=false) => {
+    // discord only sets deferred to true once the event
+    // is sent over ws, which doesn't happen immediately
+    await interaction.deferReply({ephemeral});
+    interaction.deferred = true;
+}
+
+const handleError = async (e, interaction) => {
+    const message = `:no_entry_sign: **There was an error trying to do that!** I blame Riot.\n\`${e.message}\``;
+    try {
+        const embed = basicEmbed(message);
+        if(interaction.deferred) await interaction.followUp({embeds: [embed], ephemeral: true});
+        else await interaction.reply({embeds: [embed], ephemeral: true});
+        console.error(e);
+    } catch(e2) {
+        console.error("There was a problem while trying to handle an error!\nHere's the original error:");
+        console.error(e);
+        console.error("\nAnd here's the error while trying to handle it:");
+        console.error(e2);
+    }
+}
 
 loadUserData();
 loadAlerts();
