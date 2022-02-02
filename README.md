@@ -4,10 +4,6 @@ Discord bot to see your daily Valorant item shop without launching the game and 
 <img src="https://user-images.githubusercontent.com/20621396/148746123-445eca70-1afe-43bc-9c2f-8242a557ec86.png" alt="/shop demo" width="400" />
 <img src="https://user-images.githubusercontent.com/20621396/148747282-42e49099-a4be-4569-b812-4ec09564f897.png" alt="alert demo" width="600" />
 
-## UPDATE: Password authentication might not work
-
-As a side effect of Riot cracking down on account cracking, they've broken most skin-fetching bots and other community projects. I've implemented a few bypasses, let me know if it still doesn't work. Read [this](https://github.com/giorgi-o/SkinPeek/issues/4#issuecomment-1022316597) for more info.
-
 ## Installation
 
 - [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#bot-invite-links) with the `applications.commands` scope
