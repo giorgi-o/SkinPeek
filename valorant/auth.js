@@ -7,6 +7,7 @@ let users;
 
 export const loadUserData = () => {
     if(!users) try {
+        if (!fs.existsSync("data")) fs.mkdirSync("data");
         users = JSON.parse(fs.readFileSync("data/users.json", 'utf-8'));
         saveUserData();
     } catch(e) {
