@@ -15,15 +15,18 @@ export const loadConfig = (filename="config.json") => {
     if(!loadedConfig.token || loadedConfig.token === "token goes here")
         return console.error("You forgot to put your bot token in config.json!");
 
+    loadedConfig.fetchSkinPrices = loadedConfig.showSkinPrices;
+    loadedConfig.fetchSkinRarities = loadedConfig.showSkinRarities;
+
     applyConfig(loadedConfig, "token", "token goes here");
-    applyConfig(loadedConfig, "showSkinPrices", true);
-    applyConfig(loadedConfig, "showSkinRarities", true);
+    applyConfig(loadedConfig, "fetchSkinPrices", true);
+    applyConfig(loadedConfig, "fetchSkinRarities", true);
     applyConfig(loadedConfig, "refreshSkins", "10 0 0 * * *");
     applyConfig(loadedConfig, "checkGameVersion", "*/15 * * * *");
     applyConfig(loadedConfig, "cleanupAccounts", "0 * * * *");
     applyConfig(loadedConfig, "storePasswords", false);
 
-    saveConfig(filename, {...loadedConfig, ...config});
+    saveConfig(filename, config);
 
     return config;
 }

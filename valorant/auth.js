@@ -1,13 +1,13 @@
-import config from "../config.js";
+import config from "../misc/config.js";
 import fs from "fs";
 
-import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../util.js";
+import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../misc/util.js";
 
 let users;
 
 export const loadUserData = () => {
     if(!users) try {
-        users = JSON.parse(fs.readFileSync("users.json", 'utf-8'));
+        users = JSON.parse(fs.readFileSync("data/users.json", 'utf-8'));
         saveUserData();
     } catch(e) {
         users = {};
@@ -15,7 +15,7 @@ export const loadUserData = () => {
 }
 
 const saveUserData = () => {
-    fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
+    fs.writeFileSync("data/users.json", JSON.stringify(users, null, 2));
 }
 
 export const getUser = (id) => {

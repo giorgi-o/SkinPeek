@@ -60,6 +60,14 @@ export const asyncReadJSONFile = async (path) => {
 
 // riot utils
 
+export const itemTypes = {
+    SKIN: "e7c63390-eda7-46e0-bb7a-a6abdacd2433",
+    BUDDY: "dd3bf334-87f3-40bd-b043-682a57a8dc3a",
+    SPRAY: "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475",
+    CARD: "3f296c07-64c3-494c-923b-fe692a4fa1bd",
+    TITLE: "de7caa6b-adf7-4588-bbd1-143831e786c6"
+}
+
 export const parseSetCookie = (setCookie) => {
     const cookies = {};
     for(const cookie of setCookie) {
@@ -98,40 +106,49 @@ export const isMaintenance = (json) => {
     return json.httpStatus === 403 && json.errorCode === "SCHEDULED_DOWNTIME";
 }
 
+export const formatBundle = async (rawBundle) => {
+    const bundle = {
+        uuid: rawBundle.DataAssetID,
+        expires: Math.floor(Date.now() / 1000) + rawBundle.DurationRemainingInSeconds,
+        items: []
+    }
+
+    let price = 0;
+    let basePrice = 0;
+    for(const rawItem of rawBundle.Items) {
+        const item = {
+            uuid: rawItem.Item.ItemID,
+            type: rawItem.Item.ItemTypeID,
+            item: await getItem(rawItem.Item.ItemID, rawItem.Item.ItemTypeID),
+            amount: rawItem.Item.Amount,
+            price: rawItem.DiscountedPrice,
+            basePrice: rawItem.BasePrice,
+            discount: rawItem.DiscountPercent
+        }
+
+        price += item.price;
+        basePrice += item.basePrice;
+
+        bundle.items.push(item);
+    }
+
+    bundle.price = price;
+    bundle.basePrice = basePrice;
+
+    return bundle;
+}
+
 // discord utils
 
-import {rarityEmoji} from "./emoji.js";
+import {rarityEmoji} from "../discord/emoji.js";
 import {MessageActionRow, MessageButton, Permissions, Util} from "discord.js";
+import {getItem} from "../valorant/cache.js";
 
-export const VAL_COLOR_1 = 0xFD4553;
-export const VAL_COLOR_2 = 0x0F1923;
-
-export const escapeMarkdown = Util.escapeMarkdown;
-
-export const basicEmbed = (content) => {
-    return {
-        description: content,
-        color: VAL_COLOR_1
-    }
-}
-
-export const secondaryEmbed = (content) => {
-    return {
-        description: content,
-        color: VAL_COLOR_2
-    }
-}
-
-export const skinChosenEmbed = async (skin, channel) => {
-    let  description = `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`;
-    if(!skin.rarity) description += "\n***Note:** This is a battle pass skin!*";
-    return {
-        description: description,
-        color: VAL_COLOR_1,
-        thumbnail: {
-            url: skin.icon
-        }
-    }
+export const defer = async (interaction, ephemeral=false) => {
+    // discord only sets deferred to true once the event
+    // is sent over ws, which doesn't happen immediately
+    await interaction.deferReply({ephemeral});
+    interaction.deferred = true;
 }
 
 export const skinNameAndEmoji = async (skin, channel) => {
@@ -145,4 +162,6 @@ export const removeAlertActionRow = (id, uuid) => new MessageActionRow().addComp
 
 // apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
 export const externalEmojisAllowed = (channel) => channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
-export const emojiToString = (emoji) => `<:${emoji.name}:${emoji.id}>`;
+export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
+
+export const escapeMarkdown = Util.escapeMarkdown;

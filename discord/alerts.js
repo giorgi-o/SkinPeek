@@ -1,9 +1,11 @@
-import {getUserList} from "./Valorant/auth.js";
-import {getShop, getSkin} from "./Valorant/skins.js";
+import {removeAlertActionRow, skinNameAndEmoji} from "../misc/util.js";
+import {getUserList} from "../valorant/auth.js";
+import {getOffers} from "../valorant/shop.js";
+import {getSkin} from "../valorant/cache.js";
 import fs from "fs";
-import {removeAlertActionRow, skinNameAndEmoji, VAL_COLOR_1} from "./util.js";
 
 let alerts = [];
+
 let client;
 export const setClient = (theClient) => client = theClient;
 
@@ -15,14 +17,14 @@ export const setClient = (theClient) => client = theClient;
  * There should only be one alert per ID/UUID pair, aka each user can have one alert per skin.
  */
 
-export const loadAlerts = (filename="alerts.json") => {
+export const loadAlerts = (filename="data/alerts.json") => {
     try {
         alerts = JSON.parse(fs.readFileSync(filename).toString());
         saveAlerts(filename);
     } catch(e) {}
 }
 
-const saveAlerts = (filename="alerts.json") => {
+const saveAlerts = (filename="data/alerts.json") => {
     fs.writeFileSync(filename, JSON.stringify(alerts, null, 2));
 }
 
@@ -65,7 +67,7 @@ export const checkAlerts = () => {
             const userAlerts = alerts.filter(alert => alert.id === id);
             if(!userAlerts.length) continue;
 
-            getShop(id).then(shop => {
+            getOffers(id).then(shop => {
                 if(!shop) {
                     const channelsSent = [];
                     for(const alert of alerts) {
@@ -87,7 +89,6 @@ export const checkAlerts = () => {
     }
 }
 
-// function needs to be here instead of SkinPeek.js to avoid circular dependency
 const sendAlert = async (alerts, expires) => {
     console.debug(`Sending alerts...`);
 

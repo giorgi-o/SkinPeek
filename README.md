@@ -34,6 +34,7 @@ The bot should have role that allows it to send messages and create custom emoji
 
 - Login using `/login`
 - Get your daily shop using `/shop`
+- Get featured bundles using `/bundles`
 - Set alerts using `/alert`
 - Manage your alerts using `/alerts`
 - Show your Valorant Points & Radianite using `/balance`
@@ -49,7 +50,7 @@ Obviously, only log in if you trust whoever is hosting the bot, as they can theo
 * ~~Skin notifier/reminder~~
 * ~~Show weapon rarity~~
 * ~~Auto check for new Valorant version~~
-* See current bundles
+* ~~See current bundles~~
 * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
 * Option to send shop automatically every day
 * Admin commands (delete user, see/edit everyone's alerts, etc.)

@@ -1,7 +1,7 @@
 {
   "token": "token goes here",
-  "showSkinPrices": true,
-  "showSkinRarities": true,
+  "fetchSkinPrices": true,
+  "fetchSkinRarities": true,
   "refreshSkins": "10 0 0 * * *",
   "checkGameVersion": "*/15 * * * *",
   "cleanupAccounts": "0 * * * *",
