@@ -3,6 +3,8 @@ version: '3.8'
 services:
   bot:
     image: ghcr.io/giorgi-o/skinpeek/skinpeek
+    restart: unless-stopped
     volumes:
       - ./config.json:/usr/app/config.json
-    container_name: skin_peek_bot
+      - ./data:/usr/app/data
+    container_name: skinpeek_bot
