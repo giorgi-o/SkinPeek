@@ -1,10 +1,10 @@
 import {asyncReadFile} from "../misc/util.js";
 
 const VPEmojiName = "ValPointsIcon";
-const VPEmojiFilename = "vp.png"; // https://media.valorant-api.com/currencies/85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741/largeicon.png
+const VPEmojiFilename = "assets/vp.png"; // https://media.valorant-api.com/currencies/85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741/largeicon.png
 
 const RadEmojiName = "RadianiteIcon";
-const RadEmojiFilename = "rad.png"; // https://media.valorant-api.com/currencies/e59aa87c-4cbf-517a-5983-6e81511be9b7/displayicon.png
+const RadEmojiFilename = "assets/rad.png"; // https://media.valorant-api.com/currencies/e59aa87c-4cbf-517a-5983-6e81511be9b7/displayicon.png
 
 export const VPEmoji = async (guild, externalEmojisAllowed=false) => await getOrCreateEmoji(guild, VPEmojiName, VPEmojiFilename, externalEmojisAllowed);
 export const RadEmoji = async (guild, externalEmojisAllowed=false) => await getOrCreateEmoji(guild, RadEmojiName, RadEmojiFilename, externalEmojisAllowed);
