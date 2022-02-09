@@ -32,17 +32,17 @@ export const getUserList = () => {
 export const authUser = async (id) => {
     // doesn't check if token is valid, only checks it hasn't expired
     const user = getUser(id);
-    if(!user) return;
+    if(!user) return {success: false};
 
     const rsoExpiry = tokenExpiry(user.rso);
-    if(rsoExpiry - Date.now() > 10_000) return true;
+    if(rsoExpiry - Date.now() > 10_000) return {success: true};
 
     return await refreshToken(id);
 }
 
 const userAgent = "RiotClient/43.0.1.4195386.4190634 rso-auth (Windows;10;;Professional, x64)";
 
-export const redeemUsernamePassword = async (id, username, password) => {
+export const redeemUsernamePassword = async (id, login, password) => {
     const user = getUser(id) || {};
 
     // prepare cookies for auth request
@@ -73,7 +73,7 @@ export const redeemUsernamePassword = async (id, username, password) => {
         },
         body: JSON.stringify({
             'type': 'auth',
-            'username': username,
+            'username': login,
             'password': password
         })
     });
@@ -88,26 +88,28 @@ export const redeemUsernamePassword = async (id, username, password) => {
     if(json2.type === 'error') {
         if(json2.error === "auth_failure") console.error("Authentication failure!", json2);
         else console.error("Unknown auth error!", json2);
-        return false;
+        return {success: false};
     }
 
     users[id] = user;
 
     if(json2.type === 'response') {
-        await processAuthResponse(id, {username, password, cookies}, json2);
+        await processAuthResponse(id, {login, password, cookies}, json2);
         return {success: true};
     } else if(json2.type === 'multifactor') { // 2FA
         user.waiting2FA = Date.now();
 
         user.cookies = cookies;
         if(config.storePasswords) {
-            user.login = username;
+            user.login = login;
             user.password = password;
         }
 
         saveUserData();
         return {success: false, mfa: true, method: json2.multifactor.method, email: json2.multifactor.email};
     }
+
+    return {success: false};
 }
 
 export const redeem2FACode = async (id, code) => {
@@ -140,8 +142,11 @@ export const redeem2FACode = async (id, code) => {
         return false;
     }
 
+    await processAuthResponse(id, {login: user.login, password: user.password, cookies: user.cookies}, json);
+
     delete user.waiting2FA;
-    await processAuthResponse(id, {username: user.username, password: user.password, cookies: user.cookies}, json);
+    saveUserData();
+
     return true;
 }
 
@@ -154,12 +159,13 @@ const processAuthResponse = async (id, authData, resp) => {
     user.idt = idt;
 
     // save either cookies or login/password
-    if(config.storePasswords) {
-        user.login = authData.username;
+    if(config.storePasswords && !user.waiting2FA) { // don't store login/password for people with 2FA
+        user.login = authData.login;
         user.password = authData.password; // I should encrypt this
         delete user.cookies;
     } else {
         user.cookies = authData.cookies;
+        delete user.login; delete user.password;
     }
 
     // get user info
@@ -260,16 +266,16 @@ export const redeemCookies = async (id, cookies) => {
 }
 
 export const refreshToken = async (id) => {
+    let response = {success: false}
+
     const user = getUser(id);
-    if(!user) return;
+    if(!user) return response;
 
-    let success;
-    if(user.login && user.password) success = await redeemUsernamePassword(id, user.login, user.password);
-    else if(user.cookies) success = await redeemCookies(id, stringifyCookies(user.cookies));
-    else success = false;
+    if(user.cookies) response.success = await redeemCookies(id, stringifyCookies(user.cookies));
+    if(!response.success && user.login && user.password) response = await redeemUsernamePassword(id, user.login, user.password);
 
-    if(!success) deleteUser(id);
-    return success;
+    if(!response.success && !response.mfa) deleteUser(id);
+    return response;
 }
 
 export const cleanupAccounts = () => {

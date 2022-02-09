@@ -67,8 +67,9 @@ export const checkAlerts = () => {
             const userAlerts = alerts.filter(alert => alert.id === id);
             if(!userAlerts.length) continue;
 
-            getOffers(id).then(shop => {
-                if(!shop) {
+            getOffers(id).then(resp => {
+                if(!resp.success) {
+                    if(resp.maintenance) return; // retry in a few hours?
                     const channelsSent = [];
                     for(const alert of alerts) {
                         if(!channelsSent.includes(alert.channel_id)) {
@@ -78,8 +79,9 @@ export const checkAlerts = () => {
                     }
                     return;
                 }
-                const positiveAlerts = userAlerts.filter(alert => shop.offers.includes(alert.uuid));
-                if(positiveAlerts.length) sendAlert(positiveAlerts, shop.expires);
+
+                const positiveAlerts = userAlerts.filter(alert => resp.offers.includes(alert.uuid));
+                if(positiveAlerts.length) sendAlert(positiveAlerts, resp.expires);
             });
         }
     } catch(e) {

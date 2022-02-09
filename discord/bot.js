@@ -20,15 +20,16 @@ import {
 } from "../valorant/auth.js";
 import {
     defer,
-    emojiToString, escapeMarkdown,
+    emojiToString,
     externalEmojisAllowed,
-    MAINTENANCE, removeAlertActionRow, removeAlertButton,
+    removeAlertActionRow, removeAlertButton,
     skinNameAndEmoji
 } from "../misc/util.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
 import {getBalance, getBundles, getOffers} from "../valorant/shop.js";
 import config from "../misc/config.js";
 import {
+    authFailureMessage,
     basicEmbed,
     renderBundle,
     renderBundles,
@@ -191,11 +192,10 @@ client.on("interactionCreate", async (interaction) => {
 
                     const shop = await getOffers(interaction.user.id);
 
-                    const emoji = await emojiPromise;
-                    const message = await renderOffers(shop, interaction, valorantUser, emoji);
+                    const message = await renderOffers(shop, interaction, valorantUser, await emojiPromise);
                     await interaction.followUp(message);
 
-                    console.log(`Sent ${interaction.user.tag}'s shop!`);
+                    console.log(`Sent ${interaction.user.tag}'s shop!`); // also logged if maintenance/login failed
 
                     break;
                 }
@@ -282,28 +282,22 @@ client.on("interactionCreate", async (interaction) => {
 
                     const balance = await getBalance(interaction.user.id);
 
-                    if(balance === MAINTENANCE) return await interaction.followUp({
-                        embeds: [basicEmbed("**Riot servers are down for maintenance!** Try again later.")],
-                        ephemeral: true
-                    });
+                    if(!balance.success) return await interaction.followUp(authFailureMessage(interaction, balance, "**Could not fetch your balance**, most likely you got logged out. Try logging in again."));
 
-                    if(balance) {
-                        const VPEmoji = emojiToString(await VPEmojiPromise) || "Valorant Points:";
-                        const RadEmoji = emojiToString(await RadEmojiPromise) || "Radianite:";
-                        await interaction.followUp({
-                            embeds: [{ // move this to embed.js?
-                                title: `**${valorantUser.username}**'s wallet:`,
-                                color: VAL_COLOR_1,
-                                fields: [
-                                    {name: "Valorant Points", value: `${VPEmoji} ${balance.vp}`, inline: true},
-                                    {name: "Radianite", value: `${RadEmoji} ${balance.rad}`, inline: true}
-                                ]
-                            }]
-                        });
-                        console.log(`Sent ${interaction.user.tag}'s balance!`);
-                    } else await interaction.followUp({
-                        embeds: [basicEmbed("**Could not fetch your balance**, most likely you got logged out. Try logging in again.")]
+                    const theVPEmoji = emojiToString(await VPEmojiPromise) || "Valorant Points:";
+                    const theRadEmoji = emojiToString(await RadEmojiPromise) || "Radianite:";
+
+                    await interaction.followUp({
+                        embeds: [{ // move this to embed.js?
+                            title: `**${valorantUser.username}**'s wallet:`,
+                            color: VAL_COLOR_1,
+                            fields: [
+                                {name: "Valorant Points", value: `${theVPEmoji} ${balance.vp}`, inline: true},
+                                {name: "Radianite", value: `${theRadEmoji} ${balance.rad}`, inline: true}
+                            ]
+                        }]
                     });
+                    console.log(`Sent ${interaction.user.tag}'s balance!`);
 
                     break;
                 }
@@ -405,11 +399,8 @@ client.on("interactionCreate", async (interaction) => {
                         });
                     }
 
-                    const success = await authUser(interaction.user.id);
-                    if(!success) return await interaction.reply({
-                        embeds: [basicEmbed("**Your alerts won't work because you got logged out!** Please `/login` again.")],
-                        ephemeral: true
-                    });
+                    const auth = await authUser(interaction.user.id);
+                    if(!auth.success) return await interaction.reply(authFailureMessage(interaction, auth, "**Your alerts won't work because you got logged out!** Please `/login` again."));
 
                     const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel)) || "Price: ");
 
@@ -493,25 +484,13 @@ client.on("interactionCreate", async (interaction) => {
                     const login = await redeemUsernamePassword(interaction.user.id, username, password);
 
                     const user = getUser(interaction.user.id);
-                    let embed;
-                    if(login && user) {
-                        if(login.success) {
-                            console.log(`${interaction.user.tag} logged in as ${user.username}`);
-                            embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
-                        } else if(login.mfa) {
-                            console.log(`${interaction.user.tag} needs 2FA code`);
-                            if(login.method === "email") embed = basicEmbed(`**Riot sent a code to ${escapeMarkdown(login.email)}!** Use \`/2fa\` to complete your login.`);
-                            else embed = basicEmbed("**You have 2FA enabled!** use `/2fa` to enter your code.");
-                        }
-                    } else {
-                        console.log(`${interaction.user.tag} login failed`);
-                        embed = basicEmbed("Invalid username or password!");
-                    }
-
-                    await interaction.followUp({
-                        embeds: [embed],
-                        ephemeral: true
-                    });
+                    if(login.success && user) {
+                        console.log(`${interaction.user.tag} logged in as ${user.username}`);
+                        await interaction.followUp({
+                            embeds: [basicEmbed(`Successfully logged in as **${user.username}**!`)],
+                            ephemeral: true
+                        });
+                    } else await interaction.followUp(authFailureMessage(interaction, login, "Invalid username or password!"))
 
                     break;
                 }
@@ -539,7 +518,7 @@ client.on("interactionCreate", async (interaction) => {
                         embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
                     } else {
                         console.log(`${interaction.user.tag} 2FA code failed`);
-                        embed = basicEmbed("Invalid 2FA code!");
+                        embed = basicEmbed("**Invalid 2FA code!** Please try again.");
                     }
 
                     await interaction.followUp({

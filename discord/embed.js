@@ -2,7 +2,7 @@ import {getBundle, getSkin} from "../valorant/cache.js";
 import {
     emojiToString,
     skinNameAndEmoji,
-    MAINTENANCE, itemTypes,
+    itemTypes, escapeMarkdown,
 } from "../misc/util.js";
 
 
@@ -11,6 +11,25 @@ export const VAL_COLOR_2 = 0x0F1923;
 export const VAL_COLOR_3 = 0xEAEEB2;
 
 export const MAINTENANCE_MESSAGE = "**Valorant servers are currently down for maintenance!** Try again later.";
+
+export const authFailureMessage = (interaction, authResponse, message, hideEmail=false) => {
+    let embed;
+
+    if(authResponse.maintenance) embed = basicEmbed(MAINTENANCE_MESSAGE);
+    else if(authResponse.mfa) {
+        console.log(`${interaction.user.tag} needs 2FA code`);
+        if(authResponse.method === "email") {
+            if(hideEmail) embed = basicEmbed(`**Riot sent a code to your email address!** Use \`/2fa\` to complete your login.`);
+            else embed = basicEmbed(`**Riot sent a code to ${escapeMarkdown(authResponse.email)}!** Use \`/2fa\` to complete your login.`);
+        }
+        else embed = basicEmbed("**You have 2FA enabled!** use `/2fa` to enter your code.");
+    } else embed = basicEmbed(message);
+
+    return {
+        embeds: [embed],
+        ephemeral: true
+    }
+}
 
 export const skinChosenEmbed = async (skin, channel) => {
     let  description = `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`;
@@ -25,15 +44,7 @@ export const skinChosenEmbed = async (skin, channel) => {
 }
 
 export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => {
-    if(!shop) return {
-        embeds: [basicEmbed("**Could not fetch your shop**, most likely you got logged out. Try logging in again.")],
-        ephemeral: true
-    };
-
-    if(shop === MAINTENANCE) return {
-        embeds: [basicEmbed(MAINTENANCE_MESSAGE)],
-        ephemeral: true
-    };
+    if(!shop.success) return authFailureMessage(interaction, shop, "**Could not fetch your shop**, most likely you got logged out. Try logging in again.");
 
     const embeds = [basicEmbed(`Daily shop for **${valorantUser.username}** (new shop <t:${shop.expires}:R>)`)];
 
@@ -49,15 +60,9 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => 
 }
 
 export const renderBundles = async (bundles, interaction, VPemoji) => {
-    if(!bundles) return {
-        embeds: [basicEmbed("**Could not fetch your bundles**, most likely you got logged out. Try logging in again.")],
-        ephemeral: true
-    };
+    if(!bundles.success) return authFailureMessage(interaction, bundles, "**Could not fetch your bundles**, most likely you got logged out. Try logging in again.");
 
-    if(bundles === MAINTENANCE) return {
-        embeds: [basicEmbed(MAINTENANCE_MESSAGE)],
-        ephemeral: true
-    };
+    bundles = bundles.bundles;
 
     if(bundles.length === 1) {
         const bundle = await getBundle(bundles[0].uuid);

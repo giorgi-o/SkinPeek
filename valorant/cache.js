@@ -102,7 +102,8 @@ const getPrices = async (gameVersion, id=null) => {
 
     // if no ID is passed, try with all users
     if(id === null) {
-        for(const id of getUserList()) {
+        for(const id of getUserList().sort( // start with the users using cookies to avoid triggering 2FA
+            (a, b) => !!getUser(a).cookies - !!getUser(b).cookies)) {
             const success = await getPrices(gameVersion, id);
             if(success) return true;
         }
@@ -113,7 +114,7 @@ const getPrices = async (gameVersion, id=null) => {
     if(!user) return;
 
     const authSuccess = await authUser(id);
-    if(!authSuccess || !user.rso || !user.ent || !user.region) return false;
+    if(!authSuccess.success || !user.rso || !user.ent || !user.region) return false;
 
     console.debug(`Fetching skin prices using ${user.username}'s access token...`);
 
