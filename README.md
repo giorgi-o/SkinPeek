@@ -39,6 +39,7 @@ The bot should have role that allows it to send messages and create custom emoji
 - Set alerts using `/alert`
 - Manage your alerts using `/alerts`
 - Show your Valorant Points & Radianite using `/balance`
+- See battlepass progress using `/battlepass`
 
 By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
 You can log in using [your auth.riotgames.com cookies](https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies) using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
