@@ -8,7 +8,7 @@ Discord bot to see your daily Valorant item shop without launching the game and 
 
 - [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#bot-invite-links) with the `applications.commands` scope
 - Install [node.js](https://nodejs.org/en/) v16.6 or newer
-- Clone/[Download](https://github.com/giorgi-o/SkinPeek/archive/refs/heads/master.zip) the repo and put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
+- Clone/[Download](https://github.com/giorgi-o/SkinPeek/archive/refs/heads/master.zip) the repo, copy [config.json.example](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example) to `config.json` and put your bot token in to it.
 - Install the dependencies in the same folder using `npm i`
 - Run [SkinPeek.js](https://github.com/giorgi-o/SkinPeek/blob/master/SkinPeek.js) using `node SkinPeek.js`
 - Send `!deploy guild` or `!deploy global` to deploy the commands.
@@ -22,9 +22,8 @@ If you deployed both globally and in a guild, you will see every command twice. 
 For advanced users who want to deploy the bot using [Docker](https://www.docker.com/):
 
 - [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#bot-invite-links) with the `applications.commands` scope
-- Create a docker-compose file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/docker-compose.yml) and a config file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
-- Put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json)
-- Login to [ghcr.io]() (`docker login ghcr.io`) using your GitHub username and a [personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) with the `write:packages` permission
+- Create a docker-compose file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/docker-compose.yml) and a config file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
+- Put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
 - Use `docker-compose up -d` to start the bot, `docker-compose logs -f` to see the logs and `docker-compose down` to stop it.
 - Send `!deploy guild` or `!deploy global` to deploy the commands.
 
