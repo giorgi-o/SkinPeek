@@ -201,6 +201,7 @@ const skinEmbed = async (skin, price, interaction, VPemojiString) => {
         title: await skinNameAndEmoji(skin, interaction.channel),
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
+        url: skin.icon,
         thumbnail: {
             url: skin.icon
         }
