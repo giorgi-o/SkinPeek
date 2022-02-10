@@ -26,13 +26,14 @@ import {
     skinNameAndEmoji
 } from "../misc/util.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
-import {getBalance, getBundles, getOffers} from "../valorant/shop.js";
+import {getBalance, getBundles, getNightMarket, getOffers} from "../valorant/shop.js";
 import config from "../misc/config.js";
 import {
     authFailureMessage,
     basicEmbed,
     renderBundle,
     renderBundles,
+    renderNightMarket,
     renderOffers,
     secondaryEmbed,
     skinChosenEmbed,
@@ -81,6 +82,10 @@ const commands = [
             description: "The name of the bundle you want to inspect",
             required: true
         }]
+    },
+    {
+        name: "nightmarket",
+        description: "Show your night market if there is one"
     },
     {
         name: "balance",
@@ -265,6 +270,27 @@ client.on("interactionCreate", async (interaction) => {
                             components: [row]
                         });
                     }
+
+                    break;
+                }
+                case "nightmarket": {
+                    const valorantUser = getUser(interaction.user.id);
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        ephemeral: true
+                    });
+
+                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+
+                    await defer(interaction);
+
+                    const market = await getNightMarket(interaction.user.id);
+
+                    const message = await renderNightMarket(market, interaction, valorantUser, await emojiPromise);
+                    await interaction.followUp(message);
+
+                    console.log(`Sent ${interaction.user.tag}'s night market!`);
+
 
                     break;
                 }

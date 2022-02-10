@@ -50,6 +50,21 @@ export const getBundles = async (id) => {
     return {success: true, bundles: formatted};
 }
 
+export const getNightMarket = async (id) => {
+    const resp = await getShop(id);
+    if(!resp.success) return resp;
+
+    if(!resp.shop.BonusStore) return {
+        success: true,
+        offers: false
+    }
+
+    return {
+        success: true,
+        offers: resp.shop.BonusStore.BonusStoreOffers,
+        expires: Math.floor(Date.now() / 1000) + resp.shop.BonusStore.BonusStoreRemainingDurationInSeconds
+    }
+}
 
 export const getBalance = async (id) => {
     const authSuccess = await authUser(id);

@@ -135,6 +135,28 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     }
 }
 
+export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
+    if(!market.success) return authFailureMessage(interaction, bundles, "**Could not fetch your night market**, most likely you got logged out. Try logging in again.");
+
+    if(!market.offers) return {embeds: [basicEmbed("**There is no night market currently!**")]};
+
+    const embeds = [basicEmbed(`Night.Market for **${valorantUser.username}** (ends <t:${market.expires}:R>)`)];
+
+    const emojiString = emojiToString(emoji) || "Price:";
+    const VP_UUID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741";
+
+    for(const offer of market.offers) {
+        const skin = await getSkin(offer.Offer.OfferID);
+
+        const embed = await skinEmbed(skin, skin.price, interaction, emojiString);
+        embed.description = `${emojiString} **${offer.DiscountCosts[VP_UUID]}**\n${emojiString} ~~${offer.Offer.Cost[VP_UUID]}~~ (-${offer.DiscountPercent}%)`;
+
+        embeds.push(embed);
+    }
+
+    return {embeds};
+}
+
 const renderBundleItems = async (bundle, interaction, VPemojiString) => {
     if(!bundle.data) return [];
 

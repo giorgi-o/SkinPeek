@@ -310,6 +310,7 @@ export const getSkin = async (uuid) => {
     await fetchData([skins]);
 
     let skin = skins[uuid];
+    if(!skin) return null;
 
     skin.price = await getPrice(uuid);
     skin.rarity = await getRarity(skin.rarity);

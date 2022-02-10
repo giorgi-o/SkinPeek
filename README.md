@@ -35,6 +35,7 @@ The bot should have role that allows it to send messages and create custom emoji
 - Login using `/login`
 - Get your daily shop using `/shop`
 - Get featured bundles using `/bundles`
+- See your night market using `/nightmarket`
 - Set alerts using `/alert`
 - Manage your alerts using `/alerts`
 - Show your Valorant Points & Radianite using `/balance`
