@@ -45,10 +45,11 @@ export const saveSkinsJSON = (filename="data/skins.json") => {
 
 export const fetchData = async (types=null, checkVersion=false) => {
     try {
-        if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles];
 
         if(checkVersion || !gameVersion) gameVersion = (await getValorantVersion()).manifestId;
         await loadSkinsJSON();
+
+        if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles];
 
         if(types.includes(skins) && (!skins || skins.version !== gameVersion)) await getSkinList(gameVersion);
         if(types.includes(prices) && (!prices || prices.version !== gameVersion)) await getPrices(gameVersion);
