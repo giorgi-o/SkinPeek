@@ -1,6 +1,6 @@
 import {authUser, deleteUser, getUser} from "./auth.js";
 import {fetch, formatBundle, isMaintenance} from "../misc/util.js";
-import {addBundleData} from "./cache.js";
+import {addBundleData, getValorantVersion} from "./cache.js";
 
 export const getShop = async (id) => {
     const authSuccess = await authUser(id);
@@ -107,7 +107,7 @@ export const getBattlepassProgress = async (id) => {
         headers: {
             "Authorization": "Bearer " + user.rso,
             "X-Riot-Entitlements-JWT": user.ent,
-            "X-Riot-ClientVersion": "release-04.02-shipping-8-664109" // TODO fetch that from remote
+            "X-Riot-ClientVersion": (await getValorantVersion()).riotClientVersion
         }
     });
 

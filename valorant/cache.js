@@ -22,7 +22,7 @@ export const getValorantVersion = async () => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant version data status code is ${json.status}!`, json);
 
-    return json.data.manifestId;
+    return json.data;
 }
 
 export const loadSkinsJSON = async (filename="data/skins.json") => {
@@ -47,7 +47,7 @@ export const fetchData = async (types=null, checkVersion=false) => {
     try {
         if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles];
 
-        if(checkVersion || !gameVersion) gameVersion = await getValorantVersion();
+        if(checkVersion || !gameVersion) gameVersion = (await getValorantVersion()).manifestId;
         await loadSkinsJSON();
 
         if(types.includes(skins) && (!skins || skins.version !== gameVersion)) await getSkinList(gameVersion);
