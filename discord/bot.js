@@ -610,26 +610,19 @@ client.on("interactionCreate", async (interaction) => {
 
                     const batttlepass = await getBattlepassProgress(interaction.user.id);
 
-                    if(batttlepass === MAINTENANCE) return await interaction.followUp({
-                        embeds: [basicEmbed("**Riot servers are down for maintenance!** Try again later.")],
-                        ephemeral: true
-                    });
+                    if(!batttlepass.success) return await interaction.followUp(authFailureMessage(interaction, batttlepass, "**Could not fetch your battlepass**, most likely you got logged out. Try logging in again."));
 
-                    if(batttlepass) {
-                        await interaction.followUp({
-                            embeds: [{ // move this to embed.js?
-                                title: `**${valorantUser.username}**'s battlepass progress:`,
-                                color: VAL_COLOR_1,
-                                fields: [
-                                    {name: "Level", value: `${batttlepass.ProgressionLevelReached}`, inline: true},
-                                    {name: "XP", value: `${batttlepass.ProgressionTowardsNextLevel}`, inline: true}
-                                ]
-                            }]
-                        });
-                        console.log(`Sent ${interaction.user.tag}'s battlepass!`);
-                    } else await interaction.followUp({
-                        embeds: [basicEmbed("**Could not fetch your battlepass**, most likely you got logged out. Try logging in again.")]
+                    await interaction.followUp({
+                        embeds: [{ // move this to embed.js?
+                            title: `**${valorantUser.username}**'s battlepass progress:`,
+                            color: VAL_COLOR_1,
+                            fields: [
+                                {name: "Level", value: `${batttlepass.ProgressionLevelReached}`, inline: true},
+                                {name: "XP", value: `${batttlepass.ProgressionTowardsNextLevel}`, inline: true}
+                            ]
+                        }]
                     });
+                    console.log(`Sent ${interaction.user.tag}'s battlepass!`);
 
                     break;
                 }
