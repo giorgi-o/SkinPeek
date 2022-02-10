@@ -26,7 +26,7 @@ import {
     skinNameAndEmoji
 } from "../misc/util.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
-import {getBalance, getBundles, getNightMarket, getOffers} from "../valorant/shop.js";
+import {getBalance, getBundles, getNightMarket, getOffers, getBattlepassProgress} from "../valorant/shop.js";
 import config from "../misc/config.js";
 import {
     authFailureMessage,
@@ -148,6 +148,10 @@ const commands = [
     {
         name: "forget",
         description: "Forget and permanently delete your account from the bot"
+    },
+    {
+        name: "battlepass",
+        description: "Show current battlepass progression"
     }
 ];
 
@@ -593,6 +597,40 @@ client.on("interactionCreate", async (interaction) => {
                         embeds: [basicEmbed("Your account has been deleted from the database!")],
                         ephemeral: true
                     });
+                    break;
+                }
+                case "battlepass": {
+                    const valorantUser = getUser(interaction.user.id);
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        ephemeral: true
+                    });
+
+                    await defer(interaction);
+
+                    const batttlepass = await getBattlepassProgress(interaction.user.id);
+
+                    if(batttlepass === MAINTENANCE) return await interaction.followUp({
+                        embeds: [basicEmbed("**Riot servers are down for maintenance!** Try again later.")],
+                        ephemeral: true
+                    });
+
+                    if(batttlepass) {
+                        await interaction.followUp({
+                            embeds: [{ // move this to embed.js?
+                                title: `**${valorantUser.username}**'s battlepass progress:`,
+                                color: VAL_COLOR_1,
+                                fields: [
+                                    {name: "Level", value: `${batttlepass.ProgressionLevelReached}`, inline: true},
+                                    {name: "XP", value: `${batttlepass.ProgressionTowardsNextLevel}`, inline: true}
+                                ]
+                            }]
+                        });
+                        console.log(`Sent ${interaction.user.tag}'s battlepass!`);
+                    } else await interaction.followUp({
+                        embeds: [basicEmbed("**Could not fetch your battlepass**, most likely you got logged out. Try logging in again.")]
+                    });
+
                     break;
                 }
                 default: {

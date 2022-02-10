@@ -94,3 +94,38 @@ export const getBalance = async (id) => {
         rad: json.Balances["e59aa87c-4cbf-517a-5983-6e81511be9b7"]
     };
 }
+
+export const getBattlepassProgress = async (id) => {
+    const authSuccess = await authUser(id);
+    if(!authSuccess) return;
+
+    const user = getUser(id);
+    console.debug(`Fetching battlepass progress for ${user.username}...`);
+
+    // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Contracts/GET%20Contracts_Fetch.md
+    const req = await fetch(`https://pd.${user.region}.a.pvp.net/contracts/v1/contracts/${user.puuid}`, {
+        headers: {
+            "Authorization": "Bearer " + user.rso,
+            "X-Riot-Entitlements-JWT": user.ent,
+            "X-Riot-ClientVersion": "release-04.02-shipping-8-664109" // TODO fetch that from remote
+        }
+    });
+
+    console.assert(req.statusCode === 200, `Valorant battlepass code is ${req.statusCode}!`, req);
+
+    const json = JSON.parse(req.body);
+    if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") return;
+    else if(isMaintenance(json)) return MAINTENANCE;
+
+    const contracts = json["Contracts"]
+    let bpdata = {};
+    contracts.forEach(contract => {
+        if (contract.ContractDefinitionID == "60f2e13a-4834-0a18-5f7b-02b1a97b7adb") {
+            bpdata = {
+                ProgressionLevelReached: contract.ProgressionLevelReached + 1,
+                ProgressionTowardsNextLevel: contract.ProgressionTowardsNextLevel
+            };
+        }
+    });
+    return bpdata;
+}
