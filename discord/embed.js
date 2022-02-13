@@ -2,8 +2,10 @@ import {getBundle, getSkin} from "../valorant/cache.js";
 import {
     emojiToString,
     skinNameAndEmoji,
-    itemTypes, escapeMarkdown,
+    escapeMarkdown,
+    itemTypes
 } from "../misc/util.js";
+import config from "../misc/config.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -136,11 +138,14 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 }
 
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
-    if(!market.success) return authFailureMessage(interaction, bundles, "**Could not fetch your night market**, most likely you got logged out. Try logging in again.");
+    if(!market.success) return authFailureMessage(interaction, market, "**Could not fetch your night market**, most likely you got logged out. Try logging in again.");
 
     if(!market.offers) return {embeds: [basicEmbed("**There is no night market currently!**")]};
 
-    const embeds = [basicEmbed(`Night.Market for **${valorantUser.username}** (ends <t:${market.expires}:R>)`)];
+    const embeds = [{
+        description: `Night.Market for **${valorantUser.username}** (ends <t:${market.expires}:R>)`,
+        color: VAL_COLOR_3
+    }];
 
     const emojiString = emojiToString(emoji) || "Price:";
     const VP_UUID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741";
@@ -199,9 +204,9 @@ const bundleItemEmbed = async (item, interaction, VPemojiString) => {
 const skinEmbed = async (skin, price, interaction, VPemojiString) => {
     return {
         title: await skinNameAndEmoji(skin, interaction.channel),
+        url: config.linkItemImage ? skin.icon : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
-        url: skin.icon,
         thumbnail: {
             url: skin.icon
         }
@@ -211,6 +216,7 @@ const skinEmbed = async (skin, price, interaction, VPemojiString) => {
 const buddyEmbed = async (buddy, price, VPemojiString) => {
     return {
         title: buddy.name,
+        url: config.linkItemImage ? buddy.icon : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
         thumbnail: {
@@ -222,6 +228,7 @@ const buddyEmbed = async (buddy, price, VPemojiString) => {
 const cardEmbed = async (card, price, VPemojiString) => {
     return {
         title: card.name,
+        url: config.linkItemImage ? card.icons.large : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
         thumbnail: {
@@ -233,6 +240,7 @@ const cardEmbed = async (card, price, VPemojiString) => {
 const sprayEmbed = async (spray, price, VPemojiString) => {
     return {
         title: spray.name,
+        url: config.linkItemImage ? spray.icon : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
         thumbnail: {
@@ -244,7 +252,7 @@ const sprayEmbed = async (spray, price, VPemojiString) => {
 const titleEmbed = async (title, price, VPemojiString) => {
     return {
         title: title.name,
-        description: "`" + title.text + "`\n\n" + (priceDescription(VPemojiString, price) || ""), // try ```
+        description: "`" + title.text + "`\n\n" + (priceDescription(VPemojiString, price) || ""),
         color: VAL_COLOR_2,
     }
 }
