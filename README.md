@@ -6,7 +6,7 @@ Discord bot to see your daily Valorant item shop without launching the game and 
 
 ## Installation
 
-- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the `applications.commands` scope
+- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the `applications.commands` and `bot` scopes
 - Install [node.js](https://nodejs.org/en/) v16.6 or newer
 - Clone/[Download](https://github.com/giorgi-o/SkinPeek/archive/refs/heads/master.zip) the repo, rename the `config.json.example` file to `config.json` and put your bot token into it.
 - Install the dependencies in the same folder using `npm i`
@@ -22,7 +22,7 @@ If you deployed both globally and in a guild, you will see every command twice. 
 
 For advanced users who want to deploy the bot using [Docker](https://www.docker.com/):
 
-- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the `applications.commands` scope
+- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the `applications.commands` and `bot` scopes
 - Create a docker-compose file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/docker-compose.yml) and a config file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
 - Put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
 - Use `docker-compose up -d` to start the bot, `docker-compose logs -f` to see the logs and `docker-compose down` to stop it.
