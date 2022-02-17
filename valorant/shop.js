@@ -1,6 +1,6 @@
 import {authUser, deleteUser, getUser} from "./auth.js";
 import {fetch, formatBundle, isMaintenance} from "../misc/util.js";
-import {addBundleData, getValorantVersion} from "./cache.js";
+import {addBundleData} from "./cache.js";
 
 export const getShop = async (id) => {
     const authSuccess = await authUser(id);
@@ -95,40 +95,3 @@ export const getBalance = async (id) => {
     };
 }
 
-export const getBattlepassProgress = async (id) => {
-    const authSuccess = await authUser(id);
-    if(!authSuccess.success) return authSuccess;
-
-    const user = getUser(id);
-    console.debug(`Fetching battlepass progress for ${user.username}...`);
-
-    // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Contracts/GET%20Contracts_Fetch.md
-    const req = await fetch(`https://pd.${user.region}.a.pvp.net/contracts/v1/contracts/${user.puuid}`, {
-        headers: {
-            "Authorization": "Bearer " + user.rso,
-            "X-Riot-Entitlements-JWT": user.ent,
-            "X-Riot-ClientVersion": (await getValorantVersion()).riotClientVersion
-        }
-    });
-
-    console.assert(req.statusCode === 200, `Valorant battlepass code is ${req.statusCode}!`, req);
-
-    const json = JSON.parse(req.body);
-    if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
-        deleteUser(id);
-        return {success: false};
-    } else if(isMaintenance(json)) return {success: false, maintenance: true};
-
-    const contracts = json["Contracts"]
-    let bpdata = {};
-    contracts.forEach(contract => {
-        if (contract.ContractDefinitionID == "60f2e13a-4834-0a18-5f7b-02b1a97b7adb") {
-            bpdata = {
-                success: true,
-                ProgressionLevelReached: contract.ProgressionLevelReached + 1,
-                ProgressionTowardsNextLevel: contract.ProgressionTowardsNextLevel
-            };
-        }
-    });
-    return bpdata;
-}

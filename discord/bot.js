@@ -26,7 +26,8 @@ import {
     skinNameAndEmoji
 } from "../misc/util.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
-import {getBalance, getBundles, getNightMarket, getOffers, getBattlepassProgress} from "../valorant/shop.js";
+import {getBalance, getBundles, getNightMarket, getOffers} from "../valorant/shop.js";
+import { getBattlepassProgress } from "../valorant/battlepass.js";
 import config from "../misc/config.js";
 import {
     authFailureMessage,
@@ -34,6 +35,7 @@ import {
     renderBundle,
     renderBundles,
     renderNightMarket,
+    renderBattlepass,
     renderOffers,
     secondaryEmbed,
     skinChosenEmbed,
@@ -151,7 +153,15 @@ const commands = [
     },
     {
         name: "battlepass",
-        description: "Show current battlepass progression"
+        description: "Calculate battlepass progression",
+        options: [{
+            type: "INTEGER",
+            name: "maxlevel",
+            description: "Enter the level you want to reach",
+            required: true,
+            minValue: 2,
+            maxValue: 55
+        }]
     }
 ];
 
@@ -608,20 +618,11 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const batttlepass = await getBattlepassProgress(interaction.user.id);
+                    const batttlepassProgress = await getBattlepassProgress(interaction.user.id, interaction.options.get("maxlevel").value);
 
-                    if(!batttlepass.success) return await interaction.followUp(authFailureMessage(interaction, batttlepass, "**Could not fetch your battlepass**, most likely you got logged out. Try logging in again."));
+                    const message = await renderBattlepass(batttlepassProgress, interaction.options.get("maxlevel").value.toString(), interaction, valorantUser);
+                    await interaction.followUp(message);
 
-                    await interaction.followUp({
-                        embeds: [{ // move this to embed.js?
-                            title: `**${valorantUser.username}**'s battlepass progress:`,
-                            color: VAL_COLOR_1,
-                            fields: [
-                                {name: "Level", value: `${batttlepass.ProgressionLevelReached}`, inline: true},
-                                {name: "XP", value: `${batttlepass.ProgressionTowardsNextLevel}`, inline: true}
-                            ]
-                        }]
-                    });
                     console.log(`Sent ${interaction.user.tag}'s battlepass!`);
 
                     break;

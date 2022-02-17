@@ -10,6 +10,19 @@ export const VAL_COLOR_1 = 0xFD4553;
 export const VAL_COLOR_2 = 0x0F1923;
 export const VAL_COLOR_3 = 0xEAEEB2;
 
+const thumbnails = Array(
+    "https://media.valorant-api.com/sprays/290565e7-4540-5764-31da-758846dc2a5a/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/31ba7f82-4fcb-4cbb-a719-06a3beef8603/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/fef66645-4e35-ff38-1b7c-799dd5fc7468/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/02f4c1db-46bb-a572-e830-0886edbb0981/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/40222bb5-4fce-9320-f4f1-95861df83c47/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/a7e1a9b6-4ab5-e6f7-e5fe-bc86f87b44ee/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/09786b0a-4c3e-5ba8-46ab-c49255620a5f/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/7b0e0c8d-4f91-2a76-19b9-079def2fa843/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/ea087a08-4b9f-bd0d-15a5-d3ba09c4c381/fulltransparenticon.png",
+    "https://media.valorant-api.com/sprays/40ff9251-4c11-b729-1f27-088ee032e7ce/fulltransparenticon.png"
+);
+
 export const MAINTENANCE_MESSAGE = "**Valorant servers are currently down for maintenance!** Try again later.";
 
 export const authFailureMessage = (interaction, authResponse, message, hideEmail=false) => {
@@ -153,6 +166,29 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 
         embeds.push(embed);
     }
+
+    return {embeds};
+}
+
+export const renderBattlepass = async (battlepass, targetlevel, interaction, valorantUser) => {
+    if(!battlepass.success) return authFailureMessage(interaction, bundles, "**Could not fetch your battlepass progression**, most likely you got logged out. Try logging in again.");
+
+    // TODO: add progress bar
+    const embeds = [{ 
+        title: `Battlepass calculation`,
+        color: VAL_COLOR_1,
+        description: `Total XP: \`${battlepass.totalxp}\`
+Needed XP for level up: \`${battlepass.xpneeded}\`
+Needed XP for level ${targetlevel}: \`${battlepass.totalxpneeded}\` ${battlepass.note ? battlepass.note : ""}
+Needed Spikerushes: \`${battlepass.spikerushneeded}\`
+Needed Normal/Ranked Games: \`${battlepass.normalneeded}\`
+Average daily XP needed: \`${battlepass.dailyxpneeded}\`
+Average weekly XP needed: \`${battlepass.weeklyxpneeded}\``,
+        footer: {
+            text: `${valorantUser.username}'s level: ${battlepass.bpdata.progressionLevelReached}`
+        },
+        thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]}
+    }]
 
     return {embeds};
 }
