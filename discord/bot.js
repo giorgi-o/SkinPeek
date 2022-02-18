@@ -158,7 +158,7 @@ const commands = [
             type: "INTEGER",
             name: "maxlevel",
             description: "Enter the level you want to reach",
-            required: true,
+            required: false,
             minValue: 2,
             maxValue: 55
         }]
@@ -618,9 +618,9 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const batttlepassProgress = await getBattlepassProgress(interaction.user.id, interaction.options.get("maxlevel").value);
+                    const battlepassProgress = await getBattlepassProgress(interaction.user.id, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50);
 
-                    const message = await renderBattlepass(batttlepassProgress, interaction.options.get("maxlevel").value.toString(), interaction, valorantUser);
+                    const message = await renderBattlepass(battlepassProgress, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50, interaction, valorantUser);
                     await interaction.followUp(message);
 
                     console.log(`Sent ${interaction.user.tag}'s battlepass!`);

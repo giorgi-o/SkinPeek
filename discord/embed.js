@@ -10,7 +10,7 @@ export const VAL_COLOR_1 = 0xFD4553;
 export const VAL_COLOR_2 = 0x0F1923;
 export const VAL_COLOR_3 = 0xEAEEB2;
 
-const thumbnails = Array(
+const thumbnails = [
     "https://media.valorant-api.com/sprays/290565e7-4540-5764-31da-758846dc2a5a/fulltransparenticon.png",
     "https://media.valorant-api.com/sprays/31ba7f82-4fcb-4cbb-a719-06a3beef8603/fulltransparenticon.png",
     "https://media.valorant-api.com/sprays/fef66645-4e35-ff38-1b7c-799dd5fc7468/fulltransparenticon.png",
@@ -21,7 +21,7 @@ const thumbnails = Array(
     "https://media.valorant-api.com/sprays/7b0e0c8d-4f91-2a76-19b9-079def2fa843/fulltransparenticon.png",
     "https://media.valorant-api.com/sprays/ea087a08-4b9f-bd0d-15a5-d3ba09c4c381/fulltransparenticon.png",
     "https://media.valorant-api.com/sprays/40ff9251-4c11-b729-1f27-088ee032e7ce/fulltransparenticon.png"
-);
+];
 
 export const MAINTENANCE_MESSAGE = "**Valorant servers are currently down for maintenance!** Try again later.";
 
@@ -175,21 +175,65 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
 
     // TODO: add progress bar
     const embeds = [{ 
-        title: `Battlepass calculation`,
+        title: `📈 Battlepass calculation`,
+        thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
+        description: `${createProgressBar(battlepass.totalxpneeded, battlepass.totalxp)}\n**${valorantUser.username}**'s level: ${battlepass.bpdata.progressionLevelReached}`,
         color: VAL_COLOR_1,
-        description: `Total XP: \`${battlepass.totalxp}\`
-Needed XP for level up: \`${battlepass.xpneeded}\`
-Needed XP for level ${targetlevel}: \`${battlepass.totalxpneeded}\`
-Weekly XP left: \`${battlepass.weeklyxp}\`
-Needed Spikerushes: \`${battlepass.spikerushneeded}\` \`(${battlepass.spikerushneededwithweeklies})\`
-Needed Normal/Ranked Games: \`${battlepass.normalneeded}\` \`(${battlepass.normalneededwithweeklies})\`
-Average daily XP needed: \`${battlepass.dailyxpneeded}\` \`(${battlepass.dailyxpneededwithweeklies})\`
-Average weekly XP needed: \`${battlepass.weeklyxpneeded}\` \`(${battlepass.weeklyxpneededwithweeklies})\``,
-        footer: {
-            text: `${valorantUser.username}'s level: ${battlepass.bpdata.progressionLevelReached}`
-        },
-        thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]}
-    }]
+        fields: [
+            {
+                "name": "General",
+                "value": `Total XP\nNeeded XP for level up\nNeeded XP for level ${targetlevel}\nWeekly XP left`,
+                "inline": true
+            },
+            {
+                "name": "XP",
+                "value": `\`${battlepass.totalxp}\`\n\`${battlepass.xpneeded}\`\n\`${battlepass.totalxpneeded}\`\n\`${battlepass.weeklyxp}\``,
+                "inline": true
+            }
+        ]
+    },
+    {
+        title: "📅 XP needed",
+        color: VAL_COLOR_1,
+        fields: [
+            {
+                "name": "Average",
+                "value": "Average daily XP\nAverage weekly XP",
+                "inline": true
+            },
+            {
+                "name": "XP",
+                "value": `\`${battlepass.dailyxpneeded}\`\n\`${battlepass.weeklyxpneeded}\``,
+                "inline": true
+            },
+            {
+                "name": "XP with weeklies",
+                "value": `\`${battlepass.dailyxpneededwithweeklies}\`\n\`${battlepass.weeklyxpneededwithweeklies}\``,
+                "inline": true
+            }
+        ]
+    },
+    {
+        title: "🔫 Number of games needed",
+        color: VAL_COLOR_1,
+        fields: [
+            {
+                "name": "Gamemode",
+                "value": "Spikerush\nUnrated/Competitive\n",
+                "inline": true
+            },
+            {
+                "name": "No.",
+                "value": `\`${battlepass.spikerushneeded}\`\n\`${battlepass.normalneeded}\``,
+                "inline": true
+            },
+            {
+                "name": "No. with weeklies",
+                "value": `\`${battlepass.spikerushneededwithweeklies}\`\n\`${battlepass.normalneededwithweeklies}\``,
+                "inline": true
+            }
+        ]
+    }];
 
     return {embeds};
 }
@@ -302,4 +346,18 @@ export const secondaryEmbed = (content) => {
         description: content,
         color: VAL_COLOR_2
     }
+}
+
+const createProgressBar = (totalxpneeded, currentxp) => {
+    const length = 14;
+    const totalxp = Number(totalxpneeded.replace(',', '')) + Number(currentxp.replace(',', ''))
+
+    const index = Math.min(Math.round(currentxp.replace(',', '') / totalxp * length), length);
+
+    const line = '▬';
+    const circle = '⚪';
+
+    const bar = line.repeat(Math.max(index, 0)) + circle + line.repeat(Math.max(length - index, 0));
+
+    return '┃' + bar + '┃';
 }
