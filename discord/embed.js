@@ -179,11 +179,12 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
         color: VAL_COLOR_1,
         description: `Total XP: \`${battlepass.totalxp}\`
 Needed XP for level up: \`${battlepass.xpneeded}\`
-Needed XP for level ${targetlevel}: \`${battlepass.totalxpneeded}\` ${battlepass.note ? battlepass.note : ""}
-Needed Spikerushes: \`${battlepass.spikerushneeded}\`
-Needed Normal/Ranked Games: \`${battlepass.normalneeded}\`
-Average daily XP needed: \`${battlepass.dailyxpneeded}\`
-Average weekly XP needed: \`${battlepass.weeklyxpneeded}\``,
+Needed XP for level ${targetlevel}: \`${battlepass.totalxpneeded}\`
+Weekly XP left: \`${battlepass.weeklyxp}\`
+Needed Spikerushes: \`${battlepass.spikerushneeded}\` \`(${battlepass.spikerushneededwithweeklies})\`
+Needed Normal/Ranked Games: \`${battlepass.normalneeded}\` \`(${battlepass.normalneededwithweeklies})\`
+Average daily XP needed: \`${battlepass.dailyxpneeded}\` \`(${battlepass.dailyxpneededwithweeklies})\`
+Average weekly XP needed: \`${battlepass.weeklyxpneeded}\` \`(${battlepass.weeklyxpneededwithweeklies})\``,
         footer: {
             text: `${valorantUser.username}'s level: ${battlepass.bpdata.progressionLevelReached}`
         },

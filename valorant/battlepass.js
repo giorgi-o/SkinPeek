@@ -8,6 +8,33 @@ const SPIKERUSH_XP = 1000;
 const LEVEL_MULTIPLIER = 750;
 const SEASON_END = 'March 01, 2022'; // TODO fetch season end from API, maybe store that date to reduce calls?
 
+const getWeeklies = async () => {
+    console.debug("Fetching mission data...");
+
+    const req = await fetch("https://valorant-api.com/v1/missions");
+    console.assert(req.statusCode === 200, `Valorant mission status code is ${req.statusCode}!`, req);
+
+    const json = JSON.parse(req.body);
+    console.assert(json.status === 200, `Valorant mission data status code is ${json.status}!`, json);
+
+    const now = Date.now();
+    let weeklyData = {};
+    json["data"].forEach(mission => {
+        if (mission.type === "EAresMissionType::Weekly" && new Date(mission.expirationDate) > now) {
+            if (!weeklyData[mission.activationDate]) {
+                weeklyData[mission.activationDate] = {}
+            }
+            weeklyData[mission.activationDate][mission.uuid] = {
+                title: mission.title,
+                xpGrant: mission.xpGrant,
+                progressToComplete: mission.progressToComplete,
+                activationDate: mission.activationDate
+            }
+        }
+    });
+    return weeklyData;
+}
+
 const calculate_level_xp = async (level) => {
     if(level >= 2 && level <= 50) {
         return 2000 + (level - 2) * LEVEL_MULTIPLIER;
@@ -45,48 +72,87 @@ export const getBattlepassProgress = async (id, maxlevel) => {
         return { success: false, maintenance: true };
 
 
-    let bpdata = {};
+    let contractData = {};
     json["Contracts"].forEach(contract => {
         if (contract.ContractDefinitionID === CONTRACT_UUID) {
-            bpdata = {
+            contractData = {
                 progressionLevelReached: contract.ProgressionLevelReached,
                 progressionTowardsNextLevel: contract.ProgressionTowardsNextLevel,
                 totalProgressionEarned: contract.ContractProgression.TotalProgressionEarned
             };
         }
+
+    contractData["missions"] = {
+        missionArray: json.Missions,
+        weeklyCheckpoint: json.MissionMetadata.WeeklyCheckpoint
+    }
     });
 
+    const weeklyxp = await getWeeklyXP(contractData.missions);
+
     // Calculate
-    const total_weeks = 7;
     const season_end = new Date(SEASON_END);
     const season_now = Date.now();
     const season_left = Math.abs(season_end - season_now);
     const season_days_left = Math.floor(season_left / (1000 * 60 * 60 * 24)); // 1000 * 60 * 60 * 24 is one day in miliseconds
     const season_weeks_left = season_days_left / 7;
 
-    let totalxp = bpdata.totalProgressionEarned;
+    let totalxp = contractData.totalProgressionEarned;
     let totalxpneeded = 0;
     for (let i = 1; i <= maxlevel; i++) {
         totalxpneeded = totalxpneeded + await calculate_level_xp(i);
     }
 
-    let weeklyxp = 0;
-
-    // TODO: Fetch weekly missions and substract that from totalxpneeded
-
-    totalxpneeded = totalxpneeded - (totalxp + weeklyxp);
+    totalxpneeded = totalxpneeded - totalxp;
 
     // TODO: Fetch battlepass purchases and check for ownership of current battlepass to add 3% XP bonus (https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetEntitlements.md)
 
     return {
         success: true,
-        bpdata: bpdata,
+        bpdata: contractData,
         totalxp: totalxp.toLocaleString(),
-        xpneeded: (await calculate_level_xp(bpdata.progressionLevelReached + 1) - bpdata.progressionTowardsNextLevel).toLocaleString(),
+        xpneeded: (await calculate_level_xp(contractData.progressionLevelReached + 1) - contractData.progressionTowardsNextLevel).toLocaleString(),
         totalxpneeded: Math.max(0, totalxpneeded).toLocaleString(),
+        weeklyxp: weeklyxp.toLocaleString(),
         spikerushneeded: Math.max(0, Math.ceil(totalxpneeded / SPIKERUSH_XP)).toLocaleString(),
         normalneeded: Math.max(0, Math.ceil(totalxpneeded / AVERAGE_UNRATED_XP)).toLocaleString(),
+        spikerushneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / SPIKERUSH_XP)).toLocaleString(),
+        normalneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / AVERAGE_UNRATED_XP)).toLocaleString(),
         dailyxpneeded: Math.max(0, Math.ceil(totalxpneeded / season_days_left)).toLocaleString(),
-        weeklyxpneeded: Math.max(0, Math.ceil(totalxpneeded / season_weeks_left)).toLocaleString()
+        weeklyxpneeded: Math.max(0, Math.ceil(totalxpneeded / season_weeks_left)).toLocaleString(),
+        dailyxpneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / season_days_left)).toLocaleString(),
+        weeklyxpneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / season_weeks_left)).toLocaleString()
     };
 };
+
+const getWeeklyXP = async (userMissionsObj) => {
+    const seasonWeeklyMissions = await getWeeklies();
+    let xp = 0
+
+    // Check if user has not completed every weekly and add xp from that
+    if (userMissionsObj.missionArray.length > 2) {
+        userMissionsObj.missionArray.forEach(userMission => {
+            if (!userMission.Complete) {
+                Object.entries(seasonWeeklyMissions).forEach(([date, weeklyMissions]) => {
+                    Object.entries(weeklyMissions).forEach(([uuid, missionDetails]) => {
+                        if (uuid === userMission.ID) {
+                            xp = xp + missionDetails.xpGrant;
+                            userMissionsObj.weeklyCheckpoint = missionDetails.activationDate; // update checkpoint to prevent adding this weeks XP later on
+                        }
+                    });
+                });
+            }
+        });
+    }
+
+    // Add XP from future weeklies
+    Object.entries(seasonWeeklyMissions).forEach(([date, weeklyMission]) => {
+        if (new Date(date) > new Date(userMissionsObj.weeklyCheckpoint))  {
+            Object.entries(weeklyMission).forEach(([uuid, missionDetails]) => {
+                xp = xp + missionDetails.xpGrant;
+            });
+       }
+    });
+
+    return xp
+}
