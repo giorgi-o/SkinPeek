@@ -173,11 +173,10 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 export const renderBattlepass = async (battlepass, targetlevel, interaction, valorantUser) => {
     if(!battlepass.success) return authFailureMessage(interaction, bundles, "**Could not fetch your battlepass progression**, most likely you got logged out. Try logging in again.");
 
-    // TODO: add progress bar
     const embeds = [{ 
         title: `📈 Battlepass calculation`,
         thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
-        description: `${createProgressBar(battlepass.totalxpneeded, battlepass.totalxp)}\n**${valorantUser.username}**'s level: ${battlepass.bpdata.progressionLevelReached}`,
+        description: `**${valorantUser.username}**'s battlepass tier:\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
         color: VAL_COLOR_1,
         fields: [
             {
@@ -194,7 +193,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
     },
     {
         title: "📅 XP needed",
-        color: VAL_COLOR_1,
+        color: 14161720,
         fields: [
             {
                 "name": "Average",
@@ -215,7 +214,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
     },
     {
         title: "🔫 Number of games needed",
-        color: VAL_COLOR_1,
+        color: 11730976,
         fields: [
             {
                 "name": "Gamemode",
@@ -348,16 +347,16 @@ export const secondaryEmbed = (content) => {
     }
 }
 
-const createProgressBar = (totalxpneeded, currentxp) => {
+const createProgressBar = (totalxpneeded, currentxp, level) => {
     const length = 14;
-    const totalxp = Number(totalxpneeded.replace(',', '')) + Number(currentxp.replace(',', ''))
+    const totalxp = Number(totalxpneeded.replace(',', '')) + Number(currentxp)
 
-    const index = Math.min(Math.round(currentxp.replace(',', '') / totalxp * length), length);
+    const index = Math.min(Math.round(currentxp / totalxp * length), length);
 
     const line = '▬';
-    const circle = '⚪';
+    const circle = '⬤';
 
     const bar = line.repeat(Math.max(index, 0)) + circle + line.repeat(Math.max(length - index, 0));
 
-    return '┃' + bar + '┃';
+    return level + '┃' + bar + '┃' + (Number(level) + 1);
 }
