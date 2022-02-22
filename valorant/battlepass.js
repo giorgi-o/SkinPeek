@@ -191,8 +191,8 @@ const getBattlepassPurchase = async (id) => {
     for (let entitlement of json.Entitlements) {
         if (entitlement.ItemID === CONTRACT_UUID) {
             return true;
-        } else {
-            return false;
         }
     };
+    
+    return false;
 }
