@@ -149,7 +149,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 }
 
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
-    if(!market.success) return authFailureMessage(interaction, bundles, "**Could not fetch your night market**, most likely you got logged out. Try logging in again.");
+    if(!market.success) return authFailureMessage(interaction, market, "**Could not fetch your night market**, most likely you got logged out. Try logging in again.");
 
     if(!market.offers) return {embeds: [basicEmbed("**There is no night market currently!**")]};
 
@@ -171,7 +171,7 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 }
 
 export const renderBattlepass = async (battlepass, targetlevel, interaction, valorantUser) => {
-    if(!battlepass.success) return authFailureMessage(interaction, bundles, "**Could not fetch your battlepass progression**, most likely you got logged out. Try logging in again.");
+    if(!battlepass.success) return authFailureMessage(interaction, battlepass, "**Could not fetch your battlepass progression**, most likely you got logged out. Try logging in again.");
 
     const embeds = [{ 
         title: `📈 Battlepass calculation`,
