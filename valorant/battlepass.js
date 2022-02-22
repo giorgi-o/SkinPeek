@@ -3,8 +3,8 @@ import { fetch, isMaintenance } from "../misc/util.js";
 import { getValorantVersion } from "./cache.js";
 
 const CONTRACT_UUID = "60f2e13a-4834-0a18-5f7b-02b1a97b7adb";
-const AVERAGE_UNRATED_XP = 4200;
-const SPIKERUSH_XP = 1000;
+let AVERAGE_UNRATED_XP = 4200;
+let SPIKERUSH_XP = 1000;
 const LEVEL_MULTIPLIER = 750;
 const SEASON_END = 'March 01, 2022'; // TODO fetch season end from API, maybe store that date to reduce calls?
 
@@ -89,6 +89,7 @@ export const getBattlepassProgress = async (id, maxlevel) => {
     });
 
     const weeklyxp = await getWeeklyXP(contractData.missions);
+    const battlepassPurchased = await getBattlepassPurchase(id);
 
     // Calculate
     const season_end = new Date(SEASON_END);
@@ -105,11 +106,15 @@ export const getBattlepassProgress = async (id, maxlevel) => {
 
     totalxpneeded = totalxpneeded - totalxp;
 
-    // TODO: Fetch battlepass purchases and check for ownership of current battlepass to add 3% XP bonus (https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetEntitlements.md)
+    if (battlepassPurchased) {
+        SPIKERUSH_XP = SPIKERUSH_XP * 1.03;
+        AVERAGE_UNRATED_XP = AVERAGE_UNRATED_XP * 1.03;
+    }
 
     return {
         success: true,
         bpdata: contractData,
+        battlepassPurchased: battlepassPurchased,
         totalxp: totalxp.toLocaleString(),
         xpneeded: (await calculate_level_xp(contractData.progressionLevelReached + 1) - contractData.progressionTowardsNextLevel).toLocaleString(),
         totalxpneeded: Math.max(0, totalxpneeded).toLocaleString(),
@@ -155,4 +160,39 @@ const getWeeklyXP = async (userMissionsObj) => {
     });
 
     return xp
+}
+
+const getBattlepassPurchase = async (id) => {
+    const authSuccess = await authUser(id);
+    if (!authSuccess.success)
+        return authSuccess;
+
+    const user = getUser(id);
+    console.debug(`Fetching battlepass purchases for ${user.username}...`);
+
+    // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetEntitlements.md
+    const req = await fetch(`https://pd.${user.region}.a.pvp.net/store/v1/entitlements/${user.puuid}/f85cb6f7-33e5-4dc8-b609-ec7212301948`, {
+        headers: {
+            "Authorization": "Bearer " + user.rso,
+            "X-Riot-Entitlements-JWT": user.ent
+        }
+    });
+
+    console.assert(req.statusCode === 200, `Valorant battlepass purchases code is ${req.statusCode}!`, req);
+
+    const json = JSON.parse(req.body);
+    if (json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
+        deleteUser(id);
+        return { success: false };
+    } else if (isMaintenance(json))
+        return { success: false, maintenance: true };
+
+
+    for (let entitlement of json.Entitlements) {
+        if (entitlement.ItemID === CONTRACT_UUID) {
+            return true;
+        } else {
+            return false;
+        }
+    };
 }

@@ -181,7 +181,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
         fields: [
             {
                 "name": "General",
-                "value": `Total XP\nNeeded XP for level up\nNeeded XP for level ${targetlevel}\nWeekly XP left`,
+                "value": `Total XP\nLevel up\nTier ${targetlevel}\nWeekly XP left`,
                 "inline": true
             },
             {
@@ -189,15 +189,39 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
                 "value": `\`${battlepass.totalxp}\`\n\`${battlepass.xpneeded}\`\n\`${battlepass.totalxpneeded}\`\n\`${battlepass.weeklyxp}\``,
                 "inline": true
             }
+        ],
+        footer: {
+            text: (battlepass.battlepassPurchased) ? valorantUser.username + " purchased the battlepass" : ""
+        }
+    },
+    {
+        title: "🔫 Number of games needed",
+        color: VAL_COLOR_1,
+        fields: [
+            {
+                "name": "Gamemode",
+                "value": "Spikerush\nUnrated/Competitive\n",
+                "inline": true
+            },
+            {
+                "name": "#",
+                "value": `\`${battlepass.spikerushneeded}\`\n\`${battlepass.normalneeded}\``,
+                "inline": true
+            },
+            {
+                "name": "incl. weeklies",
+                "value": `\`${battlepass.spikerushneededwithweeklies}\`\n\`${battlepass.normalneededwithweeklies}\``,
+                "inline": true
+            }
         ]
     },
     {
         title: "📅 XP needed",
-        color: 14161720,
+        color: VAL_COLOR_1,
         fields: [
             {
                 "name": "Average",
-                "value": "Average daily XP\nAverage weekly XP",
+                "value": "Daily XP\nWeekly XP",
                 "inline": true
             },
             {
@@ -206,29 +230,8 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
                 "inline": true
             },
             {
-                "name": "XP with weeklies",
+                "name": "incl. weeklies",
                 "value": `\`${battlepass.dailyxpneededwithweeklies}\`\n\`${battlepass.weeklyxpneededwithweeklies}\``,
-                "inline": true
-            }
-        ]
-    },
-    {
-        title: "🔫 Number of games needed",
-        color: 11730976,
-        fields: [
-            {
-                "name": "Gamemode",
-                "value": "Spikerush\nUnrated/Competitive\n",
-                "inline": true
-            },
-            {
-                "name": "No.",
-                "value": `\`${battlepass.spikerushneeded}\`\n\`${battlepass.normalneeded}\``,
-                "inline": true
-            },
-            {
-                "name": "No. with weeklies",
-                "value": `\`${battlepass.spikerushneededwithweeklies}\`\n\`${battlepass.normalneededwithweeklies}\``,
                 "inline": true
             }
         ]
