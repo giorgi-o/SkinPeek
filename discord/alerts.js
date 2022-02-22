@@ -2,6 +2,7 @@ import {removeAlertActionRow, skinNameAndEmoji} from "../misc/util.js";
 import {getUserList} from "../valorant/auth.js";
 import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
+import {VAL_COLOR_1} from "./embed.js"
 import fs from "fs";
 
 let alerts = [];
