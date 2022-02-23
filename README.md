@@ -1,8 +1,30 @@
 # SkinPeek
-Discord bot to see your daily Valorant item shop without launching the game and set alerts for skins.
+Discord bot to see your daily Valorant item shop without launching the game, set alerts for skins, and much more.
 
-![image](https://user-images.githubusercontent.com/20621396/153754892-2be9dff0-19e7-4cc3-976b-713c327b440b.png)
+![image](https://user-images.githubusercontent.com/20621396/153754892-2be9dff0-19e7-4cc3-976b-713c327b440b.png)  
 ![image](https://user-images.githubusercontent.com/20621396/153755071-62ffe0f5-ae36-4aa7-924c-b2ffd9e4dc1b.png)
+## Features
+
+- Login using `/login`
+- See your daily shop using `/shop`
+- See featured bundles using `/bundles`
+- See your night market using `/nightmarket`
+- See your battlepass progress using `/battlepass`
+- Set alerts using `/alert`
+- Manage your alerts using `/alerts`
+- Show your Valorant Points & Radianite using `/balance`
+
+## Screenshots
+
+<details>
+<summary>See some more screenshots</summary>
+
+![image](https://user-images.githubusercontent.com/20621396/155337379-f9435975-2b6e-44fa-8bd4-9dd8413b5622.png)  
+![image](https://user-images.githubusercontent.com/20621396/155331133-6f078c13-eabb-4617-a5af-0e1339360c42.png)  
+![image](https://user-images.githubusercontent.com/20621396/155335268-6540b345-c08d-4252-ba31-725d216da880.png)  
+![image](https://user-images.githubusercontent.com/20621396/155335737-6df6c650-212c-47b3-838b-18a9a15b3f94.png)
+
+</details>
 
 ## Installation
 
@@ -18,6 +40,10 @@ Deploying in the guild happens instantly but the commands can only be used in th
 
 If you deployed both globally and in a guild, you will see every command twice. In that case, just send `!undeploy` and `!deploy global`.
 
+By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
+You can log in using [your auth.riotgames.com cookies](https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies) using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
+Obviously, only log in if you trust whoever is hosting the bot, as they can theoretically do anything with your account.
+
 ### Docker
 
 For advanced users who want to deploy the bot using [Docker](https://www.docker.com/):
@@ -27,21 +53,7 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 - Put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
 - Use `docker-compose up -d` to start the bot, `docker-compose logs -f` to see the logs and `docker-compose down` to stop it.
 - Send `!deploy guild` or `!deploy global` to deploy the commands.
-
-## Usage
-
-- Login using `/login`
-- Get your daily shop using `/shop`
-- Get featured bundles using `/bundles`
-- Get your night market using `/nightmarket`
-- Set alerts using `/alert`
-- Manage your alerts using `/alerts`
-- Show your Valorant Points & Radianite using `/balance`
-- See battlepass progress using `/battlepass`
-
-By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
-You can log in using [your auth.riotgames.com cookies](https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies) using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
-Obviously, only log in if you trust whoever is hosting the bot, as they can theoretically do anything with your account.  
+ 
 
 ## Future Improvements
 
@@ -51,6 +63,7 @@ Obviously, only log in if you trust whoever is hosting the bot, as they can theo
 * ~~Show weapon rarity~~
 * ~~Auto check for new Valorant version~~
 * ~~See current bundles~~
+* ~~See battlepass progress~~ (thanks muckelba!)
 * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
 * Option to send shop automatically every day
 * Admin commands (delete user, see/edit everyone's alerts, etc.)
@@ -58,6 +71,7 @@ Obviously, only log in if you trust whoever is hosting the bot, as they can theo
 ## Acknowledgements
 
 - [Hamper](https://github.com/OwOHamper/) for the idea and [the code](https://github.com/OwOHamper/Valorant-item-shop-discord-bot/blob/main/item_shop_viewer.py) showing how to do it
-- [Valorant-api](https://dash.valorant-api.com/) for skin names and images
+- [Valorant-api](https://dash.valorant-api.com/) for the skin names and images
+- [muckelba](https://github.com/muckelba) for writing the battlepass calculator
 - [warriorzz](https://github.com/warriorzz) for setting up the Docker
 - [The discord server](https://discord.gg/a9yzrw3KAm), join here!
