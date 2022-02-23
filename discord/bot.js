@@ -27,6 +27,7 @@ import {
 } from "../misc/util.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
 import {getBalance, getBundles, getNightMarket, getOffers} from "../valorant/shop.js";
+import { getBattlepassProgress } from "../valorant/battlepass.js";
 import config from "../misc/config.js";
 import {
     authFailureMessage,
@@ -34,6 +35,7 @@ import {
     renderBundle,
     renderBundles,
     renderNightMarket,
+    renderBattlepass,
     renderOffers,
     secondaryEmbed,
     skinChosenEmbed,
@@ -148,6 +150,18 @@ const commands = [
     {
         name: "forget",
         description: "Forget and permanently delete your account from the bot"
+    },
+    {
+        name: "battlepass",
+        description: "Calculate battlepass progression",
+        options: [{
+            type: "INTEGER",
+            name: "maxlevel",
+            description: "Enter the level you want to reach",
+            required: false,
+            minValue: 2,
+            maxValue: 55
+        }]
     }
 ];
 
@@ -593,6 +607,24 @@ client.on("interactionCreate", async (interaction) => {
                         embeds: [basicEmbed("Your account has been deleted from the database!")],
                         ephemeral: true
                     });
+                    break;
+                }
+                case "battlepass": {
+                    const valorantUser = getUser(interaction.user.id);
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        ephemeral: true
+                    });
+
+                    await defer(interaction);
+
+                    const battlepassProgress = await getBattlepassProgress(interaction.user.id, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50);
+
+                    const message = await renderBattlepass(battlepassProgress, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50, interaction, valorantUser);
+                    await interaction.followUp(message);
+
+                    console.log(`Sent ${interaction.user.tag}'s battlepass!`);
+
                     break;
                 }
                 default: {
