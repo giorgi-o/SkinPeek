@@ -4,7 +4,6 @@ import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
 import {VAL_COLOR_1} from "./embed.js"
 import fs from "fs";
-import {VAL_COLOR_1} from "./embed.js";
 
 let alerts = [];
 
