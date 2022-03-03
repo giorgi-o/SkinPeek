@@ -2,11 +2,11 @@ import { authUser, deleteUser, getUser } from "./auth.js";
 import { fetch, isMaintenance } from "../misc/util.js";
 import { getValorantVersion } from "./cache.js";
 
-const CONTRACT_UUID = "60f2e13a-4834-0a18-5f7b-02b1a97b7adb";
+const CONTRACT_UUID = "c1cd8895-4bd2-466d-e7ff-b489e3bc3775";
 let AVERAGE_UNRATED_XP = 4200;
 let SPIKERUSH_XP = 1000;
 const LEVEL_MULTIPLIER = 750;
-const SEASON_END = 'March 01, 2022'; // TODO fetch season end from API, maybe store that date to reduce calls?
+const SEASON_END = 'April 27, 2022'; // TODO fetch season end from API, maybe store that date to reduce calls?
 
 const getWeeklies = async () => {
     console.debug("Fetching mission data...");
