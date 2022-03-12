@@ -3,8 +3,8 @@ import { fetch, isMaintenance } from "../misc/util.js";
 import { getValorantVersion } from "./cache.js";
 
 const CONTRACT_UUID = "c1cd8895-4bd2-466d-e7ff-b489e3bc3775";
-let AVERAGE_UNRATED_XP = 4200;
-let SPIKERUSH_XP = 1000;
+const AVERAGE_UNRATED_XP_CONSTANT = 4200;
+const SPIKERUSH_XP_CONSTANT = 1000;
 const LEVEL_MULTIPLIER = 750;
 const SEASON_END = 'April 27, 2022'; // TODO fetch season end from API, maybe store that date to reduce calls?
 
@@ -106,9 +106,11 @@ export const getBattlepassProgress = async (id, maxlevel) => {
 
     totalxpneeded = totalxpneeded - totalxp;
 
+    let spikerush_xp = SPIKERUSH_XP_CONSTANT
+    let average_unrated_xp = AVERAGE_UNRATED_XP_CONSTANT
     if (battlepassPurchased) {
-        SPIKERUSH_XP = SPIKERUSH_XP * 1.03;
-        AVERAGE_UNRATED_XP = AVERAGE_UNRATED_XP * 1.03;
+        spikerush_xp = spikerush_xp * 1.03;
+        average_unrated_xp = average_unrated_xp * 1.03;
     }
 
     return {
@@ -119,10 +121,10 @@ export const getBattlepassProgress = async (id, maxlevel) => {
         xpneeded: (await calculate_level_xp(contractData.progressionLevelReached + 1) - contractData.progressionTowardsNextLevel).toLocaleString(),
         totalxpneeded: Math.max(0, totalxpneeded).toLocaleString(),
         weeklyxp: weeklyxp.toLocaleString(),
-        spikerushneeded: Math.max(0, Math.ceil(totalxpneeded / SPIKERUSH_XP)).toLocaleString(),
-        normalneeded: Math.max(0, Math.ceil(totalxpneeded / AVERAGE_UNRATED_XP)).toLocaleString(),
-        spikerushneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / SPIKERUSH_XP)).toLocaleString(),
-        normalneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / AVERAGE_UNRATED_XP)).toLocaleString(),
+        spikerushneeded: Math.max(0, Math.ceil(totalxpneeded / spikerush_xp)).toLocaleString(),
+        normalneeded: Math.max(0, Math.ceil(totalxpneeded / average_unrated_xp)).toLocaleString(),
+        spikerushneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / spikerush_xp)).toLocaleString(),
+        normalneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / average_unrated_xp)).toLocaleString(),
         dailyxpneeded: Math.max(0, Math.ceil(totalxpneeded / season_days_left)).toLocaleString(),
         weeklyxpneeded: Math.max(0, Math.ceil(totalxpneeded / season_weeks_left)).toLocaleString(),
         dailyxpneededwithweeklies: Math.max(0, Math.ceil((totalxpneeded - weeklyxp) / season_days_left)).toLocaleString(),
