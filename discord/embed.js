@@ -104,7 +104,7 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
         const embed = {
             title: bundle.name + " Collection",
-            description: `${subName}${slantedDescription}${emojiString} ~~${bundle.data.basePrice}~~ **${bundle.data.price}**\nExpires <t:${bundle.data.expires}:R>`,
+            description: `${subName}${slantedDescription}${emojiString} **${bundle.data.price}** ~~${bundle.data.basePrice}~~\nExpires <t:${bundle.data.expires}:R>`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: bundle.icon
@@ -178,7 +178,7 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 export const renderBattlepass = async (battlepass, targetlevel, interaction, valorantUser) => {
     if(!battlepass.success) return authFailureMessage(interaction, battlepass, "**Could not fetch your battlepass progression**, most likely you got logged out. Try logging in again.");
 
-    const embeds = [{ 
+    const embeds = [{
         title: `📈 Battlepass calculation`,
         thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
         description: `**${valorantUser.username}**'s battlepass tier:\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
@@ -264,12 +264,19 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
         if(item.amount !== 1) embed.title = `${item.amount}x ${embed.title}`
         if(item.type === itemTypes.SKIN) embed.color = VAL_COLOR_1;
         if(item.price !== item.basePrice) {
-            embed.description = `${VPemojiString} ~~${item.basePrice}~~ **${item.price || "Free"}**`;
+            embed.description = `${VPemojiString} **${item.price || "Free"}** ~~${item.basePrice}~~`;
             if(item.type === itemTypes.TITLE) embed.description = "`" + item.item.text + "`\n\n" + embed.description
         }
 
         embeds.push(embed);
     }
+
+    // discord has a limit of 10 embeds (9 if we count the bundle title)
+    if(embeds.length > 9) {
+        embeds.length = 8;
+        embeds.push(basicEmbed(`...and **${items.length - 9}** more items`));
+    }
+
     return embeds;
 }
 
