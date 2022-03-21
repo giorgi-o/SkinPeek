@@ -117,6 +117,7 @@ export const getBattlepassProgress = async (id, maxlevel) => {
         success: true,
         bpdata: contractData,
         battlepassPurchased: battlepassPurchased,
+        season_days_left: season_days_left,
         totalxp: totalxp.toLocaleString(),
         xpneeded: (await calculate_level_xp(contractData.progressionLevelReached + 1) - contractData.progressionTowardsNextLevel).toLocaleString(),
         totalxpneeded: Math.max(0, totalxpneeded).toLocaleString(),
