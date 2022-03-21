@@ -218,7 +218,10 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
                 "value": `\`${battlepass.spikerushneededwithweeklies}\`\n\`${battlepass.normalneededwithweeklies}\``,
                 "inline": true
             }
-        ]
+        ],
+        footer: {
+            text: `Act ends in ${battlepass.season_days_left} days`
+        }
     },
     {
         title: "📅 XP needed",
