@@ -38,7 +38,12 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
             else embed = basicEmbed(`**Riot sent a code to ${escapeMarkdown(authResponse.email)}!** Use \`/2fa\` to complete your login.`);
         }
         else embed = basicEmbed("**You have 2FA enabled!** use `/2fa` to enter your code.");
-    } else embed = basicEmbed(message);
+    }
+    else if(authResponse.rateLimit) {
+        console.log(`${interaction.user.tag} got rate-limited`);
+        embed = basicEmbed("**Too many people are logging in at the same time**, and Riot is not happy. Try again later.");
+    }
+    else embed = basicEmbed(message);
 
     return {
         embeds: [embed],

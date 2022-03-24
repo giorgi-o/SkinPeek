@@ -32,7 +32,7 @@ export const getUserList = () => {
 export const authUser = async (id) => {
     // doesn't check if token is valid, only checks it hasn't expired
     const user = getUser(id);
-    if(!user) return {success: false};
+    if(!user || !user.rso) return {success: false};
 
     const rsoExpiry = tokenExpiry(user.rso);
     if(rsoExpiry - Date.now() > 10_000) return {success: true};
@@ -78,6 +78,8 @@ export const redeemUsernamePassword = async (id, login, password) => {
         })
     });
     console.assert(req2.statusCode === 200, `Auth status code is ${req2.statusCode}!`, req2);
+
+    if(req2.statusCode === 429) return {success: false, rateLimit: true};
 
     cookies = {
         ...cookies,
@@ -274,7 +276,7 @@ export const refreshToken = async (id) => {
     if(user.cookies) response.success = await redeemCookies(id, stringifyCookies(user.cookies));
     if(!response.success && user.login && user.password) response = await redeemUsernamePassword(id, user.login, user.password);
 
-    if(!response.success && !response.mfa) deleteUser(id);
+    if(!response.success && !response.mfa && !response.rateLimit) deleteUser(id);
     return response;
 }
 

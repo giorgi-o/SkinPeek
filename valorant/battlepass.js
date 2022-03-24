@@ -91,11 +91,14 @@ export const getBattlepassProgress = async (id, maxlevel) => {
     const weeklyxp = await getWeeklyXP(contractData.missions);
     const battlepassPurchased = await getBattlepassPurchase(id);
 
+    if(battlepassPurchased.success === false) // login failed
+        return battlepassPurchased;
+
     // Calculate
     const season_end = new Date(SEASON_END);
     const season_now = Date.now();
     const season_left = Math.abs(season_end - season_now);
-    const season_days_left = Math.floor(season_left / (1000 * 60 * 60 * 24)); // 1000 * 60 * 60 * 24 is one day in miliseconds
+    const season_days_left = Math.floor(season_left / (1000 * 60 * 60 * 24)); // 1000 * 60 * 60 * 24 is one day in milliseconds
     const season_weeks_left = season_days_left / 7;
 
     let totalxp = contractData.totalProgressionEarned;
@@ -195,7 +198,7 @@ const getBattlepassPurchase = async (id) => {
         if (entitlement.ItemID === CONTRACT_UUID) {
             return true;
         }
-    };
-    
+    }
+
     return false;
 }

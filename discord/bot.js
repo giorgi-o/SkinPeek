@@ -204,8 +204,11 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
+                    // fetch the channel if not in cache
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+
                     // start uploading emoji now
-                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
 
                     await defer(interaction);
 
@@ -225,7 +228,8 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
 
                     await defer(interaction);
 
@@ -242,7 +246,8 @@ client.on("interactionCreate", async (interaction) => {
                     const searchQuery = interaction.options.get("bundle").value.replace(/collection/g, "").replace(/bundle/i, "");
                     const searchResults = await searchBundle(searchQuery);
 
-                    const emoji = await VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const emoji = await VPEmoji(interaction.guild, externalEmojisAllowed(channel));
 
                     if(searchResults.length === 0) {
                         return await interaction.reply({
@@ -294,7 +299,8 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
 
                     await defer(interaction);
 
@@ -317,8 +323,9 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const VPEmojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
-                    const RadEmojiPromise = RadEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const VPEmojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
+                    const RadEmojiPromise = RadEmoji(interaction.guild, externalEmojisAllowed(channel));
 
                     const balance = await getBalance(interaction.user.id);
 
@@ -384,11 +391,12 @@ client.on("interactionCreate", async (interaction) => {
                         addAlert({
                             id: interaction.user.id,
                             uuid: skin.uuid,
-                            channel_id: interaction.channel.id
+                            channel_id: interaction.channelId
                         });
 
+                        const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                         return await interaction.reply({
-                            embeds: [await skinChosenEmbed(skin, interaction.channel)],
+                            embeds: [await skinChosenEmbed(skin, channel)],
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid)]
                         });
                     } else {
@@ -442,10 +450,11 @@ client.on("interactionCreate", async (interaction) => {
                     const auth = await authUser(interaction.user.id);
                     if(!auth.success) return await interaction.reply(authFailureMessage(interaction, auth, "**Your alerts won't work because you got logged out!** Please `/login` again."));
 
-                    const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel)) || "Price: ");
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(channel)) || "Price: ");
 
                     const alertFieldDescription = (channel_id, price) => {
-                        return channel_id !== interaction.channel.id ? `in <#${channel_id}>` :
+                        return channel_id !== interaction.channelId ? `in <#${channel_id}>` :
                             price ? `${emojiString} ${price}` :
                                 config.fetchSkinPrices ? "Not for sale" : "Prices not shown";
                     }
@@ -458,7 +467,7 @@ client.on("interactionCreate", async (interaction) => {
                             embeds: [{
                                 title: "You have one alert set up:",
                                 color: VAL_COLOR_1,
-                                description: `**${await skinNameAndEmoji(skin, interaction.channel)}**\n${alertFieldDescription(alert.channel_id, skin.price)}`,
+                                description: `**${await skinNameAndEmoji(skin, channel)}**\n${alertFieldDescription(alert.channel_id, skin.price)}`,
                                 thumbnail: {
                                     url: skin.icon
                                 }
@@ -470,7 +479,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     // bring the alerts in this channel to the top
                     const alertPriority = (alert) => {
-                        if(alert.channel_id === interaction.channel.id) return 2;
+                        if(alert.channel_id === interaction.channelId) return 2;
                         if(client.channels.cache.get(alert.channel_id).guild.id === interaction.guild.id) return 1;
                         return 0;
                     }
@@ -490,7 +499,7 @@ client.on("interactionCreate", async (interaction) => {
                     for(const alert of alerts) {
                         const skin = await getSkin(alert.uuid);
                         embed.fields.push({
-                            name: `**${n}.** ${await skinNameAndEmoji(skin, interaction.channel)}`,
+                            name: `**${n}.** ${await skinNameAndEmoji(skin, channel)}`,
                             value: alertFieldDescription(alert.channel_id, skin.price),
                             inline: false
                         });
@@ -530,7 +539,7 @@ client.on("interactionCreate", async (interaction) => {
                             embeds: [basicEmbed(`Successfully logged in as **${user.username}**!`)],
                             ephemeral: true
                         });
-                    } else await interaction.followUp(authFailureMessage(interaction, login, "Invalid username or password!"))
+                    } else await interaction.followUp(authFailureMessage(interaction, login, "Invalid username or password!"));
 
                     break;
                 }
@@ -620,6 +629,9 @@ client.on("interactionCreate", async (interaction) => {
 
                     const battlepassProgress = await getBattlepassProgress(interaction.user.id, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50);
 
+                    if(battlepassProgress.success === false)
+                        return await interaction.followUp(authFailureMessage(interaction, battlepassProgress, "Could not fetch your battlepass progress! Are you logged in?"));
+
                     const message = await renderBattlepass(battlepassProgress, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50, interaction, valorantUser);
                     await interaction.followUp(message);
 
@@ -659,11 +671,12 @@ client.on("interactionCreate", async (interaction) => {
                     addAlert({
                         id: interaction.user.id,
                         uuid: chosenSkin,
-                        channel_id: interaction.channel.id
+                        channel_id: interaction.channelId
                     });
 
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     await interaction.update({
-                        embeds: [await skinChosenEmbed(skin, interaction.channel)],
+                        embeds: [await skinChosenEmbed(skin, channel)],
                         components: [removeAlertActionRow(interaction.user.id, chosenSkin)]
                     });
 
@@ -680,7 +693,8 @@ client.on("interactionCreate", async (interaction) => {
                     const chosenBundle = interaction.values[0].substr(7);
                     const bundle = await getBundle(chosenBundle);
 
-                    const emoji = await VPEmoji(interaction.guild, externalEmojisAllowed(interaction.channel));
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const emoji = await VPEmoji(interaction.guild, externalEmojisAllowed(channel));
                     const message = await renderBundle(bundle, interaction, emoji);
 
                     await interaction.update({
@@ -709,8 +723,9 @@ client.on("interactionCreate", async (interaction) => {
                 if(success) {
                     const skin = await getSkin(uuid);
 
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     await interaction.reply({
-                        embeds: [basicEmbed(`Removed the alert for the **${await skinNameAndEmoji(skin, interaction.channel)}**!`)],
+                        embeds: [basicEmbed(`Removed the alert for the **${await skinNameAndEmoji(skin, channel)}**!`)],
                         ephemeral: true
                     });
 
