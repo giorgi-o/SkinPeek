@@ -1,5 +1,5 @@
 # SkinPeek
-Discord bot to see your daily Valorant item shop without launching the game, set alerts for skins, and much more.
+Discord bot to see your daily VALORANT item shop without launching the game, set alerts for skins, and much more.
 
 ![image](https://user-images.githubusercontent.com/20621396/153754892-2be9dff0-19e7-4cc3-976b-713c327b440b.png)  
 ![image](https://user-images.githubusercontent.com/20621396/153755071-62ffe0f5-ae36-4aa7-924c-b2ffd9e4dc1b.png)
@@ -12,7 +12,7 @@ Discord bot to see your daily Valorant item shop without launching the game, set
 - See your battlepass progress using `/battlepass`
 - Set alerts using `/alert`
 - Manage your alerts using `/alerts`
-- Show your Valorant Points & Radianite using `/balance`
+- Show your VALORANT Points & Radianite using `/balance`
 
 ## Screenshots
 
@@ -38,7 +38,7 @@ Discord bot to see your daily Valorant item shop without launching the game, set
 
 Deploying in the guild happens instantly but the commands can only be used in that guild. Deploying globally can take up to an hour due to Discord's caching.
 
-If you deployed both globally and in a guild, you will see every command twice. In that case, just send `!undeploy` and `!deploy global`.
+If you deployed both globally and in a guild, you will see every command twice. In that case, just send `!undeploy guild`!
 
 By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
 You can log in using [your auth.riotgames.com cookies](https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies) using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
@@ -52,7 +52,7 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 - Create a docker-compose file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/docker-compose.yml) and a config file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
 - Put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
 - Use `docker-compose up -d` to start the bot, `docker-compose logs -f` to see the logs and `docker-compose down` to stop it.
-- Send `!deploy guild` or `!deploy global` to deploy the commands.
+- Send `!deploy guild` to deploy in the current guild or `!deploy global` to deploy the commands globally.
  
 
 ## Future Improvements

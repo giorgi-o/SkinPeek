@@ -53,7 +53,7 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
 
 export const skinChosenEmbed = async (skin, channel) => {
     let  description = `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`;
-    if(!skin.rarity) description += "\n***Note:** This is a battle pass skin!*";
+    if(!skin.rarity) description += "\n***Note:** This is a battlepass skin, it's not gonna appear in your shop!*";
     return {
         description: description,
         color: VAL_COLOR_1,
@@ -156,9 +156,9 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 }
 
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
-    if(!market.success) return authFailureMessage(interaction, market, "**Could not fetch your night market**, most likely you got logged out. Try logging in again.");
+    if(!market.success) return authFailureMessage(interaction, market, "**Could not fetch your Night Market**, most likely you got logged out. Try logging in again.");
 
-    if(!market.offers) return {embeds: [basicEmbed("**There is no night market currently!**")]};
+    if(!market.offers) return {embeds: [basicEmbed("**There is no Night Market currently! Look out for April 7th!**")]};
 
     const embeds = [{
         description: `Night.Market for **${valorantUser.username}** (ends <t:${market.expires}:R>)`,
@@ -184,7 +184,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
     if(!battlepass.success) return authFailureMessage(interaction, battlepass, "**Could not fetch your battlepass progression**, most likely you got logged out. Try logging in again.");
 
     const embeds = [{
-        title: `📈 Battlepass calculation`,
+        title: `📈 Battlepass Calculation`,
         thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
         description: `**${valorantUser.username}**'s battlepass tier:\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
         color: VAL_COLOR_1,
@@ -201,7 +201,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
             }
         ],
         footer: {
-            text: (battlepass.battlepassPurchased) ? valorantUser.username + " purchased the battlepass" : ""
+            text: (battlepass.battlepassPurchased) ? valorantUser.username + " purchased the battlepass!" : ""
         }
     },
     {
