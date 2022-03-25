@@ -29,7 +29,7 @@ export const queue2FACodeRedeem = async (id, code) => {
         id, code
     });
     console.debug(`Added 2fa code redeem to queue for user ${id}`);
-    return {inQueue: true, c: queueCounter - 1}
+    return {inQueue: true, c: queueCounter - 1};
 }
 
 export const processQueue = async () => {
@@ -44,7 +44,7 @@ export const processQueue = async () => {
             result = await redeemUsernamePassword(item.id, item.username, item.password);
             break;
         case Operations.MFA:
-            result = await redeemUsernamePassword(item.id, item.code);
+            result = await redeem2FACode(item.id, item.code);
             break;
     }
 

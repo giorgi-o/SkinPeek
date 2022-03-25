@@ -9,5 +9,6 @@
   "delayBetweenAlerts": 5000,
   "useLoginQueue": false,
   "loginQueue": "*/3 * * * * *",
-  "storePasswords": false
+  "storePasswords": false,
+  "ownerId": ""
 }

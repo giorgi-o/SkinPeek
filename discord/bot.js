@@ -172,6 +172,11 @@ const commands = [
 ];
 
 client.on("messageCreate", async (message) => {
+    if(config.ownerId && message.author.id !== config.ownerId && message.guildId !== config.ownerId) {
+        if(!message.member) return;
+        if(!message.member.roles.resolve(config.ownerId)) return;
+    }
+
     if(message.content === "!deploy guild") {
         console.log("deploying commands...");
 

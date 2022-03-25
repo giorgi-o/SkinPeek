@@ -39,6 +39,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "useLoginQueue", false);
     applyConfig(loadedConfig, "loginQueue", "*/3 * * * * *");
     applyConfig(loadedConfig, "storePasswords", false);
+    applyConfig(loadedConfig, "ownerId", "");
 
     saveConfig(filename, config);
 
