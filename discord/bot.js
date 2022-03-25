@@ -14,16 +14,14 @@ import {
     authUser,
     cleanupAccounts, deleteUser,
     getUser,
-    redeem2FACode,
     redeemCookies,
-    redeemUsernamePassword
 } from "../valorant/auth.js";
 import {
     defer,
     emojiToString,
     externalEmojisAllowed,
     removeAlertActionRow, removeAlertButton,
-    skinNameAndEmoji
+    skinNameAndEmoji, wait
 } from "../misc/util.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
 import {getBalance, getBundles, getNightMarket, getOffers} from "../valorant/shop.js";
@@ -41,6 +39,11 @@ import {
     skinChosenEmbed,
     VAL_COLOR_1
 } from "./embed.js";
+import {
+    getQueueItemStatus,
+    processQueue, queue2FACodeRedeem,
+    queueUsernamePasswordLogin
+} from "../valorant/authQueue.js";
 
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]}); // what intents does the bot need
 
@@ -60,6 +63,9 @@ client.on("ready", async () => {
 
     // cleanup accounts every hour
     cron.schedule(config.cleanupAccounts, cleanupAccounts);
+
+    // if login queue is enabled, process an item every 3 seconds
+    if(config.loginQueue) cron.schedule(config.loginQueue, processQueue);
 });
 
 const commands = [
@@ -530,7 +536,13 @@ client.on("interactionCreate", async (interaction) => {
                     const username = interaction.options.get("username").value;
                     const password = interaction.options.get("password").value;
 
-                    const login = await redeemUsernamePassword(interaction.user.id, username, password);
+                    let login = await queueUsernamePasswordLogin(interaction.user.id, username, password);
+
+                    while(login.inQueue) {
+                        const queueStatus = getQueueItemStatus(login.c);
+                        if(queueStatus.processed) login = queueStatus.result;
+                        else await wait(1000);
+                    }
 
                     const user = getUser(interaction.user.id);
                     if(login.success && user) {
@@ -558,7 +570,13 @@ client.on("interactionCreate", async (interaction) => {
 
                     const code = interaction.options.get("code").value.toString().padStart(6, '0');
 
-                    const success = await redeem2FACode(interaction.user.id, code);
+                    let success = await queue2FACodeRedeem(interaction.user.id, code);
+
+                    while(success.inQueue) {
+                        const queueStatus = getQueueItemStatus(success.c);
+                        if(queueStatus.processed) success = queueStatus.result;
+                        else await wait(1000);
+                    }
 
                     const user = getUser(interaction.user.id);
                     let embed;

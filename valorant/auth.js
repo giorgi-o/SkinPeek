@@ -133,6 +133,8 @@ export const redeem2FACode = async (id, code) => {
     });
     console.assert(req.statusCode === 200, `2FA status code is ${req.statusCode}!`, req);
 
+    if(req.statusCode === 429) return {success: false, rateLimit: true};
+
     user.cookies = {
         ...cookies,
         ...parseSetCookie(req.headers['set-cookie'])

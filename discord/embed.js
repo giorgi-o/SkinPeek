@@ -41,7 +41,7 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
     }
     else if(authResponse.rateLimit) {
         console.log(`${interaction.user.tag} got rate-limited`);
-        embed = basicEmbed("**Too many people are logging in at the same time**, and Riot is not happy. Try again later.");
+        embed = basicEmbed("**Too many people are logging in at the same time**, and Riot is not happy!\nPlease try again later.");
     }
     else embed = basicEmbed(message);
 

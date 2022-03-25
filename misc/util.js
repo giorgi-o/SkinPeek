@@ -165,3 +165,5 @@ export const externalEmojisAllowed = (channel) => channel.permissionsFor(channel
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
 
 export const escapeMarkdown = Util.escapeMarkdown;
+
+export const wait = ms => new Promise(r => setTimeout(r, ms));
