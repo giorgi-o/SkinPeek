@@ -85,15 +85,15 @@ const destroyTasks = () => {
 const commands = [
     {
         name: "skins",
-        description: "Deprecated, use /shop instead"
+        description: "Deprecated, use /shop instead."
     },
     {
         name: "shop",
-        description: "Show your current daily shop"
+        description: "Show your current daily shop!"
     },
     {
         name: "bundles",
-        description: "Show your current featured bundles"
+        description: "Show the current featured bundle(s)."
     },
     {
         name: "bundle",
@@ -101,21 +101,21 @@ const commands = [
         options: [{
             type: "STRING",
             name: "bundle",
-            description: "The name of the bundle you want to inspect",
+            description: "The name of the bundle you want to inspect!",
             required: true
         }]
     },
     {
         name: "nightmarket",
-        description: "Show your night market if there is one"
+        description: "Show your Night Market if there is one."
     },
     {
         name: "balance",
-        description: "Show how many valorant points you have in your account"
+        description: "Show how many VALORANT Points & Radianite you have in your account!"
     },
     {
         name: "alert",
-        description: "Set an alert for when a particular skin is in your shop",
+        description: "Set an alert for when a particular skin is in your shop.",
         options: [{
             type: "STRING",
             name: "skin",
@@ -125,11 +125,11 @@ const commands = [
     },
     {
         name: "alerts",
-        description: "Show all your active alerts"
+        description: "Show all your active alerts!"
     },
     {
         name: "login",
-        description: "Log in with your Riot username/password",
+        description: "Log in with your Riot username/password!",
         options: [
             {
                 type: "STRING",
@@ -169,11 +169,11 @@ const commands = [
     },
     {
         name: "forget",
-        description: "Forget and permanently delete your account from the bot"
+        description: "Forget and permanently delete your account from the bot."
     },
     {
         name: "battlepass",
-        description: "Calculate battlepass progression",
+        description: "Calculate battlepass progression.",
         options: [{
             type: "INTEGER",
             name: "maxlevel",
@@ -325,7 +325,7 @@ client.on("interactionCreate", async (interaction) => {
                     const message = await renderBundles(bundles, interaction, await emojiPromise);
                     await interaction.followUp(message);
 
-                    console.log(`Sent ${interaction.user.tag}'s bundles!`);
+                    console.log(`Sent ${interaction.user.tag}'s bundle(s)!`);
 
                     break;
                 }
