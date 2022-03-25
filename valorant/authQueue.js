@@ -39,13 +39,17 @@ export const processQueue = async () => {
     console.debug(`Processing queue item "${item.operation}" for ${item.id}`);
 
     let result;
-    switch (item.operation) {
-        case Operations.USERNAME_PASSWORD:
-            result = await redeemUsernamePassword(item.id, item.username, item.password);
-            break;
-        case Operations.MFA:
-            result = await redeem2FACode(item.id, item.code);
-            break;
+    try {
+        switch (item.operation) {
+            case Operations.USERNAME_PASSWORD:
+                result = await redeemUsernamePassword(item.id, item.username, item.password);
+                break;
+            case Operations.MFA:
+                result = await redeem2FACode(item.id, item.code);
+                break;
+        }
+    } catch(e) {
+        result = {success: false}
     }
 
     queueResults.push({
