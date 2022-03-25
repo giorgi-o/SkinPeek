@@ -190,15 +190,24 @@ client.on("messageCreate", async (message) => {
         await client.application.commands.set(commands).then(() => console.log("Commands deployed globally!"));
 
         await message.reply("Deployed globally!");
-    } else if(message.content === "!undeploy") {
+    } else if(message.content.startsWith("!undeploy")) {
         console.log("Undeploying commands...");
 
-        await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
+        if(message.content === "!undeploy guild") {
+            const guild = client.guilds.cache.get(message.guild.id);
+            await guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
+            await message.reply("Undeployed in guild!");
+        } else if(message.content === "!undeploy global"){
+            await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
+            await message.reply("Undeployed globally!");
+        } else {
+            await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
 
-        const guild = client.guilds.cache.get(message.guild.id);
-        await guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
+            const guild = client.guilds.cache.get(message.guild.id);
+            await guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
 
-        await message.reply("Undeployed in guild and globally!");
+            await message.reply("Undeployed in guild and globally!");
+        }
     }
 });
 
