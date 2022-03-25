@@ -176,7 +176,7 @@ export const formatSearchableBundleList = () => {
 
 export const addBundleData = async (bundle) => {
     await fetchData([bundles]);
-    if(bundles[bundle.uuid]){
+    if(bundles[bundle.uuid]) {
         bundles[bundle.uuid].data = bundle;
         saveSkinsJSON();
     }

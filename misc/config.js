@@ -46,8 +46,8 @@ export const loadConfig = (filename="config.json") => {
     return config;
 }
 
-const saveConfig = (filename, config) => {
-    fs.writeFileSync(filename, JSON.stringify(config, null, 2));
+export const saveConfig = (filename="config.json", configToSave) => {
+    fs.writeFileSync(filename, JSON.stringify(configToSave || config, null, 2));
 }
 
 const applyConfig = (loadedConfig, name, defaultValue) => {

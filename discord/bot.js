@@ -26,7 +26,7 @@ import {
 import {RadEmoji, VPEmoji} from "./emoji.js";
 import {getBalance, getBundles, getNightMarket, getOffers} from "../valorant/shop.js";
 import { getBattlepassProgress } from "../valorant/battlepass.js";
-import config from "../misc/config.js";
+import config, {saveConfig} from "../misc/config.js";
 import {
     authFailureMessage,
     basicEmbed,
@@ -46,6 +46,7 @@ import {
 } from "../valorant/authQueue.js";
 
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]}); // what intents does the bot need
+const cronTasks = [];
 
 client.on("ready", async () => {
     console.log(`Logged in as ${client.user.tag}!`);
@@ -55,18 +56,31 @@ client.on("ready", async () => {
 
     setClient(client);
 
+    scheduleTasks();
+});
+
+const scheduleTasks = () => {
+    console.debug("Scheduling tasks...");
+
     // check alerts every day at 00:00:10 GMT
-    cron.schedule(config.refreshSkins, checkAlerts, {timezone: "GMT"});
+    if(config.refreshSkins) cronTasks.push(cron.schedule(config.refreshSkins, checkAlerts, {timezone: "GMT"}));
 
     // check for new valorant version every 15mins
-    cron.schedule(config.checkGameVersion, () => fetchData(null, true));
+    if(config.checkGameVersion) cronTasks.push(cron.schedule(config.checkGameVersion, () => fetchData(null, true)));
 
     // cleanup accounts every hour
-    cron.schedule(config.cleanupAccounts, cleanupAccounts);
+    if(config.cleanupAccounts) cronTasks.push(cron.schedule(config.cleanupAccounts, cleanupAccounts));
 
     // if login queue is enabled, process an item every 3 seconds
-    if(config.loginQueue) cron.schedule(config.loginQueue, processQueue);
-});
+    if(config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processQueue));
+}
+
+const destroyTasks = () => {
+    console.debug("Destroying scheduled tasks...");
+    for(const task of cronTasks)
+        task.stop();
+    cronTasks.length = 0;
+}
 
 const commands = [
     {
@@ -172,42 +186,94 @@ const commands = [
 ];
 
 client.on("messageCreate", async (message) => {
-    if(config.ownerId && message.author.id !== config.ownerId && message.guildId !== config.ownerId) {
-        if(!message.member) return;
-        if(!message.member.roles.resolve(config.ownerId)) return;
-    }
-
-    if(message.content === "!deploy guild") {
-        console.log("deploying commands...");
-
-        const guild = client.guilds.cache.get(message.guild.id);
-        await guild.commands.set(commands).then(() => console.log(`Commands deployed in guild ${message.guild.name}!`));
-
-        await message.reply("Deployed in guild!");
-    } else if(message.content === "!deploy global") {
-        console.log("deploying commands...");
-
-        await client.application.commands.set(commands).then(() => console.log("Commands deployed globally!"));
-
-        await message.reply("Deployed globally!");
-    } else if(message.content.startsWith("!undeploy")) {
-        console.log("Undeploying commands...");
-
-        if(message.content === "!undeploy guild") {
-            const guild = client.guilds.cache.get(message.guild.id);
-            await guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
-            await message.reply("Undeployed in guild!");
-        } else if(message.content === "!undeploy global"){
-            await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
-            await message.reply("Undeployed globally!");
-        } else {
-            await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
-
-            const guild = client.guilds.cache.get(message.guild.id);
-            await guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
-
-            await message.reply("Undeployed in guild and globally!");
+    try {
+        if(config.ownerId && message.author.id !== config.ownerId && message.guildId !== config.ownerId) {
+            if(!message.member) return;
+            if(!message.member.roles.resolve(config.ownerId)) return;
         }
+
+        const content = message.content.replace(/<@!?\d+> ?/, ""); // remove @bot mention
+        if(!content.startsWith('!')) return;
+        console.debug(`${message.author.tag} sent admin command ${content}`);
+
+        if(content === "!deploy guild") {
+            if(!message.guild) return;
+
+            console.log("deploying commands...");
+
+            await message.guild.commands.set(commands).then(() => console.log(`Commands deployed in guild ${message.guild.name}!`));
+
+            await message.reply("Deployed in guild!");
+        } else if(content === "!deploy global") {
+            console.log("deploying commands...");
+
+            await client.application.commands.set(commands).then(() => console.log("Commands deployed globally!"));
+
+            await message.reply("Deployed globally!");
+        } else if(content.startsWith("!undeploy")) {
+            console.log("Undeploying commands...");
+
+            if(content === "!undeploy guild") {
+                if(!message.guild) return;
+                await message.guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
+                await message.reply("Undeployed in guild!");
+            }
+            else if(content === "!undeploy global" || !message.guild) {
+                await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
+                await message.reply("Undeployed globally!");
+            }
+            else {
+                await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
+
+                const guild = client.guilds.cache.get(message.guild.id);
+                await guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
+
+                await message.reply("Undeployed in guild and globally!");
+            }
+        } else if(content.startsWith("!config")) {
+            const splits = content.split(' ');
+            if(splits[1] === "reload") {
+                const oldToken = config.token;
+
+                destroyTasks();
+                saveConfig("config.json", config);
+                scheduleTasks();
+
+                let s = "Successfully reloaded the config!";
+                if(config.token !== oldToken)
+                    s += "\nI noticed you changed the token. You'll have to restart the bot for that to happen."
+                await message.reply(s);
+            } else {
+                const target = splits[1];
+                const value = splits.slice(2).join(' ');
+
+                const configType = typeof config[target];
+                switch (configType) {
+                    case 'string':
+                    case 'undefined':
+                        config[target] = value;
+                        break;
+                    case 'number':
+                        config[target] = parseFloat(value);
+                        break;
+                    case 'boolean':
+                        config[target] = value.toLowerCase() === "true";
+                        break;
+                    default:
+                        return await message.reply("[Error] I don't know what type the config is in, so I can't convert it!");
+                }
+
+                let s;
+                if(typeof config[target] === 'string') s = `Set the config value \`${target}\` to \`"${config[target]}"\`!`;
+                else s = `Set the config value \`${target}\` to \`${config[target]}\`!`;
+                s += "\nDon't forget to `!config reload` to apply your changes!";
+                if(configType === 'undefined') s += "\n**Note:** that config option wasn't there before! Are you sure that's not a typo?"
+                await message.reply(s);
+            }
+        }
+    } catch(e) {
+        console.error("Error while processing message!");
+        console.error(e);
     }
 });
 
@@ -224,13 +290,14 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
+                    await defer(interaction);
+
                     // fetch the channel if not in cache
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
 
                     // start uploading emoji now
                     const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
 
-                    await defer(interaction);
 
                     const shop = await getOffers(interaction.user.id);
 
@@ -248,10 +315,10 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
+                    await defer(interaction);
+
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
-
-                    await defer(interaction);
 
                     const bundles = await getBundles(interaction.user.id);
 
@@ -263,6 +330,8 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "bundle": {
+                    await defer(interaction);
+
                     const searchQuery = interaction.options.get("bundle").value.replace(/collection/g, "").replace(/bundle/i, "");
                     const searchResults = await searchBundle(searchQuery);
 
@@ -270,7 +339,7 @@ client.on("interactionCreate", async (interaction) => {
                     const emoji = await VPEmoji(interaction.guild, externalEmojisAllowed(channel));
 
                     if(searchResults.length === 0) {
-                        return await interaction.reply({
+                        return await interaction.followUp({
                             embeds: [basicEmbed("**Couldn't find a bundle with that name!** Check the spelling and try again.")],
                             ephemeral: true
                         });
@@ -278,7 +347,7 @@ client.on("interactionCreate", async (interaction) => {
                         const bundle = searchResults[0];
                         const message = await renderBundle(bundle, interaction, emoji)
 
-                        return await interaction.reply(message);
+                        return await interaction.followUp(message);
                     } else {
                         // some bundles have the same name (e.g. Magepunk)
 
@@ -304,7 +373,7 @@ client.on("interactionCreate", async (interaction) => {
 
                         row.addComponents(new MessageSelectMenu().setCustomId("bundle-select").setPlaceholder("Select bundle:").addOptions(options));
 
-                        await interaction.reply({
+                        await interaction.followUp({
                             embeds: [secondaryEmbed("Which bundle would you like to inspect?")],
                             components: [row]
                         });
@@ -319,10 +388,10 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
+                    await defer(interaction);
+
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
-
-                    await defer(interaction);
 
                     const market = await getNightMarket(interaction.user.id);
 
@@ -375,6 +444,8 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
+                    await defer(interaction);
+
                     const searchQuery = interaction.options.get("skin").value
                     const searchResults = await searchSkin(searchQuery);
 
@@ -393,14 +464,14 @@ client.on("interactionCreate", async (interaction) => {
                     }
 
                     if(filteredResults.length === 0) {
-                        if(searchResults.length === 0) return await interaction.reply({
+                        if(searchResults.length === 0) return await interaction.followUp({
                             embeds: [basicEmbed("**Couldn't find a skin with that name!** Check the spelling and try again.")],
                             ephemeral: true
                         });
 
                         const skin = searchResults[0];
                         const otherAlert = alertExists(interaction.user.id, skin.uuid);
-                        return await interaction.reply({
+                        return await interaction.followUp({
                             embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid)],
                             ephemeral: true
@@ -415,7 +486,7 @@ client.on("interactionCreate", async (interaction) => {
                         });
 
                         const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-                        return await interaction.reply({
+                        return await interaction.followUp({
                             embeds: [await skinChosenEmbed(skin, channel)],
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid)]
                         });
@@ -429,7 +500,7 @@ client.on("interactionCreate", async (interaction) => {
                         });
                         row.addComponents(new MessageSelectMenu().setCustomId("skin-select").setPlaceholder("Select skin:").addOptions(options));
 
-                        await interaction.reply({
+                        await interaction.followUp({
                             embeds: [secondaryEmbed("Which skin would you like to set a reminder for?")],
                             components: [row]
                         });
@@ -444,8 +515,10 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    let alerts = alertsForUser(interaction.user.id);
-                    alerts.splice(0, 25); // todo create a page system when there are >25 alerts
+                    await defer(interaction);
+
+                    // todo create a page system when there are >25 alerts
+                    let alerts = alertsForUser(interaction.user.id).slice(0, 25)
 
                     // filter out alerts for deleted channels
                     const removedChannels = [];
@@ -458,17 +531,17 @@ client.on("interactionCreate", async (interaction) => {
                             removedChannels.push(alert.channel_id);
                         }
                     }
-                    if(removedChannels) alerts = alertsForUser(interaction.user.id);
+                    if(removedChannels.length) alerts = alertsForUser(interaction.user.id).slice(0, 25);
 
                     if(alerts.length === 0) {
-                        return await interaction.reply({
+                        return await interaction.followUp({
                             embeds: [basicEmbed("**You don't have any alerts set up!** Use `/alert` to get started.")],
                             ephemeral: true
                         });
                     }
 
                     const auth = await authUser(interaction.user.id);
-                    if(!auth.success) return await interaction.reply(authFailureMessage(interaction, auth, "**Your alerts won't work because you got logged out!** Please `/login` again."));
+                    if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, "**Your alerts won't work because you got logged out!** Please `/login` again."));
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(channel)) || "Price: ");
@@ -483,7 +556,7 @@ client.on("interactionCreate", async (interaction) => {
                         const alert = alerts[0];
                         const skin = await getSkin(alert.uuid);
 
-                        return await interaction.reply({
+                        return await interaction.followUp({
                             embeds: [{
                                 title: "You have one alert set up:",
                                 color: VAL_COLOR_1,
@@ -521,7 +594,7 @@ client.on("interactionCreate", async (interaction) => {
                         embed.fields.push({
                             name: `**${n}.** ${await skinNameAndEmoji(skin, channel)}`,
                             value: alertFieldDescription(alert.channel_id, skin.price),
-                            inline: false
+                            inline: alerts.length > 6
                         });
                         buttons.push(removeAlertButton(interaction.user.id, alert.uuid).setLabel(`${n}.`));
                         n++;
@@ -536,7 +609,7 @@ client.on("interactionCreate", async (interaction) => {
                         actionRows.push(actionRow);
                     }
 
-                    await interaction.reply({
+                    await interaction.followUp({
                         embeds: [embed],
                         components: actionRows,
                         ephemeral: true
@@ -640,11 +713,13 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
+                    await defer(interaction);
+
                     deleteUser(interaction.user.id);
                     removeAlertsFromUser(interaction.user.id);
                     console.log(`${interaction.user.tag} deleted their account`);
 
-                    await interaction.reply({
+                    await interaction.followUp({
                         embeds: [basicEmbed("Your account has been deleted from the database!")],
                         ephemeral: true
                     });
@@ -697,6 +772,7 @@ client.on("interactionCreate", async (interaction) => {
                     const otherAlert = alertExists(interaction.user.id, chosenSkin);
                     if(otherAlert) return await interaction.reply({
                         embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
+                        components: [removeAlertActionRow(interaction.user.id, otherAlert.uuid)],
                         ephemeral: true
                     });
 
@@ -763,9 +839,9 @@ client.on("interactionCreate", async (interaction) => {
 
                     if(interaction.message.flags.has(MessageFlags.FLAGS.EPHEMERAL)) return; // message is ephemeral
 
-                    if(interaction.message.interaction) { // if the message is an interaction, aka is the response to /alert
+                    if(interaction.message.interaction && interaction.message.interaction.commandName === "alert") { // if the message is the response to /alert
                         await interaction.message.delete().catch(() => {});
-                    } else { // the message is an automatic alert
+                    } else if(!interaction.message.interaction) { // the message is an automatic alert
                         const actionRow = removeAlertActionRow(interaction.user.id, uuid);
                         actionRow.components[0].setDisabled(true).setLabel("Removed");
 

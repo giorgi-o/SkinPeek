@@ -61,6 +61,6 @@ export const getQueueItemStatus = (c) => {
 
     const index = queueResults.findIndex(i => i.c === c);
     item = queueResults[index];
-    queue.splice(index, 1);
+    queueResults.splice(index, 1);
     return {processed: true, result: item.result};
 }
