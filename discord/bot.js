@@ -205,7 +205,7 @@ client.on("messageCreate", async (message) => {
 
             await message.reply("Deployed in guild!");
         } else if(content === "!deploy global") {
-            console.log("deploying commands...");
+            console.log("Deploying commands in guild...");
 
             await client.application.commands.set(commands).then(() => console.log("Commands deployed globally!"));
 
@@ -267,7 +267,7 @@ client.on("messageCreate", async (message) => {
                 if(typeof config[target] === 'string') s = `Set the config value \`${target}\` to \`"${config[target]}"\`!`;
                 else s = `Set the config value \`${target}\` to \`${config[target]}\`!`;
                 s += "\nDon't forget to `!config reload` to apply your changes!";
-                if(configType === 'undefined') s += "\n**Note:** that config option wasn't there before! Are you sure that's not a typo?"
+                if(configType === 'undefined') s += "\n**Note:** That config option wasn't there before! Are you sure that's not a typo?"
                 await message.reply(s);
             }
         }
@@ -420,15 +420,15 @@ client.on("interactionCreate", async (interaction) => {
 
                     if(!balance.success) return await interaction.followUp(authFailureMessage(interaction, balance, "**Could not fetch your balance**, most likely you got logged out. Try logging in again."));
 
-                    const theVPEmoji = emojiToString(await VPEmojiPromise) || "Valorant Points:";
+                    const theVPEmoji = emojiToString(await VPEmojiPromise) || "VALORANT Points:";
                     const theRadEmoji = emojiToString(await RadEmojiPromise) || "Radianite:";
 
                     await interaction.followUp({
                         embeds: [{ // move this to embed.js?
-                            title: `**${valorantUser.username}**'s wallet:`,
+                            title: `**${valorantUser.username}**'s Wallet:`,
                             color: VAL_COLOR_1,
                             fields: [
-                                {name: "Valorant Points", value: `${theVPEmoji} ${balance.vp}`, inline: true},
+                                {name: "VALORANT Points", value: `${theVPEmoji} ${balance.vp}`, inline: true},
                                 {name: "Radianite", value: `${theRadEmoji} ${balance.rad}`, inline: true}
                             ]
                         }]

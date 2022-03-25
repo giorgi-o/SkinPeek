@@ -9,7 +9,7 @@ import config from "../misc/config.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
-export const VAL_COLOR_2 = 0x0F1923;
+export const VAL_COLOR_2 = 0x202225;
 export const VAL_COLOR_3 = 0xEAEEB2;
 
 const thumbnails = [
@@ -126,7 +126,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
 
     if(!bundle.data) return {embeds: [{
-        title: `${bundle.name} collection`,
+        title: `${bundle.name} Collection`,
         description: `${subName}${slantedDescription}`,
         color: VAL_COLOR_1,
         image: {
