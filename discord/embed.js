@@ -126,7 +126,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
 
     if(!bundle.data) return {embeds: [{
-        title: `${bundle.name} collection`,
+        title: `${bundle.name} Collection`,
         description: `${subName}${slantedDescription}`,
         color: VAL_COLOR_1,
         image: {
