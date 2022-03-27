@@ -355,6 +355,64 @@ const titleEmbed = async (title, price, VPemojiString) => {
     }
 }
 
+export const botInfoEmbed = (client, guildCount, userCount, registeredUserCount, ownerString, status) => {
+    const fields = [
+        {
+            name: "Servers",
+            value: guildCount.toString(),
+            inline: true
+        },
+        {
+            name: "Members",
+            value: userCount.toString(),
+            inline: true
+        },
+        {
+            name: "Registered",
+            value: registeredUserCount.toString(),
+            inline: true
+        },
+        {
+            name: ":dog:",
+            value: "woof",
+            inline: true
+        }
+    ];
+    if(ownerString) fields.push({
+        name: "Owner",
+        value: ownerString,
+        inline: true
+    });
+    if(status) fields.push({
+        name: "Status",
+        value: status,
+        inline: true
+    });
+
+    const readyTimestamp = Math.round(client.readyTimestamp / 1000);
+
+    return {
+        embeds: [{
+            title: ":pencil: Stats",
+            description: `Started running on <t:${readyTimestamp}:f> (<t:${readyTimestamp}:R>)`,
+            color: VAL_COLOR_3,
+            fields: fields
+        }]
+    }
+}
+
+export const ownerMessageEmbed = (messageContent, author) => {
+    return {
+        title: "Message from bot owner:",
+        description: messageContent,
+        color: VAL_COLOR_3,
+        footer: {
+            text: "By " + author.username,
+            icon_url: author.displayAvatarURL()
+        }
+    }
+}
+
 const priceDescription = (VPemojiString, price) => {
     if(price) return `${VPemojiString} ${price}`;
 }

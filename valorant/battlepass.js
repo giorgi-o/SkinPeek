@@ -1,5 +1,5 @@
 import { authUser, deleteUser, getUser } from "./auth.js";
-import { fetch, isMaintenance } from "../misc/util.js";
+import {fetch, isMaintenance, userRegion} from "../misc/util.js";
 import { getValorantVersion } from "./cache.js";
 
 const CONTRACT_UUID = "c1cd8895-4bd2-466d-e7ff-b489e3bc3775";
@@ -54,7 +54,7 @@ export const getBattlepassProgress = async (id, maxlevel) => {
     console.debug(`Fetching battlepass progress for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Contracts/GET%20Contracts_Fetch.md
-    const req = await fetch(`https://pd.${user.region}.a.pvp.net/contracts/v1/contracts/${user.puuid}`, {
+    const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/contracts/v1/contracts/${user.puuid}`, {
         headers: {
             "Authorization": "Bearer " + user.rso,
             "X-Riot-Entitlements-JWT": user.ent,
@@ -177,7 +177,7 @@ const getBattlepassPurchase = async (id) => {
     console.debug(`Fetching battlepass purchases for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetEntitlements.md
-    const req = await fetch(`https://pd.${user.region}.a.pvp.net/store/v1/entitlements/${user.puuid}/f85cb6f7-33e5-4dc8-b609-ec7212301948`, {
+    const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/entitlements/${user.puuid}/f85cb6f7-33e5-4dc8-b609-ec7212301948`, {
         headers: {
             "Authorization": "Bearer " + user.rso,
             "X-Riot-Entitlements-JWT": user.ent

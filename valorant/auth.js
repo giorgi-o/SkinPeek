@@ -74,7 +74,8 @@ export const redeemUsernamePassword = async (id, login, password) => {
         body: JSON.stringify({
             'type': 'auth',
             'username': login,
-            'password': password
+            'password': password,
+            'remember': true
         })
     });
     console.assert(req2.statusCode === 200, `Auth status code is ${req2.statusCode}!`, req2);
@@ -128,7 +129,7 @@ export const redeem2FACode = async (id, code) => {
         body: JSON.stringify({
             'type': 'multifactor',
             'code': code.toString(),
-            'rememberDevice': false
+            'rememberDevice': true
         })
     });
     console.assert(req.statusCode === 200, `2FA status code is ${req.statusCode}!`, req);

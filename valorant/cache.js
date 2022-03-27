@@ -1,4 +1,4 @@
-import {asyncReadJSONFile, fetch, isMaintenance, itemTypes} from "../misc/util.js";
+import {asyncReadJSONFile, fetch, isMaintenance, itemTypes, userRegion} from "../misc/util.js";
 import {authUser, getUser, getUserList} from "./auth.js";
 import config from "../misc/config.js";
 import Fuse from "fuse.js";
@@ -120,7 +120,7 @@ const getPrices = async (gameVersion, id=null) => {
     console.debug(`Fetching skin prices using ${user.username}'s access token...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetOffers.md
-    const req = await fetch(`https://pd.${user.region}.a.pvp.net/store/v1/offers/`, {
+    const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/offers/`, {
         headers: {
             "Authorization": "Bearer " + user.rso,
             "X-Riot-Entitlements-JWT": user.ent

@@ -2,7 +2,7 @@ import {Client, Intents, MessageActionRow, MessageFlags, MessageSelectMenu} from
 import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
 import {
     addAlert,
-    alertExists,
+    alertExists, alertsForGuild,
     alertsForUser,
     checkAlerts, removeAlert,
     removeAlertsFromUser,
@@ -13,7 +13,7 @@ import cron from "node-cron";
 import {
     authUser,
     cleanupAccounts, deleteUser,
-    getUser,
+    getUser, getUserList,
     redeemCookies,
 } from "../valorant/auth.js";
 import {
@@ -37,7 +37,7 @@ import {
     renderOffers,
     secondaryEmbed,
     skinChosenEmbed,
-    VAL_COLOR_1
+    VAL_COLOR_1, botInfoEmbed, ownerMessageEmbed
 } from "./embed.js";
 import {
     getQueueItemStatus,
@@ -182,6 +182,10 @@ const commands = [
             minValue: 2,
             maxValue: 55
         }]
+    },
+    {
+        name: "info",
+        description: "Show information about the bot"
     }
 ];
 
@@ -236,7 +240,7 @@ client.on("messageCreate", async (message) => {
                 const oldToken = config.token;
 
                 destroyTasks();
-                saveConfig("config.json", config);
+                saveConfig();
                 scheduleTasks();
 
                 let s = "Successfully reloaded the config!";
@@ -270,6 +274,53 @@ client.on("messageCreate", async (message) => {
                 if(configType === 'undefined') s += "\n**Note:** That config option wasn't there before! Are you sure that's not a typo?"
                 await message.reply(s);
             }
+        } else if(content.startsWith("!message")) {
+            const messageContent = content.substring(9);
+            const messageEmbed = ownerMessageEmbed(messageContent, message.author);
+
+            await message.reply(`Sending message to ${client.guilds.cache.size} guilds...`);
+
+            for(const guild of client.guilds.cache.values()) {
+                try {
+                    const alerts = await alertsForGuild(guild.id);
+                    if(!alerts.length) continue;
+
+                    const alertsPerChannel = {};
+                    for(const alert of alerts) {
+                        if(alertsPerChannel[alert.channel_id]) alertsPerChannel[alert.channel_id]++;
+                        else alertsPerChannel[alert.channel_id] = 1;
+                    }
+
+                    let channelWithMostAlerts = [null, 0];
+                    for(const channelId in alertsPerChannel) {
+                        if(alertsPerChannel[channelId] > channelWithMostAlerts[1]) {
+                            channelWithMostAlerts = [channelId, alertsPerChannel[channelId]];
+                        }
+                    }
+                    if(channelWithMostAlerts[0] === null) continue;
+
+                    const channel = await guild.channels.fetch(channelWithMostAlerts[0]);
+                    if(channel) await channel.send({
+                        embeds: [messageEmbed]
+                    });
+                } catch(e) {
+                    if(e.code === 50013) {
+                        console.error(`Don't have perms to send !message to ${guild.name}!`)
+                    } else {
+                        console.error(`Error while sending !message to guild ${guild.name}!`);
+                        console.error(e);
+                    }
+                }
+            }
+
+            await message.reply(`Finished sending the message!`);
+        } else if(content.startsWith("!status")) {
+            config.status = content.substring(8, 8 + 1023);
+            saveConfig();
+            await message.reply("Set the status to `" + config.status + "`!");
+        } else if(content === "!forcealerts") {
+            await checkAlerts();
+            await message.reply("Checked alerts!");
         }
     } catch(e) {
         console.error("Error while processing message!");
@@ -743,6 +794,19 @@ client.on("interactionCreate", async (interaction) => {
                     await interaction.followUp(message);
 
                     console.log(`Sent ${interaction.user.tag}'s battlepass!`);
+
+                    break;
+                }
+                case "info": {
+                    const guildCount = client.guilds.cache.size;
+
+                    let userCount = 0;
+                    for(const guild of client.guilds.cache.values())
+                        userCount += guild.memberCount;
+
+                    const registeredUserCount = getUserList().length;
+
+                    await interaction.reply(botInfoEmbed(client, guildCount, userCount, registeredUserCount, config.ownerName, config.status));
 
                     break;
                 }

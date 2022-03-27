@@ -21,7 +21,7 @@ const tlsCiphers = [
 
 // all my homies hate node-fetch
 export const fetch = (url, options={}) => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const req = https.request(url, {
             method: options.method || "GET",
             headers: options.headers || {},
@@ -36,6 +36,10 @@ export const fetch = (url, options={}) => {
             resp.on('end', () => {
                 res.body = Buffer.concat(chunks).toString(options.encoding || "utf8");
                 resolve(res);
+            });
+            resp.on('error', err => {
+                console.error(err);
+                reject(err);
             });
         });
         req.write(options.body || "");
@@ -98,6 +102,11 @@ const decodeToken = (token) => {
 
 export const tokenExpiry = (token) => {
     return decodeToken(token).exp * 1000;
+}
+
+export const userRegion = ({region}) => {
+    if(!region || region === "latam" || region === "br") return "na";
+    return region;
 }
 
 export const MAINTENANCE = "MAINTENANCE";

@@ -40,6 +40,8 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "loginQueue", "*/3 * * * * *");
     applyConfig(loadedConfig, "storePasswords", false);
     applyConfig(loadedConfig, "ownerId", "");
+    applyConfig(loadedConfig, "ownerName", "");
+    applyConfig(loadedConfig, "status", "Up and running!");
 
     saveConfig(filename, config);
 
