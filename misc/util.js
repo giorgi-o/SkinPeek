@@ -171,6 +171,7 @@ export const removeAlertActionRow = (id, uuid) => new MessageActionRow().addComp
 
 // apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
 export const externalEmojisAllowed = (channel) => channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
+export const canCreateEmojis = (guild) => guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS);
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
 
 export const escapeMarkdown = Util.escapeMarkdown;
