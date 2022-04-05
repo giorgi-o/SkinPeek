@@ -20,13 +20,23 @@ const getOrCreateEmoji = async (guild, name, filenameOrUrl, externalEmojisAllowe
 
     // see if emoji exists already
     const emoji = emojiInGuild(guild, name);
-    if(emoji) return emoji;
+    if(emoji && emoji.available) return emoji;
 
     // check in other guilds
     if(externalEmojisAllowed) {
+        if(config.useEmojisFromServer) {
+            const emojiGuild = await guild.client.guilds.fetch(config.useEmojisFromServer);
+            if(!emojiGuild) console.error("useEmojisFromServer server not found! Either the ID is incorrect or I am not in that server anymore!");
+            else {
+                await updateEmojiCache(emojiGuild);
+                const emoji = emojiInGuild(emojiGuild, name);
+                if(emoji && emoji.available) return emoji;
+            }
+        }
+
         for(const otherGuild of guild.client.guilds.cache.values()) {
             const emoji = emojiInGuild(otherGuild, name);
-            if(emoji) return emoji;
+            if(emoji && emoji.available) return emoji;
         }
     }
 

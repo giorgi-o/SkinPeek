@@ -109,8 +109,6 @@ export const userRegion = ({region}) => {
     return region;
 }
 
-export const MAINTENANCE = "MAINTENANCE";
-
 export const isMaintenance = (json) => {
     return json.httpStatus === 403 && json.errorCode === "SCHEDULED_DOWNTIME";
 }
@@ -166,12 +164,12 @@ export const skinNameAndEmoji = async (skin, channel) => {
     return rarityIcon ? `${rarityIcon} ${skin.name}` : skin.name;
 }
 
-export const removeAlertButton = (id, uuid) => new MessageButton().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 100000)}`).setStyle("DANGER").setLabel("Remove Alert").setEmoji("✖");
-export const removeAlertActionRow = (id, uuid) => new MessageActionRow().addComponents(removeAlertButton(id, uuid));
+export const removeAlertButton = (id, uuid, buttonText) => new MessageButton().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 100000)}`).setStyle("DANGER").setLabel(buttonText).setEmoji("✖");
+export const removeAlertActionRow = (id, uuid, buttonText) => new MessageActionRow().addComponents(removeAlertButton(id, uuid, buttonText));
 
 // apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
 export const externalEmojisAllowed = (channel) => channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
-export const canCreateEmojis = (guild) => guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS);
+export const canCreateEmojis = (guild) => guild && guild.me && guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS);
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
 
 export const escapeMarkdown = Util.escapeMarkdown;

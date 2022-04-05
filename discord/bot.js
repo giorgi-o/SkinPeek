@@ -44,6 +44,7 @@ import {
     processQueue, queue2FACodeRedeem,
     queueUsernamePasswordLogin
 } from "../valorant/authQueue.js";
+import {s} from "../misc/languages.js";
 
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]}); // what intents does the bot need
 const cronTasks = [];
@@ -337,7 +338,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "shop": {
                     const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
@@ -348,7 +349,6 @@ client.on("interactionCreate", async (interaction) => {
 
                     // start uploading emoji now
                     const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
-
 
                     const shop = await getOffers(interaction.user.id);
 
@@ -362,7 +362,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "bundles": {
                     const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
@@ -383,7 +383,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "bundle": {
                     await defer(interaction);
 
-                    const searchQuery = interaction.options.get("bundle").value.replace(/collection/g, "").replace(/bundle/i, "");
+                    const searchQuery = interaction.options.get("bundle").value.replace(/collection/i, "").replace(/bundle/i, "");
                     const searchResults = await searchBundle(searchQuery);
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
@@ -391,7 +391,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     if(searchResults.length === 0) {
                         return await interaction.followUp({
-                            embeds: [basicEmbed("**Couldn't find a bundle with that name!** Check the spelling and try again.")],
+                            embeds: [basicEmbed(s(interaction).error.BUNDLE_NOT_FOUND)],
                             ephemeral: true
                         });
                     } else if(searchResults.length === 1) {
@@ -417,15 +417,14 @@ client.on("interactionCreate", async (interaction) => {
                         }
 
                         for(let i = options.length - 1; i >= 0; i--) {
-                            const occurence = nameCount[options[i].label]--;
-                            if(occurence > 1) options[i].label += " " + occurence;
-                            // nameCount[options[i].label]--;
+                            const occurrence = nameCount[options[i].label]--;
+                            if(occurrence > 1) options[i].label += " " + occurrence;
                         }
 
-                        row.addComponents(new MessageSelectMenu().setCustomId("bundle-select").setPlaceholder("Select bundle:").addOptions(options));
+                        row.addComponents(new MessageSelectMenu().setCustomId("bundle-select").setPlaceholder(s(interaction).info.BUNDLE_CHOICE_PLACEHOLDER).addOptions(options));
 
                         await interaction.followUp({
-                            embeds: [secondaryEmbed("Which bundle would you like to inspect?")],
+                            embeds: [secondaryEmbed(s(interaction).info.BUNDLE_CHOICE)],
                             components: [row]
                         });
                     }
@@ -435,7 +434,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "nightmarket": {
                     const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
@@ -457,7 +456,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "balance": {
                     const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
@@ -471,16 +470,16 @@ client.on("interactionCreate", async (interaction) => {
 
                     if(!balance.success) return await interaction.followUp(authFailureMessage(interaction, balance, "**Could not fetch your balance**, most likely you got logged out. Try logging in again."));
 
-                    const theVPEmoji = emojiToString(await VPEmojiPromise) || "VALORANT Points:";
-                    const theRadEmoji = emojiToString(await RadEmojiPromise) || "Radianite:";
+                    const theVPEmoji = emojiToString(await VPEmojiPromise) || "";
+                    const theRadEmoji = emojiToString(await RadEmojiPromise) || "";
 
                     await interaction.followUp({
                         embeds: [{ // move this to embed.js?
-                            title: `**${valorantUser.username}**'s Wallet:`,
+                            title: s(interaction).info.WALLET_HEADER.f({u: valorantUser.username}),
                             color: VAL_COLOR_1,
                             fields: [
-                                {name: "VALORANT Points", value: `${theVPEmoji} ${balance.vp}`, inline: true},
-                                {name: "Radianite", value: `${theRadEmoji} ${balance.rad}`, inline: true}
+                                {name: s(interaction).info.VPOINTS, value: `${theVPEmoji} ${balance.vp}`, inline: true},
+                                {name: s(interaction).info.RADIANITE, value: `${theRadEmoji} ${balance.rad}`, inline: true}
                             ]
                         }]
                     });
@@ -491,7 +490,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "alert": {
                     const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
@@ -516,15 +515,15 @@ client.on("interactionCreate", async (interaction) => {
 
                     if(filteredResults.length === 0) {
                         if(searchResults.length === 0) return await interaction.followUp({
-                            embeds: [basicEmbed("**Couldn't find a skin with that name!** Check the spelling and try again.")],
+                            embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)],
                             ephemeral: true
                         });
 
                         const skin = searchResults[0];
                         const otherAlert = alertExists(interaction.user.id, skin.uuid);
                         return await interaction.followUp({
-                            embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
-                            components: [removeAlertActionRow(interaction.user.id, skin.uuid)],
+                            embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: skin.name, c: otherAlert.channel_id}))],
+                            components: [removeAlertActionRow(interaction.user.id, skin.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                             ephemeral: true
                         });
                     } else if(filteredResults.length === 1 || filteredResults[0].name.toLowerCase() === searchQuery.toLowerCase()) {
@@ -536,10 +535,9 @@ client.on("interactionCreate", async (interaction) => {
                             channel_id: interaction.channelId
                         });
 
-                        const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                         return await interaction.followUp({
-                            embeds: [await skinChosenEmbed(skin, channel)],
-                            components: [removeAlertActionRow(interaction.user.id, skin.uuid)]
+                            embeds: [await skinChosenEmbed(interaction, skin)],
+                            components: [removeAlertActionRow(interaction.user.id, skin.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                         });
                     } else {
                         const row = new MessageActionRow();
@@ -549,10 +547,10 @@ client.on("interactionCreate", async (interaction) => {
                                 value: `skin-${result.uuid}`
                             }
                         });
-                        row.addComponents(new MessageSelectMenu().setCustomId("skin-select").setPlaceholder("Select skin:").addOptions(options));
+                        row.addComponents(new MessageSelectMenu().setCustomId("skin-select").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
 
                         await interaction.followUp({
-                            embeds: [secondaryEmbed("Which skin would you like to set a reminder for?")],
+                            embeds: [secondaryEmbed(s(interaction).info.ALERT_CHOICE)],
                             components: [row]
                         });
                     }
@@ -562,7 +560,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "alerts": {
                     const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
@@ -586,21 +584,21 @@ client.on("interactionCreate", async (interaction) => {
 
                     if(alerts.length === 0) {
                         return await interaction.followUp({
-                            embeds: [basicEmbed("**You don't have any alerts set up!** Use `/alert` to get started.")],
+                            embeds: [basicEmbed(s(interaction).error.NO_ALERTS)],
                             ephemeral: true
                         });
                     }
 
                     const auth = await authUser(interaction.user.id);
-                    if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, "**Your alerts won't work because you got logged out!** Please `/login` again."));
+                    if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-                    const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(channel)) || "Price: ");
+                    const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
 
                     const alertFieldDescription = (channel_id, price) => {
-                        return channel_id !== interaction.channelId ? `in <#${channel_id}>` :
+                        return channel_id !== interaction.channelId ? s(interaction).info.ALERT_IN_CHANNEL.f({c: channel_id}) :
                             price ? `${emojiString} ${price}` :
-                                config.fetchSkinPrices ? "Not for sale" : "Prices not shown";
+                                config.fetchSkinPrices ? s(interaction).info.SKIN_NOT_FOR_SALE : s(interaction).info.SKIN_PRICES_HIDDEN;
                     }
 
                     if(alerts.length === 1) {
@@ -609,14 +607,14 @@ client.on("interactionCreate", async (interaction) => {
 
                         return await interaction.followUp({
                             embeds: [{
-                                title: "You have one alert set up:",
+                                title: s(interaction).info.ONE_ALERT,
                                 color: VAL_COLOR_1,
                                 description: `**${await skinNameAndEmoji(skin, channel)}**\n${alertFieldDescription(alert.channel_id, skin.price)}`,
                                 thumbnail: {
                                     url: skin.icon
                                 }
                             }],
-                            components: [removeAlertActionRow(interaction.user.id, alert.uuid)],
+                            components: [removeAlertActionRow(interaction.user.id, alert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                             ephemeral: true
                         });
                     }
@@ -630,10 +628,10 @@ client.on("interactionCreate", async (interaction) => {
                     alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
 
                     const embed = { // todo switch this to a "one embed per alert" message, kinda like /shop
-                        title: "The alerts you currently have set up:",
+                        title: s(interaction).info.MULTIPLE_ALERTS,
                         color: VAL_COLOR_1,
                         footer: {
-                            text: "Click on a button to remove the alert:"
+                            text: s(interaction).info.REMOVE_ALERTS_FOOTER
                         },
                         fields: []
                     }
@@ -647,7 +645,7 @@ client.on("interactionCreate", async (interaction) => {
                             value: alertFieldDescription(alert.channel_id, skin.price),
                             inline: alerts.length > 6
                         });
-                        buttons.push(removeAlertButton(interaction.user.id, alert.uuid).setLabel(`${n}.`));
+                        buttons.push(removeAlertButton(interaction.user.id, alert.uuid, `${n}.`));
                         n++;
                     }
 
@@ -679,28 +677,28 @@ client.on("interactionCreate", async (interaction) => {
                     while(login.inQueue) {
                         const queueStatus = getQueueItemStatus(login.c);
                         if(queueStatus.processed) login = queueStatus.result;
-                        else await wait(1000);
+                        else await wait(500);
                     }
 
                     const user = getUser(interaction.user.id);
                     if(login.success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username}`);
                         await interaction.followUp({
-                            embeds: [basicEmbed(`Successfully logged in as **${user.username}**!`)],
+                            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))],
                             ephemeral: true
                         });
-                    } else await interaction.followUp(authFailureMessage(interaction, login, "Invalid username or password!"));
+                    } else await interaction.followUp(authFailureMessage(interaction, login, s(interaction).error.INVALID_PASSWORD));
 
                     break;
                 }
                 case "2fa": {
                     const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
                     else if(!valorantUser.waiting2FA) return await interaction.reply({
-                        embeds: [basicEmbed("**Not expecting a 2FA code!** Try `/login` if you're not logged in.")],
+                        embeds: [basicEmbed(s(interaction).error.UNEXPECTED_2FA)],
                         ephemeral: true
                     });
 
@@ -720,10 +718,10 @@ client.on("interactionCreate", async (interaction) => {
                     let embed;
                     if(success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} with 2FA code`);
-                        embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
+                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
                     } else {
                         console.log(`${interaction.user.tag} 2FA code failed`);
-                        embed = basicEmbed("**Invalid 2FA code!** Please try again.");
+                        embed = basicEmbed(s(interaction).error.INVALID_2FA);
                     }
 
                     await interaction.followUp({
@@ -744,10 +742,10 @@ client.on("interactionCreate", async (interaction) => {
                     let embed;
                     if(success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
-                        embed = basicEmbed(`Successfully logged in as **${user.username}**!`);
+                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
                     } else {
                         console.log(`${interaction.user.tag} cookies login failed`);
-                        embed = basicEmbed("Whoops, that didn't work! Are your cookies formatted correctly?");
+                        embed = basicEmbed(s(interaction).error.INVALID_COOKIES);
                     }
 
                     await interaction.followUp({
@@ -760,7 +758,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "forget": {
                     const user = getUser(interaction.user.id);
                     if(!user) return await interaction.reply({
-                        embeds: [basicEmbed("I can't forget you if you're not registered!")],
+                        embeds: [basicEmbed(s(interaction).error.FORGET_FORGOTTEN)],
                         ephemeral: true
                     });
 
@@ -771,7 +769,7 @@ client.on("interactionCreate", async (interaction) => {
                     console.log(`${interaction.user.tag} deleted their account`);
 
                     await interaction.followUp({
-                        embeds: [basicEmbed("Your account has been deleted from the database!")],
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_DELETED)],
                         ephemeral: true
                     });
                     break;
@@ -779,7 +777,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "battlepass": {
                     const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed("**You're not registered with the bot!** Try `/login`.")],
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
@@ -788,7 +786,7 @@ client.on("interactionCreate", async (interaction) => {
                     const battlepassProgress = await getBattlepassProgress(interaction.user.id, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50);
 
                     if(battlepassProgress.success === false)
-                        return await interaction.followUp(authFailureMessage(interaction, battlepassProgress, "Could not fetch your battlepass progress! Are you logged in?"));
+                        return await interaction.followUp(authFailureMessage(interaction, battlepassProgress, s(interaction).error.AUTH_ERROR_BPASS));
 
                     const message = await renderBattlepass(battlepassProgress, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50, interaction, valorantUser);
                     await interaction.followUp(message);
@@ -806,12 +804,12 @@ client.on("interactionCreate", async (interaction) => {
 
                     const registeredUserCount = getUserList().length;
 
-                    await interaction.reply(botInfoEmbed(client, guildCount, userCount, registeredUserCount, config.ownerName, config.status));
+                    await interaction.reply(botInfoEmbed(interaction, client, guildCount, userCount, registeredUserCount, config.ownerName, config.status));
 
                     break;
                 }
                 default: {
-                    await interaction.reply("Yer a wizard harry!");
+                    await interaction.reply(s(interaction).info.UNHANDLED_COMMAND);
                     break;
                 }
             }
@@ -825,7 +823,7 @@ client.on("interactionCreate", async (interaction) => {
                 case "skin-select": {
                     if(interaction.message.interaction.user.id !== interaction.user.id) {
                         return await interaction.reply({
-                            embeds: [basicEmbed("**That's not your message!** Use `/alert` to set your own alert.")],
+                            embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_ALERT)],
                             ephemeral: true
                         });
                     }
@@ -835,8 +833,8 @@ client.on("interactionCreate", async (interaction) => {
 
                     const otherAlert = alertExists(interaction.user.id, chosenSkin);
                     if(otherAlert) return await interaction.reply({
-                        embeds: [basicEmbed(`You already have an alert for the **${skin.name}** in <#${otherAlert.channel_id}>!`)],
-                        components: [removeAlertActionRow(interaction.user.id, otherAlert.uuid)],
+                        embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: skin.name, c: otherAlert.channel_id}))],
+                        components: [removeAlertActionRow(interaction.user.id, otherAlert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                         ephemeral: true
                     });
 
@@ -846,10 +844,9 @@ client.on("interactionCreate", async (interaction) => {
                         channel_id: interaction.channelId
                     });
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     await interaction.update({
-                        embeds: [await skinChosenEmbed(skin, channel)],
-                        components: [removeAlertActionRow(interaction.user.id, chosenSkin)]
+                        embeds: [await skinChosenEmbed(interaction, skin)],
+                        components: [removeAlertActionRow(interaction.user.id, chosenSkin, s(interaction).info.REMOVE_ALERT_BUTTON)]
                     });
 
                     break;
@@ -857,12 +854,12 @@ client.on("interactionCreate", async (interaction) => {
                 case "bundle-select": {
                     if(interaction.message.interaction.user.id !== interaction.user.id) {
                         return await interaction.reply({
-                            embeds: [basicEmbed("**That's not your message!** Use `/bundle` to search for bundles.")],
+                            embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_BUNDLE)],
                             ephemeral: true
                         });
                     }
 
-                    const chosenBundle = interaction.values[0].substr(7);
+                    const chosenBundle = interaction.values[0].substring(7);
                     const bundle = await getBundle(chosenBundle);
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
@@ -887,7 +884,7 @@ client.on("interactionCreate", async (interaction) => {
                 const [, uuid, id] = interaction.customId.split('/');
 
                 if(id !== interaction.user.id) return await interaction.reply({
-                    embeds: [basicEmbed("**That's not your alert!** Use `/alerts` to manage your alerts.")],
+                    embeds: [basicEmbed(s(interaction).error.NOT_UR_ALERT)],
                     ephemeral: true
                 });
 
@@ -897,7 +894,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     await interaction.reply({
-                        embeds: [basicEmbed(`Removed the alert for the **${await skinNameAndEmoji(skin, channel)}**!`)],
+                        embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({s: await skinNameAndEmoji(skin, channel)}))],
                         ephemeral: true
                     });
 
@@ -906,13 +903,13 @@ client.on("interactionCreate", async (interaction) => {
                     if(interaction.message.interaction && interaction.message.interaction.commandName === "alert") { // if the message is the response to /alert
                         await interaction.message.delete().catch(() => {});
                     } else if(!interaction.message.interaction) { // the message is an automatic alert
-                        const actionRow = removeAlertActionRow(interaction.user.id, uuid);
+                        const actionRow = removeAlertActionRow(interaction.user.id, uuid, s(interaction).info.REMOVE_ALERT_BUTTON);
                         actionRow.components[0].setDisabled(true).setLabel("Removed");
 
                         await interaction.message.edit({components: [actionRow]}).catch(() => {});
                     }
                 } else {
-                    await interaction.reply({embeds: [basicEmbed("That alert doesn't exist anymore!")], ephemeral: true});
+                    await interaction.reply({embeds: [basicEmbed(s(interaction).error.ALERT_REMOVED)], ephemeral: true});
                 }
             }
         } catch(e) {
@@ -926,7 +923,7 @@ client.on("channelDelete", channel => {
 });
 
 const handleError = async (e, interaction) => {
-    const message = `:no_entry_sign: **There was an error trying to do that!** I blame Riot.\n\`${e.message}\``;
+    const message = s(interaction).error.GENERIC_ERROR.f({e: e.message});
     try {
         const embed = basicEmbed(message);
         if(interaction.deferred) await interaction.followUp({embeds: [embed], ephemeral: true});

@@ -64,6 +64,7 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 * ~~Auto check for new Valorant version~~
 * ~~See current bundles~~
 * ~~See battlepass progress~~ (thanks muckelba!)
+* ~~Localization support~~
 * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
 * Option to send shop automatically every day
 * Admin commands (delete user, see/edit everyone's alerts, etc.)
@@ -75,3 +76,15 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 - [muckelba](https://github.com/muckelba) for writing the battlepass calculator
 - [warriorzz](https://github.com/warriorzz) for setting up the Docker
 - [The discord server](https://discord.gg/a9yzrw3KAm), join here!
+
+## Translations
+
+If you are fluent in another language and would like help translate the bot, please do!
+
+1. [Fork the repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
+2. Look up the language code for your language [here](https://discord.com/developers/docs/reference#locales)
+3. In the `languages` folder of your forked repo, copy `en-GB.json` and rename it to your language code
+4. Open that file and do the thing
+5. Open a pull request
+
+Thank you! :)

@@ -3,12 +3,16 @@
   "fetchSkinPrices": true,
   "fetchSkinRarities": true,
   "linkItemImage": true,
+  "useEmojisFromServer": "",
   "refreshSkins": "10 0 0 * * *",
   "checkGameVersion": "*/15 * * * *",
   "cleanupAccounts": "0 * * * *",
   "delayBetweenAlerts": 5000,
+  "emojiCacheExpiration": 10000,
   "useLoginQueue": false,
-  "loginQueue": "*/3 * * * * *",
+  "loginQueue": "*/2 * * * * *",
   "storePasswords": false,
-  "ownerId": ""
+  "ownerId": "",
+  "ownerName": "",
+  "status": "Up and running!"
 }

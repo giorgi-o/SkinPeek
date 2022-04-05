@@ -6,6 +6,7 @@ import {
     itemTypes
 } from "../misc/util.js";
 import config from "../misc/config.js";
+import {s} from "../misc/languages.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -25,23 +26,21 @@ const thumbnails = [
     "https://media.valorant-api.com/sprays/40ff9251-4c11-b729-1f27-088ee032e7ce/fulltransparenticon.png"
 ];
 
-export const MAINTENANCE_MESSAGE = "**Valorant servers are currently down for maintenance!** Try again later.";
-
 export const authFailureMessage = (interaction, authResponse, message, hideEmail=false) => {
     let embed;
 
-    if(authResponse.maintenance) embed = basicEmbed(MAINTENANCE_MESSAGE);
+    if(authResponse.maintenance) embed = basicEmbed(s(interaction).error.MAINTENANCE);
     else if(authResponse.mfa) {
         console.log(`${interaction.user.tag} needs 2FA code`);
         if(authResponse.method === "email") {
-            if(hideEmail) embed = basicEmbed(`**Riot sent a code to your email address!** Use \`/2fa\` to complete your login.`);
-            else embed = basicEmbed(`**Riot sent a code to ${escapeMarkdown(authResponse.email)}!** Use \`/2fa\` to complete your login.`);
+            if(hideEmail) embed = basicEmbed(s(interaction).info.MFA_EMAIL_HIDDEN);
+            else embed = basicEmbed(s(interaction).info.MFA_EMAIL.f({e: escapeMarkdown(authResponse.email)}));
         }
-        else embed = basicEmbed("**You have 2FA enabled!** use `/2fa` to enter your code.");
+        else embed = basicEmbed(s(interaction).info.MFA_GENERIC);
     }
     else if(authResponse.rateLimit) {
         console.log(`${interaction.user.tag} got rate-limited`);
-        embed = basicEmbed("**Too many people are logging in at the same time**, and Riot is not happy!\nPlease try again later.");
+        embed = basicEmbed(s(interaction).error.RATE_LIMIT);
     }
     else embed = basicEmbed(message);
 
@@ -51,9 +50,10 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
     }
 }
 
-export const skinChosenEmbed = async (skin, channel) => {
-    let  description = `Successfully set an alert for the **${await skinNameAndEmoji(skin, channel)}**!`;
-    if(!skin.rarity) description += "\n***Note:** This is a battlepass skin, it's not gonna appear in your shop!*";
+export const skinChosenEmbed = async (interaction, skin) => {
+    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+    let description = s(interaction).info.ALERT_SET.f({s: await skinNameAndEmoji(skin, channel)});
+    if(!skin.rarity) description += s(interaction).info.ALERT_BP_SKIN;
     return {
         description: description,
         color: VAL_COLOR_1,
@@ -64,11 +64,11 @@ export const skinChosenEmbed = async (skin, channel) => {
 }
 
 export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => {
-    if(!shop.success) return authFailureMessage(interaction, shop, "**Could not fetch your shop**, most likely you got logged out. Try logging in again.");
+    if(!shop.success) return authFailureMessage(interaction, shop, s(interaction).error.AUTH_ERROR_SHOP);
 
-    const embeds = [basicEmbed(`Daily shop for **${valorantUser.username}** (new shop <t:${shop.expires}:R>)`)];
+    const embeds = [basicEmbed(s(interaction).info.SHOP_HEADER.f({u: valorantUser.username, t: shop.expires}))];
 
-    const emojiString = emojiToString(VPemoji) || "Price:";
+    const emojiString = emojiToString(VPemoji) || s(interaction).info.PRICE;
 
     for(const uuid of shop.offers) {
         const skin = await getSkin(uuid);
@@ -80,7 +80,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => 
 }
 
 export const renderBundles = async (bundles, interaction, VPemoji) => {
-    if(!bundles.success) return authFailureMessage(interaction, bundles, "**Could not fetch your bundles**, most likely you got logged out. Try logging in again.");
+    if(!bundles.success) return authFailureMessage(interaction, bundles, s(interaction).error.AUTH_ERROR_BUNLES);
 
     bundles = bundles.bundles;
 
@@ -89,16 +89,17 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
 
         const renderedBundle = await renderBundle(bundle, interaction, VPemoji, false);
         const titleEmbed = renderedBundle.embeds[0];
-        titleEmbed.title = "Featured bundle: **" + titleEmbed.title + `** *(expires <t:${bundle.data.expires}:R>)*`;
+        titleEmbed.title = s(interaction).info.BUNDLE_HEADER.f({b: titleEmbed.title});
+        titleEmbed.description += ` *(${s(interaction).info.EXPIRES.f({t: bundle.data.expires})})*`;
 
         return renderedBundle;
     }
 
-    const emojiString = emojiToString(VPemoji) || "Price:";
+    const emojiString = emojiToString(VPemoji) || s(interaction).info.PRICE;
 
     const embeds = [{
-        title: "Currently featured bundles:",
-        description: "Use `/bundle` to inspect a specific bundle",
+        title: s(interaction).info.BUNDLES_HEADER,
+        description: s(interaction).info.BUNDLES_HEADER_DESC,
         color: VAL_COLOR_1
     }];
 
@@ -108,8 +109,8 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         const subName = bundle.subName ? bundle.subName + "\n" : "";
         const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
         const embed = {
-            title: bundle.name + " Collection",
-            description: `${subName}${slantedDescription}${emojiString} **${bundle.data.price}** ~~${bundle.data.basePrice}~~\nExpires <t:${bundle.data.expires}:R>`,
+            title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
+            description: `${subName}${slantedDescription}${emojiString} **${bundle.data.price}** ~~${bundle.data.basePrice}~~ ${s(interaction).info.EXPIRES.f({t:bundle.data.expires})}`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: bundle.icon
@@ -126,20 +127,20 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
 
     if(!bundle.data) return {embeds: [{
-        title: `${bundle.name} Collection`,
+        title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
         description: `${subName}${slantedDescription}`,
         color: VAL_COLOR_1,
         image: {
             url: bundle.icon
         },
         footer: {
-            text: "Riot doesn't provide data for previous/unreleased bundles :("
+            text: s(interaction).info.NO_BUNDLE_DATA
         }
     }]};
 
-    const emojiString = emoji ? emojiToString(emoji) : "Price:";
+    const emojiString = emoji ? emojiToString(emoji) : s(interaction).info.PRICE;
     const bundleTitleEmbed = {
-        title: `${bundle.name} Collection`,
+        title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
         description: `${subName}${slantedDescription}${emojiString} ~~${bundle.data.basePrice}~~ **${bundle.data.price}**`,
         color: VAL_COLOR_3,
         image: {
@@ -147,7 +148,8 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
         }
     }
 
-    if(includeExpires) bundleTitleEmbed.description += ` (${bundle.data.expires > Date.now() / 1000 ? "expires" : "expired"} <t:${bundle.data.expires}:R>)`
+    if(includeExpires) bundleTitleEmbed.description += ` (${(bundle.data.expires > Date.now() / 1000 ? 
+        s(interaction).info.EXPIRES : s(interaction).info.EXPIRED).f({t: bundle.data.expires})})`;
 
     const itemEmbeds = await renderBundleItems(bundle, interaction, emoji);
     return {
@@ -156,16 +158,16 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 }
 
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
-    if(!market.success) return authFailureMessage(interaction, market, "**Could not fetch your Night Market**, most likely you got logged out. Try logging in again.");
+    if(!market.success) return authFailureMessage(interaction, market, s(interaction).error.AUTH_ERROR_NMARKET);
 
-    if(!market.offers) return {embeds: [basicEmbed("**There is no Night Market currently! Look out for April 7th!**")]};
+    if(!market.offers) return {embeds: [basicEmbed(s(interaction).error.NO_NMARKET)]};
 
     const embeds = [{
-        description: `Night.Market for **${valorantUser.username}** (ends <t:${market.expires}:R>)`,
+        description: s(interaction).info.NIGHT_MARKET.f({u: valorantUser.username, t: market.expires}),
         color: VAL_COLOR_3
     }];
 
-    const emojiString = emojiToString(emoji) || "Price:";
+    const emojiString = emojiToString(emoji) || s(interaction).info.PRICE;
     const VP_UUID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741";
 
     for(const offer of market.offers) {
@@ -181,36 +183,36 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 }
 
 export const renderBattlepass = async (battlepass, targetlevel, interaction, valorantUser) => {
-    if(!battlepass.success) return authFailureMessage(interaction, battlepass, "**Could not fetch your battlepass progression**, most likely you got logged out. Try logging in again.");
+    if(!battlepass.success) return authFailureMessage(interaction, battlepass, s(interaction).error.AUTH_ERROR_BPASS);
 
     const embeds = [{
-        title: `📈 Battlepass Calculation`,
+        title: s(interaction).battlepass.CALCULATIONS_TITLE,
         thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
-        description: `**${valorantUser.username}**'s battlepass tier:\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
+        description: `${s(interaction).battlepass.TIER_HEADER.f({u: valorantUser.username})}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
         color: VAL_COLOR_1,
         fields: [
             {
-                "name": "General",
-                "value": `Total XP\nLevel up\nTier ${targetlevel}\nWeekly XP left`,
+                "name": s(interaction).battlepass.GENERAL_COL,
+                "value": `${s(interaction).battlepass.TOTAL_ROW}\n${s(interaction).battlepass.LVLUP_ROW}\n${s(interaction).battlepass.TIER50_ROW.f({t: targetlevel})}\n${s(interaction).battlepass.WEEKLY_LEFT_ROW}`,
                 "inline": true
             },
             {
-                "name": "XP",
+                "name": s(interaction).battlepass.XP_COL,
                 "value": `\`${battlepass.totalxp}\`\n\`${battlepass.xpneeded}\`\n\`${battlepass.totalxpneeded}\`\n\`${battlepass.weeklyxp}\``,
                 "inline": true
             }
         ],
         footer: {
-            text: (battlepass.battlepassPurchased) ? valorantUser.username + " purchased the battlepass!" : ""
+            text: battlepass.battlepassPurchased ? s(interaction).battlepass.BP_PURCHASED.f({u: valorantUser.username}) : ""
         }
     },
     {
-        title: "🔫 Number of games needed",
+        title: s(interaction).battlepass.GAMES_HEADER,
         color: VAL_COLOR_1,
         fields: [
             {
-                "name": "Gamemode",
-                "value": "Spikerush\nUnrated/Competitive\n",
+                "name": s(interaction).battlepass.GAMEMODE_COL,
+                "value": `${s(interaction).battlepass.SPIKERUSH_ROW}\n${s(interaction).battlepass.NORMAL_ROW}\n`,
                 "inline": true
             },
             {
@@ -219,31 +221,31 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
                 "inline": true
             },
             {
-                "name": "incl. weeklies",
+                "name": s(interaction).battlepass.INCL_WEEKLIES_COL,
                 "value": `\`${battlepass.spikerushneededwithweeklies}\`\n\`${battlepass.normalneededwithweeklies}\``,
                 "inline": true
             }
         ],
         footer: {
-            text: `Act ends in ${battlepass.season_days_left} days`
+            text: s(interaction).battlepass.ACT_END.f({d: battlepass.season_days_left})
         }
     },
     {
-        title: "📅 XP needed",
+        title: s(interaction).battlepass.XP_HEADER,
         color: VAL_COLOR_1,
         fields: [
             {
-                "name": "Average",
-                "value": "Daily XP\nWeekly XP",
+                "name": s(interaction).battlepass.AVERAGE_COL,
+                "value": `${s(interaction).battlepass.DAILY_XP_ROW}\n${s(interaction).battlepass.WEEKLY_XP_ROW}`,
                 "inline": true
             },
             {
-                "name": "XP",
+                "name": s(interaction).battlepass.XP_COL,
                 "value": `\`${battlepass.dailyxpneeded}\`\n\`${battlepass.weeklyxpneeded}\``,
                 "inline": true
             },
             {
-                "name": "incl. weeklies",
+                "name": s(interaction).battlepass.INCL_WEEKLIES_COL,
                 "value": `\`${battlepass.dailyxpneededwithweeklies}\`\n\`${battlepass.weeklyxpneededwithweeklies}\``,
                 "inline": true
             }
@@ -272,7 +274,7 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
         if(item.amount !== 1) embed.title = `${item.amount}x ${embed.title}`
         if(item.type === itemTypes.SKIN) embed.color = VAL_COLOR_1;
         if(item.price !== item.basePrice) {
-            embed.description = `${VPemojiString} **${item.price || "Free"}** ~~${item.basePrice}~~`;
+            embed.description = `${VPemojiString} **${item.price || s(interaction).battlepass.FREE}** ~~${item.basePrice}~~`;
             if(item.type === itemTypes.TITLE) embed.description = "`" + item.item.text + "`\n\n" + embed.description
         }
 
@@ -281,8 +283,8 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
 
     // discord has a limit of 10 embeds (9 if we count the bundle title)
     if(embeds.length > 9) {
-        embeds.length = 8;
-        embeds.push(basicEmbed(`...and **${items.length - 9}** more items`));
+        embeds.length = 8; // should this be 9?
+        embeds.push(basicEmbed(s(interaction).info.MORE_ITEMS.f({n: items.length - 9})));
     }
 
     return embeds;
@@ -295,7 +297,7 @@ const bundleItemEmbed = async (item, interaction, VPemojiString) => {
         case itemTypes.CARD: return cardEmbed(item.item, item.price, VPemojiString);
         case itemTypes.SPRAY: return sprayEmbed(item.item, item.price, VPemojiString);
         case itemTypes.TITLE: return titleEmbed(item.item, item.price, VPemojiString);
-        default: return basicEmbed("**Unknown item type!** `" + item.type + "`");
+        default: return basicEmbed(s(interaction).error.UNKNOWN_ITEM_TYPE.f({t: item.type}));
     }
 }
 
@@ -355,36 +357,36 @@ const titleEmbed = async (title, price, VPemojiString) => {
     }
 }
 
-export const botInfoEmbed = (client, guildCount, userCount, registeredUserCount, ownerString, status) => {
+export const botInfoEmbed = (interaction, client, guildCount, userCount, registeredUserCount, ownerString, status) => {
     const fields = [
         {
-            name: "Servers",
+            name: s(interaction).info.INFO_SERVERS,
             value: guildCount.toString(),
             inline: true
         },
         {
-            name: "Members",
+            name: s(interaction).info.INFO_MEMBERS,
             value: userCount.toString(),
             inline: true
         },
         {
-            name: "Registered",
+            name: s(interaction).info.INFO_REGISTERED,
             value: registeredUserCount.toString(),
             inline: true
         },
         {
-            name: ":dog:",
-            value: "woof",
+            name: ":service_dog:",
+            value: s(interaction).info.INFO_WOOF,
             inline: true
         }
     ];
     if(ownerString) fields.push({
-        name: "Owner",
+        name: s(interaction).info.INFO_OWNER,
         value: ownerString,
         inline: true
     });
     if(status) fields.push({
-        name: "Status",
+        name: s(interaction).info.INFO_STATUS,
         value: status,
         inline: true
     });
@@ -394,7 +396,7 @@ export const botInfoEmbed = (client, guildCount, userCount, registeredUserCount,
     return {
         embeds: [{
             title: ":pencil: Stats",
-            description: `Started running on <t:${readyTimestamp}:f> (<t:${readyTimestamp}:R>)`,
+            description: s(interaction).info.INFO_RUNNING.f({t1: readyTimestamp, t2: readyTimestamp}),
             color: VAL_COLOR_3,
             fields: fields
         }]

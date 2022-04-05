@@ -32,6 +32,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "fetchSkinPrices", true);
     applyConfig(loadedConfig, "fetchSkinRarities", true);
     applyConfig(loadedConfig, "linkItemImage", true);
+    applyConfig(loadedConfig, "useEmojisFromServer", "");
     applyConfig(loadedConfig, "refreshSkins", "10 0 0 * * *");
     applyConfig(loadedConfig, "checkGameVersion", "*/15 * * * *");
     applyConfig(loadedConfig, "cleanupAccounts", "0 * * * *");

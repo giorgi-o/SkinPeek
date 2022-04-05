@@ -5,6 +5,7 @@ import {getSkin} from "../valorant/cache.js";
 import fs from "fs";
 import {VAL_COLOR_1} from "./embed.js";
 import config from "../misc/config.js";
+import {s} from "../misc/languages.js";
 
 let alerts = [];
 
@@ -16,7 +17,7 @@ export const setClient = (theClient) => client = theClient;
  *     uuid: skin uuid
  *     channel_id: discord text channel id the alert was sent in
  * }
- * There should only be one alert per ID/UUID pair, aka each user can have one alert per skin.
+ * There should only be one alert per ID/UUID pair, i.e. each user can have one alert per skin.
  */
 
 export const loadAlerts = (filename="data/alerts.json") => {
@@ -126,13 +127,13 @@ const sendAlert = async (alerts, expires) => {
         await channel.send({
             content: `<@${alert.id}>`,
             embeds: [{
-                description: `:tada: <@${alert.id}> The **${await skinNameAndEmoji(skin, channel)}** is in your daily shop!\nIt will be gone <t:${expires}:R>.`,
+                description: s().info.ALERT_HAPPENED.f({u: alert.id, s: await skinNameAndEmoji(skin, channel), t: expires}),
                 color: VAL_COLOR_1,
                 thumbnail: {
                     url: skin.icon
                 }
             }],
-            components: [removeAlertActionRow(alert.id, alert.uuid)]
+            components: [removeAlertActionRow(alert.id, alert.uuid), s().info.REMOVE_ALERT_BUTTON]
         }).catch(async e => {
             console.error(`Could not send alert message in #${channel.name}! Do I have the right role?`);
 
@@ -157,7 +158,7 @@ const sendCredentialsExpired = async (alert) => {
     await channel.send({
         content: `<@${alert.id}>`,
         embeds: [{
-            description: `**<@${alert.id}> I couldn't check your alerts!** Did you change your password?\nPlease \`/login\` again.`,
+            description: s().error.AUTH_ERROR_ALERTS_HAPPENED.f({u: alert.id}),
             color: VAL_COLOR_1,
         }]
     }).catch(async e => {
