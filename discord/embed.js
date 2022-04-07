@@ -163,7 +163,7 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
     if(!market.offers) return {embeds: [basicEmbed(s(interaction).error.NO_NMARKET)]};
 
     const embeds = [{
-        description: s(interaction).info.NIGHT_MARKET.f({u: valorantUser.username, t: market.expires}),
+        description: s(interaction).info.NMARKET_HEADER.f({u: valorantUser.username, t: market.expires}),
         color: VAL_COLOR_3
     }];
 
