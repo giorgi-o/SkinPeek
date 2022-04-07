@@ -1,4 +1,4 @@
-import {getBundle, getSkin} from "../valorant/cache.js";
+import {getBuddy, getBundle, getCard, getSkin, getSpray, getTitle} from "../valorant/cache.js";
 import {
     emojiToString,
     skinNameAndEmoji,
@@ -53,7 +53,7 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
 export const skinChosenEmbed = async (interaction, skin) => {
     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
     let description = s(interaction).info.ALERT_SET.f({s: await skinNameAndEmoji(skin, channel)});
-    if(!skin.rarity) description += s(interaction).info.ALERT_BP_SKIN;
+    if(config.fetchSkinPrices && !skin.price) description += s(interaction).info.ALERT_BP_SKIN;
     return {
         description: description,
         color: VAL_COLOR_1,
@@ -90,7 +90,7 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         const renderedBundle = await renderBundle(bundle, interaction, VPemoji, false);
         const titleEmbed = renderedBundle.embeds[0];
         titleEmbed.title = s(interaction).info.BUNDLE_HEADER.f({b: titleEmbed.title});
-        titleEmbed.description += ` *(${s(interaction).info.EXPIRES.f({t: bundle.data.expires})})*`;
+        titleEmbed.description += ` *(${s(interaction).info.EXPIRES.f({t: bundle.expires})})*`;
 
         return renderedBundle;
     }
@@ -108,9 +108,10 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
 
         const subName = bundle.subName ? bundle.subName + "\n" : "";
         const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
+        const strikedBundleBasePrice = bundle.basePrice ? " ~~" + bundle.basePrice + "~~" : "";
         const embed = {
             title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
-            description: `${subName}${slantedDescription}${emojiString} **${bundle.data.price}** ~~${bundle.data.basePrice}~~ ${s(interaction).info.EXPIRES.f({t:bundle.data.expires})}`,
+            description: `${subName}${slantedDescription}${emojiString} **${bundle.price}**${strikedBundleBasePrice} ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: bundle.icon
@@ -125,8 +126,9 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
 export const renderBundle = async (bundle, interaction, emoji, includeExpires=true) => {
     const subName = bundle.subName ? bundle.subName + "\n" : "";
     const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
+    const strikedBundleBasePrice = bundle.basePrice ? " ~~" + bundle.basePrice + "~~" : "";
 
-    if(!bundle.data) return {embeds: [{
+    if(!bundle.items) return {embeds: [{
         title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
         description: `${subName}${slantedDescription}`,
         color: VAL_COLOR_1,
@@ -141,15 +143,15 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     const emojiString = emoji ? emojiToString(emoji) : s(interaction).info.PRICE;
     const bundleTitleEmbed = {
         title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
-        description: `${subName}${slantedDescription}${emojiString} ~~${bundle.data.basePrice}~~ **${bundle.data.price}**`,
+        description: `${subName}${slantedDescription}${emojiString} **${bundle.price}**${strikedBundleBasePrice}`,
         color: VAL_COLOR_3,
         image: {
             url: bundle.icon
         }
     }
 
-    if(includeExpires) bundleTitleEmbed.description += ` (${(bundle.data.expires > Date.now() / 1000 ? 
-        s(interaction).info.EXPIRES : s(interaction).info.EXPIRED).f({t: bundle.data.expires})})`;
+    if(includeExpires && bundle.expires) bundleTitleEmbed.description += ` (${(bundle.expires > Date.now() / 1000 ? 
+        s(interaction).info.EXPIRES : s(interaction).info.EXPIRED).f({t: bundle.expires})})`;
 
     const itemEmbeds = await renderBundleItems(bundle, interaction, emoji);
     return {
@@ -256,7 +258,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
 }
 
 const renderBundleItems = async (bundle, interaction, VPemojiString) => {
-    if(!bundle.data) return [];
+    if(!bundle.items) return [];
 
     const priorities = {};
     priorities[itemTypes.SKIN] = 5;
@@ -265,7 +267,7 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
     priorities[itemTypes.CARD] = 2;
     priorities[itemTypes.TITLE] = 1;
 
-    const items = bundle.data.items.sort((a, b) => priorities[b.type] - priorities[a.type]);
+    const items = bundle.items.sort((a, b) => priorities[b.type] - priorities[a.type]);
 
     const embeds = [];
     for(const item of items) {
@@ -273,8 +275,8 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
 
         if(item.amount !== 1) embed.title = `${item.amount}x ${embed.title}`
         if(item.type === itemTypes.SKIN) embed.color = VAL_COLOR_1;
-        if(item.price !== item.basePrice) {
-            embed.description = `${VPemojiString} **${item.price || s(interaction).battlepass.FREE}** ~~${item.basePrice}~~`;
+        if(item.basePrice && item.price !== item.basePrice) {
+            embed.description = `${VPemojiString} **${item.price || s(interaction).info.FREE}** ~~${item.basePrice}~~`;
             if(item.type === itemTypes.TITLE) embed.description = "`" + item.item.text + "`\n\n" + embed.description
         }
 
@@ -283,8 +285,8 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
 
     // discord has a limit of 10 embeds (9 if we count the bundle title)
     if(embeds.length > 9) {
-        embeds.length = 8; // should this be 9?
-        embeds.push(basicEmbed(s(interaction).info.MORE_ITEMS.f({n: items.length - 9})));
+        embeds.length = 8;
+        embeds.push(basicEmbed(s(interaction).info.MORE_ITEMS.f({n: items.length - 8})));
     }
 
     return embeds;
@@ -292,16 +294,17 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
 
 const bundleItemEmbed = async (item, interaction, VPemojiString) => {
     switch(item.type) {
-        case itemTypes.SKIN: return skinEmbed(item.item, item.price, interaction, VPemojiString);
-        case itemTypes.BUDDY: return buddyEmbed(item.item, item.price, VPemojiString);
-        case itemTypes.CARD: return cardEmbed(item.item, item.price, VPemojiString);
-        case itemTypes.SPRAY: return sprayEmbed(item.item, item.price, VPemojiString);
-        case itemTypes.TITLE: return titleEmbed(item.item, item.price, VPemojiString);
+        case itemTypes.SKIN: return skinEmbed(item.uuid, item.price, interaction, VPemojiString);
+        case itemTypes.BUDDY: return buddyEmbed(item.uuid, item.price, VPemojiString);
+        case itemTypes.CARD: return cardEmbed(item.uuid, item.price, VPemojiString);
+        case itemTypes.SPRAY: return sprayEmbed(item.uuid, item.price, VPemojiString);
+        case itemTypes.TITLE: return titleEmbed(item.uuid, item.price, VPemojiString);
         default: return basicEmbed(s(interaction).error.UNKNOWN_ITEM_TYPE.f({t: item.type}));
     }
 }
 
-const skinEmbed = async (skin, price, interaction, VPemojiString) => {
+const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
+    const skin = await getSkin(uuid);
     return {
         title: await skinNameAndEmoji(skin, interaction.channel),
         url: config.linkItemImage ? skin.icon : null,
@@ -313,7 +316,8 @@ const skinEmbed = async (skin, price, interaction, VPemojiString) => {
     };
 }
 
-const buddyEmbed = async (buddy, price, VPemojiString) => {
+const buddyEmbed = async (uuid, price, VPemojiString) => {
+    const buddy = await getBuddy(uuid);
     return {
         title: buddy.name,
         url: config.linkItemImage ? buddy.icon : null,
@@ -325,7 +329,8 @@ const buddyEmbed = async (buddy, price, VPemojiString) => {
     }
 }
 
-const cardEmbed = async (card, price, VPemojiString) => {
+const cardEmbed = async (uuid, price, VPemojiString) => {
+    const card = await getCard(uuid);
     return {
         title: card.name,
         url: config.linkItemImage ? card.icons.large : null,
@@ -337,7 +342,8 @@ const cardEmbed = async (card, price, VPemojiString) => {
     }
 }
 
-const sprayEmbed = async (spray, price, VPemojiString) => {
+const sprayEmbed = async (uuid, price, VPemojiString) => {
+    const spray = await getSpray(uuid);
     return {
         title: spray.name,
         url: config.linkItemImage ? spray.icon : null,
@@ -349,7 +355,8 @@ const sprayEmbed = async (spray, price, VPemojiString) => {
     }
 }
 
-const titleEmbed = async (title, price, VPemojiString) => {
+const titleEmbed = async (uuid, price, VPemojiString) => {
+    const title = await getTitle(uuid);
     return {
         title: title.name,
         description: "`" + title.text + "`\n\n" + (priceDescription(VPemojiString, price) || ""),
@@ -383,6 +390,11 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
     if(ownerString) fields.push({
         name: s(interaction).info.INFO_OWNER,
         value: ownerString,
+        inline: true
+    });
+    if(interaction.client.shard) fields.push({
+        name: "Running on shard",
+        value: interaction.client.shard.ids.join(),
         inline: true
     });
     if(status) fields.push({

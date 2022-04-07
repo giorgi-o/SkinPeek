@@ -46,7 +46,10 @@ import {
 } from "../valorant/authQueue.js";
 import {s} from "../misc/languages.js";
 
-const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES]}); // what intents does the bot need
+const client = new Client({
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
+    shards: "auto"
+});
 const cronTasks = [];
 
 client.on("ready", async () => {

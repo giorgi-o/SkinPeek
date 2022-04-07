@@ -4,7 +4,7 @@ import config from "../misc/config.js";
 import Fuse from "fuse.js";
 import fs from "fs";
 
-const formatVersion = 3;
+const formatVersion = 4;
 let gameVersion;
 
 let skins, rarities, buddies, sprays, cards, titles, bundles;
@@ -161,7 +161,61 @@ const getBundleList = async (gameVersion) => {
             name: bundle.displayName,
             subName: bundle.displayNameSubText,
             description: bundle.extraDescription,
-            icon: bundle.displayIcon2
+            icon: bundle.displayIcon2,
+            items: null,
+            price: null,
+            basePrice: null,
+            expires: null
+        }
+    }
+
+    // get bundle items from https://docs.valtracker.gg/bundles
+    const req2 = await fetch("https://api.valtracker.gg/bundles");
+    console.assert(req2.statusCode === 200, `ValTracker bundles items status code is ${req.statusCode}!`, req);
+
+    const json2 = JSON.parse(req2.body);
+    console.assert(json.status === 200, `ValTracker bundles items data status code is ${json.status}!`, json);
+
+    for(const bundleData of json2.data) {
+        if(bundles[bundleData.uuid]) {
+            const bundle = bundles[bundleData.uuid];
+            const items = [];
+            const defaultItemData = {
+                amount: 1,
+                discount: 0
+            }
+
+            for(const weapon of bundleData.weapons)
+                items.push({
+                    uuid: weapon.levels[0].uuid,
+                    type: itemTypes.SKIN,
+                    price: weapon.price,
+                    ...defaultItemData
+                });
+            for(const buddy of bundleData.buddies)
+                items.push({
+                    uuid: buddy.levels[0].uuid,
+                    type: itemTypes.BUDDY,
+                    price: buddy.price,
+                    ...defaultItemData
+                });
+            for(const card of bundleData.cards)
+                items.push({
+                    uuid: card.uuid,
+                    type: itemTypes.CARD,
+                    price: card.price,
+                    ...defaultItemData
+                });
+            for(const spray of bundleData.sprays)
+                items.push({
+                    uuid: spray.uuid,
+                    type: itemTypes.SPRAY,
+                    price: spray.price,
+                    ...defaultItemData
+                });
+
+            bundle.items = items;
+            bundle.price = bundleData.price;
         }
     }
 
@@ -174,13 +228,26 @@ export const formatSearchableBundleList = () => {
     bundleSearcher = new Fuse(Object.values(bundles).filter(o => typeof o === "object"), {keys: ['name'], includeScore: true});
 }
 
-export const addBundleData = async (bundle) => {
+export const addBundleData = async (bundleData) => {
     await fetchData([bundles]);
-    if(bundles[bundle.uuid]) {
-        bundles[bundle.uuid].data = bundle;
+    if(bundles[bundleData.uuid]) {
+        const bundle = bundles[bundleData.uuid];
+        bundle.items = bundleData.items.map(item => {
+            return {
+                uuid: item.uuid,
+                type: item.type,
+                price: item.price,
+                basePrice: item.basePrice,
+                discount: item.discount,
+                amount: item.amount
+            }
+        });
+        bundle.price = bundleData.price;
+        bundle.basePrice = bundleData.basePrice;
+        bundle.expires = bundleData.expires;
+
         saveSkinsJSON();
     }
-
 }
 
 const getRarities = async (gameVersion) => {
@@ -319,7 +386,7 @@ export const getSkin = async (uuid) => {
     return skin;
 }
 
-const getPrice = async (uuid) => {
+export const getPrice = async (uuid) => {
     if(!prices) await fetchData([prices]);
     return prices[uuid] || null;
 }
