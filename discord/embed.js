@@ -72,7 +72,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => 
 
     for(const uuid of shop.offers) {
         const skin = await getSkin(uuid);
-        const embed = await skinEmbed(skin, skin.price, interaction, emojiString);
+        const embed = await skinEmbed(skin.uuid, skin.price, interaction, emojiString);
         embeds.push(embed);
     }
 
@@ -175,7 +175,7 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
     for(const offer of market.offers) {
         const skin = await getSkin(offer.Offer.OfferID);
 
-        const embed = await skinEmbed(skin, skin.price, interaction, emojiString);
+        const embed = await skinEmbed(skin.uuid, skin.price, interaction, emojiString);
         embed.description = `${emojiString} **${offer.DiscountCosts[VP_UUID]}**\n${emojiString} ~~${offer.Offer.Cost[VP_UUID]}~~ (-${offer.DiscountPercent}%)`;
 
         embeds.push(embed);

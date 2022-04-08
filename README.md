@@ -74,6 +74,7 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 - [Hamper](https://github.com/OwOHamper/) for the idea and [the code](https://github.com/OwOHamper/Valorant-item-shop-discord-bot/blob/main/item_shop_viewer.py) showing how to do it
 - [Valorant-api](https://dash.valorant-api.com/) for the skin names and images
 - [muckelba](https://github.com/muckelba) for writing the battlepass calculator
+- [Spirit](https://github.com/SpiritLetsPlays) for his [API](https://docs.valtracker.gg/bundles) for getting past bundle items and prices
 - [warriorzz](https://github.com/warriorzz) for setting up the Docker
 - [The discord server](https://discord.gg/a9yzrw3KAm), join here!
 
@@ -86,5 +87,7 @@ If you are fluent in another language and would like help translate the bot, ple
 3. In the `languages` folder of your forked repo, copy `en-GB.json` and rename it to your language code
 4. Open that file and do the thing
 5. Open a pull request
+
+Alternatively, you can just send me the JSON on discord and I'll upload it for you.
 
 Thank you! :)
