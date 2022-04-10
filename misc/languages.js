@@ -10,6 +10,7 @@ const importLanguage = (language) => {
 importLanguage('en-GB');
 
 export const s = (interaction) => {
+    if(!interaction || !interaction.locale) return languages['en-GB'];
     const lang = interaction.locale;
     if(!languages[lang]) importLanguage(lang);
     return languages[lang] || languages['en-GB'];

@@ -44,6 +44,10 @@ export const fetch = (url, options={}) => {
         });
         req.write(options.body || "");
         req.end();
+        req.on('error', err => {
+            console.error(err);
+            reject(err);
+        });
     });
 }
 

@@ -76,7 +76,7 @@ const scheduleTasks = () => {
     if(config.cleanupAccounts) cronTasks.push(cron.schedule(config.cleanupAccounts, cleanupAccounts));
 
     // if login queue is enabled, process an item every 3 seconds
-    if(config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processQueue));
+    if(config.useLoginQueue && config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processQueue));
 }
 
 const destroyTasks = () => {

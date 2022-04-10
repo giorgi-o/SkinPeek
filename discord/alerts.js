@@ -133,7 +133,7 @@ const sendAlert = async (alerts, expires) => {
                     url: skin.icon
                 }
             }],
-            components: [removeAlertActionRow(alert.id, alert.uuid), s().info.REMOVE_ALERT_BUTTON]
+            components: [removeAlertActionRow(alert.id, alert.uuid, s().info.REMOVE_ALERT_BUTTON)]
         }).catch(async e => {
             console.error(`Could not send alert message in #${channel.name}! Do I have the right role?`);
 

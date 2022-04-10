@@ -46,7 +46,7 @@ export const queueNullOperation = async (timeout) => {  // used for stress-testi
 }
 
 export const processQueue = async () => {
-    if(!queue.length) return;
+    if(!config.useLoginQueue || !queue.length) return;
 
     const item = queue.shift();
     console.debug(`Processing queue item "${item.operation}" for ${item.id} (c=${item.c})`);
@@ -66,7 +66,7 @@ export const processQueue = async () => {
                 break;
         }
     } catch(e) {
-        result = {success: false}
+        result = {success: false, error: e};
     }
 
     queueResults.push({
