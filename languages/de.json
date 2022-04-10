@@ -74,7 +74,7 @@
       "MFA_EMAIL_HIDDEN": "**Riot hat eine E-Mail an deine E-Mail-Adresse gesendet!** Benutze `/2fa,` um deinen Anmeldevorgang abzuschließen.",
       "MFA_GENERIC": "**Du hast 2FA aktiviert!** Benutze `/2fa`, um deinen Code einzugeben.",
       "ACCOUNT_DELETED": "Dein Account wurde aus der Datenbank entfernt!",
-      "UNHANDLED_COMMAND": "Du bist aber ein verrückter Zauberer! Was hast du getan?"
+      "UNHANDLED_COMMAND": "Du bist ein Zauberer, Harry!"
     },
     "battlepass": {
       "CALCULATIONS_TITLE": "\uD83D\uDCC8 Battlepass Sammlung",
