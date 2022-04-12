@@ -71,6 +71,7 @@
       "MFA_EMAIL": "**Riot envió un código a {e}** Usa `/2fa` para completar su inicio de sesión.",
       "MFA_EMAIL_HIDDEN": "**¡Riot envió un código a tu dirección de correo electrónico!** Usa `/2fa` para completar su inicio de sesión.",
       "MFA_GENERIC": "**¡Tienes 2FA habilitado!** usar `/2fa` para ingresar su código.",
+      "AUTH_ERROR_RETRY": "Reintentar",
       "ACCOUNT_DELETED": "¡Su cuenta ha sido eliminada de la base de datos!",
       "UNHANDLED_COMMAND": "¡Eres un mago Harry!"
     },

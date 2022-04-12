@@ -7,7 +7,7 @@
     "INVALID_2FA": "**Mã 2FA không chính xác!** Vui lòng thử lại.",
     "UNEXPECTED_2FA": "**Tôi không nhớ là tôi cần code 2FA!** Thử `/login` để đăng nhập lại nhé.",
     "LOGIN_RATELIMIT": "**Quá nhiều người đang đăng nhập vào bot**, và Riot không thích điều này!\nPVui lòng thử lại sau.",
-    "FORGET_FORGOTTEN": "Bạn muốn tôi quên bạn nhưng mà tôi còn không biết bạn là ai... đăng nhập trước nhé!",
+    "FORGET_FORGOTTEN": "Bạn muốn tôi quên bạn nhưng mà tôi còn không biết bạn là ai... thử đăng nhập trước nhé!",
     "AUTH_ERROR_SHOP": "**Không thể lấy thông tin cửa hàng của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
     "AUTH_ERROR_BUNDLES": "**Không thể lấy thông tin bộ sưu tập trong cửa hàng của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
     "AUTH_ERROR_NMARKET": "**Không thể lấy thông tin chợ đêm của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
@@ -17,7 +17,7 @@
     "AUTH_ERROR_ALERTS_HAPPENED": "**<${u}> Không thể kiểm tra alert của bạn!** Liệu có phải bạn đã đổi mật khẩu?\nVui lòng `/login` lại nhé.",
     "SKIN_NOT_FOUND": "**Không thể tìm được skin nào với tên như thế!** Kiểm tra lại tên skin nhé.",
     "BUNDLE_NOT_FOUND": "**Không thể tìm được bộ sưu tập với tên đó!** Kiểm tra lại tên bộ sưu tập nhé.",
-    "UNKNOWN_ITEM_TYPE": "**Khum bít đây là gì hết chơn!** `{t}`",
+    "UNKNOWN_ITEM_TYPE": "**Khum bít đây là zì hết chơn!** `{t}`",
     "MAINTENANCE": "**Máy chủ VALORANT của Riot đang bảo trì!** Thử lại sau nhé.",
     "NOT_UR_MESSAGE_BUNDLE": "**Đây có phải message của bạn đâu mà bấm!** Dùng `/bundle` để tìm bộ sưu tập nhé.",
     "NOT_UR_MESSAGE_ALERT": "**Đây có phải message của bạn đâu mà bấm!** Dùng `/alert` để cài báo skin cho bản thân mình nhé.",
@@ -50,7 +50,7 @@
     "INFO_OWNER": "Chủ",
     "INFO_STATUS": "Trạng thái",
     "INFO_RUNNING": "Bắt đầu chạy lúc <t:{t1}:f> (<t:{t2}:R>)",
-    "NMARKET_HEADER": "Night.Market cho **{u}** (kết thúc <t:{t}:R>)",
+    "NMARKET_HEADER": "Chợ Đêm của **{u}** (kết thúc <t:{t}:R>)",
     "WALLET_HEADER": "Ví của **{u}**",
     "VPOINTS": "Điểm VALORANT",
     "RADIANITE": "Radianite",
@@ -71,8 +71,9 @@
     "MFA_EMAIL": "**Riot đã gửi một mã tới {e}** Dùng `/2fa` để hoàn thành đăng nhập.",
     "MFA_EMAIL_HIDDEN": "**Riot đã gửi một mã tới địa chỉ email của bạn!** Dùng `/2fa` để hoàn thành đăng nhập.",
     "MFA_GENERIC": "**Bạn đã bật 2FA!** dùng `/2fa` để nhập mã xác thực của bạn.",
+    "AUTH_ERROR_RETRY": "Thử lại",
     "ACCOUNT_DELETED": "Tài khoản của bạn đã được xoá khỏi bot!",
-    "UNHANDLED_COMMAND": "Bạn vừa gõ gì vậy?!"
+    "UNHANDLED_COMMAND": "Bạn là một phù thuỷ đó, Harry!"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Tiến trình Battlepass",

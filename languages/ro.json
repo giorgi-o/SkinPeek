@@ -71,6 +71,7 @@
       "MFA_EMAIL": "**Riot a trimis un cod la {e}!** Folositi `2fa` sa completatit loginul.",
       "MFA_EMAIL_HIDDEN": "**Riot a trimis un cod la addressa voastra de email!** Folositi `/2fa` sa completatit loginul.",
       "MFA_GENERIC": "**Aveti 2FA enabled!** folositi `/2fa` sa intrati condul.",
+      "AUTH_ERROR_RETRY": "Reîncercare",
       "ACCOUNT_DELETED": "Contul vostru a fost sters din system!",
       "UNHANDLED_COMMAND": "Yer a wizard harry!"
     },
