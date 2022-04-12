@@ -30,8 +30,6 @@
     },
     "info":{
       "SHOP_HEADER": "Der tägliche Shop für **{u}** (neuer Shop <t:{t}:R>)",
-      "SHOP_HEADER_PARTNER": "Der tägliche Shop für **{u}** <:partner:960291633771999336> (neuer Shop <t:{t}:R>)",
-      "SHOP_HEADER_OWNER": "Der tägliche Shop für **{u}** <:owner:960311579788865586> (neuer Shop <t:{t}:R>)",
       "BUNDLE_HEADER": "Featured Bundle: **{b}**",
       "BUNDLES_HEADER": "Zurzeit verfügbare Bundle:",
       "BUNDLES_HEADER_DESC": "Benutze `/bundle`, um ein bestimmtes Bundle anzuschauen",

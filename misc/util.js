@@ -168,8 +168,12 @@ export const skinNameAndEmoji = async (skin, channel) => {
     return rarityIcon ? `${rarityIcon} ${skin.name}` : skin.name;
 }
 
+export const actionRow = (button) => new MessageActionRow().addComponents(button);
+
 export const removeAlertButton = (id, uuid, buttonText) => new MessageButton().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 100000)}`).setStyle("DANGER").setLabel(buttonText).setEmoji("✖");
 export const removeAlertActionRow = (id, uuid, buttonText) => new MessageActionRow().addComponents(removeAlertButton(id, uuid, buttonText));
+
+export const retryAuthButton = (id, operationId, buttonText) => new MessageButton().setCustomId(`retry_auth/${operationId}`).setStyle("PRIMARY").setLabel(buttonText).setEmoji("🔄");
 
 // apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
 export const externalEmojisAllowed = (channel) => channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);

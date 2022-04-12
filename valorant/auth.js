@@ -2,6 +2,7 @@ import config from "../misc/config.js";
 import fs from "fs";
 
 import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../misc/util.js";
+import {cleanupFailedOperations} from "../discord/authManager.js";
 
 let users;
 
@@ -144,7 +145,7 @@ export const redeem2FACode = async (id, code) => {
     const json = JSON.parse(req.body);
     if(json.error === "multifactor_attempt_failed") {
         console.error("Authentication failure!", json);
-        return false;
+        return {success: false};
     }
 
     await processAuthResponse(id, {login: user.login, password: user.password, cookies: user.cookies}, json);
@@ -152,7 +153,7 @@ export const redeem2FACode = async (id, code) => {
     delete user.waiting2FA;
     saveUserData();
 
-    return true;
+    return {success: true};
 }
 
 const processAuthResponse = async (id, authData, resp) => {
@@ -289,6 +290,8 @@ export const cleanupAccounts = () => {
             if(user.waiting2FA && Date.now() - user.waiting2FA > 10 * 60 * 1000) deleteUser(id);
             else if(!user.cookies && (!user.login || !user.password)) deleteUser(id);
         }
+
+        cleanupFailedOperations();
     } catch(e) {
         console.error("There was an error while trying to cleanup accounts!");
         console.error(e);

@@ -11,6 +11,7 @@
   "emojiCacheExpiration": 10000,
   "useLoginQueue": false,
   "loginQueue": "*/2 * * * * *",
+  "loginRetryTimeout": 600000,
   "storePasswords": false,
   "ownerId": "",
   "ownerName": "",

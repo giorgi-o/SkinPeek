@@ -14,7 +14,6 @@ import {
     authUser,
     cleanupAccounts, deleteUser,
     getUser, getUserList,
-    redeemCookies,
 } from "../valorant/auth.js";
 import {
     defer,
@@ -41,10 +40,11 @@ import {
 } from "./embed.js";
 import {
     getQueueItemStatus,
-    processQueue, queue2FACodeRedeem,
-    queueUsernamePasswordLogin
+    processQueue,
+    queueCookiesLogin,
 } from "../valorant/authQueue.js";
 import {s} from "../misc/languages.js";
+import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
 
 const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -675,32 +675,13 @@ client.on("interactionCreate", async (interaction) => {
                     const username = interaction.options.get("username").value;
                     const password = interaction.options.get("password").value;
 
-                    let login = await queueUsernamePasswordLogin(interaction.user.id, username, password);
-
-                    while(login.inQueue) {
-                        const queueStatus = getQueueItemStatus(login.c);
-                        if(queueStatus.processed) login = queueStatus.result;
-                        else await wait(500);
-                    }
-
-                    const user = getUser(interaction.user.id);
-                    if(login.success && user) {
-                        console.log(`${interaction.user.tag} logged in as ${user.username}`);
-                        await interaction.followUp({
-                            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))],
-                            ephemeral: true
-                        });
-                    } else await interaction.followUp(authFailureMessage(interaction, login, s(interaction).error.INVALID_PASSWORD));
+                    await loginUsernamePassword(interaction, username, password);
 
                     break;
                 }
                 case "2fa": {
                     const valorantUser = getUser(interaction.user.id);
-                    if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
-                        ephemeral: true
-                    });
-                    else if(!valorantUser.waiting2FA) return await interaction.reply({
+                    if(!valorantUser || !valorantUser.waiting2FA) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.UNEXPECTED_2FA)],
                         ephemeral: true
                     });
@@ -709,28 +690,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     const code = interaction.options.get("code").value.toString().padStart(6, '0');
 
-                    let success = await queue2FACodeRedeem(interaction.user.id, code);
-
-                    while(success.inQueue) {
-                        const queueStatus = getQueueItemStatus(success.c);
-                        if(queueStatus.processed) success = queueStatus.result;
-                        else await wait(1000);
-                    }
-
-                    const user = getUser(interaction.user.id);
-                    let embed;
-                    if(success && user) {
-                        console.log(`${interaction.user.tag} logged in as ${user.username} with 2FA code`);
-                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
-                    } else {
-                        console.log(`${interaction.user.tag} 2FA code failed`);
-                        embed = basicEmbed(s(interaction).error.INVALID_2FA);
-                    }
-
-                    await interaction.followUp({
-                        embeds: [embed],
-                        ephemeral: true
-                    });
+                    await login2FA(interaction, code);
 
                     break;
                 }
@@ -739,7 +699,13 @@ client.on("interactionCreate", async (interaction) => {
 
                     const cookies = interaction.options.get("cookies").value;
 
-                    const success = await redeemCookies(interaction.user.id, cookies);
+                    let success = await queueCookiesLogin(interaction.user.id, cookies);
+
+                    while(success.inQueue) {
+                        const queueStatus = getQueueItemStatus(success.c);
+                        if(queueStatus.processed) success = queueStatus.result;
+                        else await wait(150);
+                    }
 
                     const user = getUser(interaction.user.id);
                     let embed;
@@ -914,6 +880,10 @@ client.on("interactionCreate", async (interaction) => {
                 } else {
                     await interaction.reply({embeds: [basicEmbed(s(interaction).error.ALERT_REMOVED)], ephemeral: true});
                 }
+            } else if(interaction.customId.startsWith("retry_auth")) {
+                await interaction.deferReply({ephemeral: true});
+                const [, operationIndex] = interaction.customId.split('/');
+                await retryFailedOperation(interaction, parseInt(operationIndex));
             }
         } catch(e) {
             await handleError(e, interaction);

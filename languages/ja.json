@@ -25,13 +25,11 @@
       "NO_ALERTS": "**アラートは設定されていません！**開始するには`/alert`を使用してください。",
       "DUPLICATE_ALERT": "すでに<＃{c}>にある** {s} **のアラートがあります！",
       "GHOST_ALERT": "そのアラートはもう存在しません！",
-      "NO_NMARKET": "**現在ナイトマーケットはありません！ 4月7日をお見逃しなく！**",
+      "NO_NMARKET": "**現在ナイトマーケットはありません！**",
       "GENERIC_ERROR": ":no_entry_sign: **それを行おうとしてエラーが発生しました！**ライアットのせいです。\n `{e}`"
     },
     "info":{
       "SHOP_HEADER": "デイリーショップ for **{u}** (新しいお店 <t:{t}:R>)",
-      "SHOP_HEADER_PARTNER": "デイリーショップ for **{u}** <:partner:960291633771999336> (新しいお店 <t:{t}:R>)",
-      "SHOP_HEADER_OWNER": "デイリーショップ for **{u}** <:owner:960311579788865586> (新しいお店 <t:{t}:R>)",
       "BUNDLE_HEADER": "注目のバンドル: **{b}**",
       "BUNDLES_HEADER": "現在注目のバンドル:",
       "BUNDLES_HEADER_DESC": "`/ bundle`を使用して、特定のバンドルを検査します",

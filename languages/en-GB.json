@@ -15,6 +15,7 @@
     "AUTH_ERROR_BPASS": "**Couldn't fetch your battlepass progression**, most likely you got logged out. Try logging in again.",
     "AUTH_ERROR_ALERTS": "**Your alerts won't work because you got logged out!** Please `/login` again.",
     "AUTH_ERROR_ALERTS_HAPPENED": "**<${u}> I couldn't check your alerts!** Did you change your password?\nPlease `/login` again.",
+    "AUTH_ERROR_RETRY_EXPIRED": "**Unknown Retry operation**, did you wait too long before pressing Retry? Please `/login` again.",
     "SKIN_NOT_FOUND": "**Couldn't find a skin with that name!** Check the spelling and try again.",
     "BUNDLE_NOT_FOUND": "**Couldn't find a bundle with that name!** Check the spelling and try again.",
     "UNKNOWN_ITEM_TYPE": "**Unknown item type!** `{t}`",
@@ -25,7 +26,7 @@
     "NO_ALERTS": "**You don't have any alerts set up!** Use `/alert` to get started.",
     "DUPLICATE_ALERT": "You already have an alert for the **{s}** in <#{c}>!",
     "GHOST_ALERT": "That alert doesn't exist anymore!",
-    "NO_NMARKET": "**There is no Night Market currently! Look out for April 7th!**",
+    "NO_NMARKET": "**There is no Night Market currently!**",
     "GENERIC_ERROR": ":no_entry_sign: **There was an error trying to do that!** I blame Riot.\n`{e}`"
   },
   "info":{
@@ -71,6 +72,7 @@
     "MFA_EMAIL": "**Riot sent a code to {e}** Use `/2fa` to complete your login.",
     "MFA_EMAIL_HIDDEN": "**Riot sent a code to your email address!** Use `/2fa` to complete your login.",
     "MFA_GENERIC": "**You have 2FA enabled!** use `/2fa` to enter your code.",
+    "AUTH_ERROR_RETRY": "Retry",
     "ACCOUNT_DELETED": "Your account has been deleted from the database!",
     "UNHANDLED_COMMAND": "Yer a wizard harry!"
   },

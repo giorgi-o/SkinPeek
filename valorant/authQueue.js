@@ -1,10 +1,11 @@
-import {redeem2FACode, redeemUsernamePassword} from "./auth.js";
+import {redeem2FACode, redeemCookies, redeemUsernamePassword} from "./auth.js";
 import config from "../misc/config.js";
 import {wait} from "../misc/util.js";
 
-const Operations = {
+export const Operations = {
     USERNAME_PASSWORD: "up",
     MFA: "mf",
+    COOKIES: "ck",
     NULL: "00"
 }
 
@@ -34,6 +35,17 @@ export const queue2FACodeRedeem = async (id, code) => {
     return {inQueue: true, c};
 }
 
+export const queueCookiesLogin = async (id, cookies) => {
+    if(!config.useLoginQueue) return {inQueue: false, ...await redeemCookies(id, cookies)};
+    const c = queueCounter++;
+    queue.push({
+        operation: Operations.COOKIES,
+        c, id, cookies
+    });
+    console.debug(`Added cookie login to queue for user ${id} (c=${c})`);
+    return {inQueue: true, c};
+}
+
 export const queueNullOperation = async (timeout) => {  // used for stress-testing the auth queue
     if(!config.useLoginQueue) return {inQueue: false, ...await wait(timeout)};
     const c = queueCounter++;
@@ -59,6 +71,9 @@ export const processQueue = async () => {
                 break;
             case Operations.MFA:
                 result = await redeem2FACode(item.id, item.code);
+                break;
+            case Operations.COOKIES:
+                result = await redeemCookies(item.id, item.cookies);
                 break;
             case Operations.NULL:
                 await wait(item.timeout);
