@@ -71,6 +71,7 @@
     "MFA_EMAIL": "**Riot đã gửi một mã tới {e}** Dùng `/2fa` để hoàn thành đăng nhập.",
     "MFA_EMAIL_HIDDEN": "**Riot đã gửi một mã tới địa chỉ email của bạn!** Dùng `/2fa` để hoàn thành đăng nhập.",
     "MFA_GENERIC": "**Bạn đã bật 2FA!** dùng `/2fa` để nhập mã xác thực của bạn.",
+    "AUTH_ERROR_RETRY": "Thử lại",
     "ACCOUNT_DELETED": "Tài khoản của bạn đã được xoá khỏi bot!",
     "UNHANDLED_COMMAND": "Bạn vừa gõ gì vậy?!"
   },
