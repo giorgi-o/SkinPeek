@@ -14,7 +14,7 @@
       "AUTH_ERROR_BALANCE": "**Nu s-a putut lua balance**, Cel mai probabil ai fost scos din login. Incercati sa va logati iarasi.",
       "AUTH_ERROR_BPASS": "**Nu s-a putut lua progresia la bettlepass**, most likely you got logged out. Try logging in again.",
       "AUTH_ERROR_ALERTS": "**Alertele voastre nu vor merge pentru ca vadi scos din cont!** Va rugam `/login` iarasi.",
-      "AUTH_ERROR_ALERTS_HAPPENED": "**<${u}> Nu am putut sa iti verific alertele!** Va-ti schimbat parola?\nVa rugam `/login` iarasi.",
+      "AUTH_ERROR_ALERTS_HAPPENED": "**<@{u}> Nu am putut sa iti verific alertele!** Va-ti schimbat parola?\nVa rugam `/login` iarasi.",
       "SKIN_NOT_FOUND": "**Nu am putut gasi un skin cu acest nume!** Verificati punctuatia si incercati din nou.",
       "BUNDLE_NOT_FOUND": "**Nu am putut gasi un bundle cu acest nume!** Verificati punctuatia si incercati din nou .",
       "UNKNOWN_ITEM_TYPE": "**Tip de item necunoscut!** `{t}`",

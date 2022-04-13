@@ -14,7 +14,7 @@
     "AUTH_ERROR_BALANCE": "**Je n'ai pas pu chercher ton solde**, souvent ça arrive quand tu t'es fait déconnecter. Essaye de te `/login` encore.",
     "AUTH_ERROR_BPASS": "**Je n'ai pas pu chercher ta progression sur le passe de combat**, souvent ça arrive quand tu t'es fait déconnecter. Essaye de te `/login` encore.",
     "AUTH_ERROR_ALERTS": "**Tes alertes ne marchent pas parce que tu t'es fait déconnecter!** Essaye de te `/login` encore.",
-    "AUTH_ERROR_ALERTS_HAPPENED": "**<${u}> Je n'ai pas pu chercher tes alertes!** As-tu changé ton mot de passe?\nEssaye de te `/login` encore.",
+    "AUTH_ERROR_ALERTS_HAPPENED": "**<@{u}> Je n'ai pas pu chercher tes alertes!** As-tu changé ton mot de passe?\nEssaye de te `/login` encore.",
     "AUTH_ERROR_RETRY_EXPIRED": "**Opération inconnue**, as-tu attendu trop longtemps avant d'appuyer sur Réessayer? Essaye de te `/login` encore.",
     "SKIN_NOT_FOUND": "**Je n'ai pas pu trouver ce skin!** Vérifie le nom et réessaye.",
     "BUNDLE_NOT_FOUND": "**Je n'ai pas pu trouver cette collection!** Vérifie le nom et réessaye.",

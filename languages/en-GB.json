@@ -14,7 +14,7 @@
     "AUTH_ERROR_BALANCE": "**Couldn't fetch your balance**, most likely you got logged out. Try logging in again.",
     "AUTH_ERROR_BPASS": "**Couldn't fetch your battlepass progression**, most likely you got logged out. Try logging in again.",
     "AUTH_ERROR_ALERTS": "**Your alerts won't work because you got logged out!** Please `/login` again.",
-    "AUTH_ERROR_ALERTS_HAPPENED": "**<${u}> I couldn't check your alerts!** Did you change your password?\nPlease `/login` again.",
+    "AUTH_ERROR_ALERTS_HAPPENED": "**<@{u}> I couldn't check your alerts!** Did you change your password?\nPlease `/login` again.",
     "AUTH_ERROR_RETRY_EXPIRED": "**Unknown Retry operation**, did you wait too long before pressing Retry? Please `/login` again.",
     "SKIN_NOT_FOUND": "**Couldn't find a skin with that name!** Check the spelling and try again.",
     "BUNDLE_NOT_FOUND": "**Couldn't find a bundle with that name!** Check the spelling and try again.",

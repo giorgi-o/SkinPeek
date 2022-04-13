@@ -14,7 +14,7 @@
       "AUTH_ERROR_BALANCE": "**Deine VP Punkte und Radianite konnten nicht geladen werden** **, du wurdest höchstwahrscheinlich ausgeloggt. Versuche dich nochmal einzuloggen.",
       "AUTH_ERROR_BPASS": "**Dein Battlepass-Fortschritt konnte nicht geladen werden**, du wurdest höchstwahrscheinlich ausgeloggt. Versuche dich nochmal einzuloggen.",
       "AUTH_ERROR_ALERTS": "**Deine Benachrichtigungen werden nicht funktionieren, da du ausgeloggt bist!** Bitte benutze `/login` nochmal.",
-      "AUTH_ERROR_ALERTS_HAPPENED": "**<${u}> Ich konnte deine Benachrichtigungen nicht nachprüfen!** Hast du dein Passwort gewechselt?\nBitte benutze `/login` nochmal.",
+      "AUTH_ERROR_ALERTS_HAPPENED": "**<@{u}> Ich konnte deine Benachrichtigungen nicht nachprüfen!** Hast du dein Passwort gewechselt?\nBitte benutze `/login` nochmal.",
       "SKIN_NOT_FOUND": "**Ich konnte keinen Skin mit diesem Namen finden!** Nitte überprüfe die Schreibweise und versuche es erneut.",
       "BUNDLE_NOT_FOUND": "**Ich konnte kein Bundle mit diesem Namen finden!** Achte auf die Rechtschreibung und versuche es erneut.",
       "UNKNOWN_ITEM_TYPE": "**Unbekannter Item Typ!** `{t}`",
