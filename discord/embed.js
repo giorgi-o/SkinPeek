@@ -382,7 +382,7 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
             inline: true
         },
         {
-            name: ":service_dog:",
+            name: ":dog2:",
             value: s(interaction).info.INFO_WOOF,
             inline: true
         }

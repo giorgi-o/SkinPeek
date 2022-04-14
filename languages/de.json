@@ -25,6 +25,7 @@
       "NO_ALERTS": "**Du hast keine Benachrichtigungen an!** Benutze `/alert` um zu starten.",
       "DUPLICATE_ALERT": "Du hast schon eine Benachrichtigung für **{s}** in <#{c}>!",
       "GHOST_ALERT": "Diese Benachrichtigung existiert nicht mehr!",
+      "ALERT_NO_PERMS": "**I don't have the necessary permissions to send alerts in this channel!** Do I have the right role?\nMake sure I can `View Channel`, `Send Messages`, `Embed Links` and `Use External Emojis` in this channel, then try `/testalerts`.",
       "NO_NMARKET": "**Aktuell gibt es keinen Night Market! Bereite dich schonmal auf den nächsten vor!**",
       "GENERIC_ERROR": ":no_entry_sign: **Es trat ein Fehler auf!** Ich sag, es war Riots Schuld.\n`{e}`"
     },
@@ -65,6 +66,8 @@
       "REMOVE_ALERTS_FOOTER": "Klicke auf eine Schaltfläche:",
       "REMOVE_ALERT_BUTTON": "Entferne Benachrichtigung",
       "ALERT_REMOVED": "Es wurde die Benachrichtigung für **{s}** entfernt!",
+      "ALERT_TEST": "If you are reading this, **the bot has all the right permissions** to send alerts in this channel!",
+      "ALERT_TEST_SUCCESSFUL": "**Your alerts should be working!**",
       "SKIN_NOT_FOR_SALE": "Wird nicht verkauft",
       "SKIN_PRICES_HIDDEN": "Preise werden nicht gezeigt",
       "LOGGED_IN": "Erfolgreich angemeldet für **{u}**!",
