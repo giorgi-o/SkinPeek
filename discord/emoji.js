@@ -10,13 +10,15 @@ const RadEmojiFilename = "assets/rad.png"; // https://media.valorant-api.com/cur
 // the timestamp of the last time the emoji cache was updated for each guild
 const lastEmojiFetch = {};
 
-export const VPEmoji = async (guild, externalEmojisAllowed=false) => await getOrCreateEmoji(guild, VPEmojiName, VPEmojiFilename, externalEmojisAllowed);
-export const RadEmoji = async (guild, externalEmojisAllowed=false) => await getOrCreateEmoji(guild, RadEmojiName, RadEmojiFilename, externalEmojisAllowed);
+export const VPEmoji = async (channel, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, VPEmojiName, VPEmojiFilename, externalEmojisAllowed);
+export const RadEmoji = async (channel, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, RadEmojiName, RadEmojiFilename, externalEmojisAllowed);
 
-export const rarityEmoji = async (guild, name, icon, externalEmojisAllowed=false) => await getOrCreateEmoji(guild, `${name}Rarity`, icon, externalEmojisAllowed);
+export const rarityEmoji = async (channel, name, icon, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, `${name}Rarity`, icon, externalEmojisAllowed);
 
-const getOrCreateEmoji = async (guild, name, filenameOrUrl, externalEmojisAllowed) => {
-    if(!guild || !name || !filenameOrUrl) return;
+const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllowed) => {
+    if(!name || !filenameOrUrl) return;
+
+    const guild = channel.guild;
 
     // see if emoji exists already
     const emoji = emojiInGuild(guild, name);
@@ -25,7 +27,7 @@ const getOrCreateEmoji = async (guild, name, filenameOrUrl, externalEmojisAllowe
     // check in other guilds
     if(externalEmojisAllowed) {
         if(config.useEmojisFromServer) {
-            const emojiGuild = await guild.client.guilds.fetch(config.useEmojisFromServer);
+            const emojiGuild = await channel.client.guilds.fetch(config.useEmojisFromServer);
             if(!emojiGuild) console.error("useEmojisFromServer server not found! Either the ID is incorrect or I am not in that server anymore!");
             else {
                 await updateEmojiCache(emojiGuild);
@@ -34,20 +36,21 @@ const getOrCreateEmoji = async (guild, name, filenameOrUrl, externalEmojisAllowe
             }
         }
 
-        for(const otherGuild of guild.client.guilds.cache.values()) {
+        for(const otherGuild of channel.client.guilds.cache.values()) {
             const emoji = emojiInGuild(otherGuild, name);
             if(emoji && emoji.available) return emoji;
         }
     }
 
-    return await createEmoji(guild, name, filenameOrUrl);
+    if(guild) return await createEmoji(guild, name, filenameOrUrl);
 }
 
 const emojiInGuild = (guild, name) => {
-    return guild.emojis.cache.find(emoji => emoji.name === name);
+    return guild && guild.emojis.cache.find(emoji => emoji.name === name);
 }
 
 const createEmoji = async (guild, name, filenameOrUrl) => {
+    if(!guild || !name || !filenameOrUrl) return;
     if(!canCreateEmojis(guild)) return console.debug(`Don't have permission to create emoji ${name} in guild ${guild.name}!`);
 
     await updateEmojiCache(guild);

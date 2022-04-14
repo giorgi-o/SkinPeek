@@ -356,7 +356,7 @@ client.on("interactionCreate", async (interaction) => {
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
 
                     // start uploading emoji now
-                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
+                    const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
                     const shop = await getOffers(interaction.user.id);
 
@@ -377,7 +377,7 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
+                    const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
                     const bundles = await getBundles(interaction.user.id);
 
@@ -395,7 +395,7 @@ client.on("interactionCreate", async (interaction) => {
                     const searchResults = await searchBundle(searchQuery);
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-                    const emoji = await VPEmoji(interaction.guild, externalEmojisAllowed(channel));
+                    const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
 
                     if(searchResults.length === 0) {
                         return await interaction.followUp({
@@ -449,7 +449,7 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-                    const emojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
+                    const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
                     const market = await getNightMarket(interaction.user.id);
 
@@ -471,8 +471,8 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-                    const VPEmojiPromise = VPEmoji(interaction.guild, externalEmojisAllowed(channel));
-                    const RadEmojiPromise = RadEmoji(interaction.guild, externalEmojisAllowed(channel));
+                    const VPEmojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
+                    const RadEmojiPromise = RadEmoji(channel, externalEmojisAllowed(channel));
 
                     const balance = await getBalance(interaction.user.id);
 
@@ -502,7 +502,8 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    if(!canSendMessages(interaction.channel)) return await interaction.reply({
+                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    if(!canSendMessages(channel)) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.ALERT_NO_PERMS)]
                     });
 
@@ -605,7 +606,7 @@ client.on("interactionCreate", async (interaction) => {
                     if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-                    const emojiString = emojiToString(await VPEmoji(interaction.guild, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
+                    const emojiString = emojiToString(await VPEmoji(channel, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
 
                     const alertFieldDescription = (channel_id, price) => {
                         return channel_id !== interaction.channelId ? s(interaction).info.ALERT_IN_CHANNEL.f({c: channel_id}) :
@@ -634,7 +635,7 @@ client.on("interactionCreate", async (interaction) => {
                     // bring the alerts in this channel to the top
                     const alertPriority = (alert) => {
                         if(alert.channel_id === interaction.channelId) return 2;
-                        if(client.channels.cache.get(alert.channel_id).guild.id === interaction.guild.id) return 1;
+                        if(interaction.guild && client.channels.cache.get(alert.channel_id).guild.id === interaction.guild.id) return 1;
                         return 0;
                     }
                     alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
@@ -850,7 +851,7 @@ client.on("interactionCreate", async (interaction) => {
                     const bundle = await getBundle(chosenBundle);
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-                    const emoji = await VPEmoji(interaction.guild, externalEmojisAllowed(channel));
+                    const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
                     const message = await renderBundle(bundle, interaction, emoji);
 
                     await interaction.update({
@@ -896,7 +897,7 @@ client.on("interactionCreate", async (interaction) => {
                         await interaction.message.edit({components: [actionRow]}).catch(() => {});
                     }
                 } else {
-                    await interaction.reply({embeds: [basicEmbed(s(interaction).error.ALERT_REMOVED)], ephemeral: true});
+                    await interaction.reply({embeds: [basicEmbed(s(interaction).error.GHOST_ALERT)], ephemeral: true});
                 }
             } else if(interaction.customId.startsWith("retry_auth")) {
                 await interaction.deferReply({ephemeral: true});

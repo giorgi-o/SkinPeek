@@ -176,7 +176,8 @@ const sendCredentialsExpired = async (alert) => {
 
 export const testAlerts = async (interaction) => {
     try {
-        await interaction.channel.send({
+        const channel = interaction.channel || await client.channels.fetch(interaction.channel_id);
+        await channel.send({
             embeds: [basicEmbed(s(interaction).info.ALERT_TEST)]
         });
         return true;
