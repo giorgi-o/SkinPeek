@@ -180,6 +180,11 @@ export const externalEmojisAllowed = (channel) => channel.permissionsFor(channel
 export const canCreateEmojis = (guild) => guild && guild.me && guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS);
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
 
+export const canSendMessages = (channel) => {
+    const permissions = channel.permissionsFor(channel.guild.me);
+    return permissions.has(Permissions.FLAGS.VIEW_CHANNEL) && permissions.has(Permissions.FLAGS.SEND_MESSAGES) && permissions.has(Permissions.FLAGS.EMBED_LINKS);
+}
+
 export const escapeMarkdown = Util.escapeMarkdown;
 
 export const wait = ms => new Promise(r => setTimeout(r, ms));

@@ -26,6 +26,7 @@
     "NO_ALERTS": "**Tu n'as pas encore mis en place d'alertes!** Utilise `/alert` pour en faire.",
     "DUPLICATE_ALERT": "Tu as déjà une alerte pour la **{s}** dans <#{c}>!",
     "GHOST_ALERT": "Cette alerte n'existe plus!",
+    "ALERT_NO_PERMS": "**Je n'ai pas les permissions requises pour envoyer des alertes dans ce canal!** Ais-je le bon role?\nDonne moi les permissions `Voir le salons`, `Envoyer des messages`, `Intégrer des liens` et `Utiliser des émojis externes` dans ce canal, et ensuite éssaye `/testalerts`.",
     "NO_NMARKET": "**Il n'y a pas de Night Market actuellement!**",
     "GENERIC_ERROR": ":no_entry_sign: **Une erreur est survenue!** J'accuse Riot.\n`{e}`"
   },
@@ -66,6 +67,8 @@
     "REMOVE_ALERTS_FOOTER": "Clique sur le bouton pour enlever l'alerte:",
     "REMOVE_ALERT_BUTTON": "Enlever l'alerte",
     "ALERT_REMOVED": "J'ai enlevé l'alerte pour la **{s}**!",
+    "ALERT_TEST": "Si tu lis ceci, **le bot a les bonnes permissions** pour pouvoir envoyer des alertes dans ce canal!",
+    "ALERT_TEST_SUCCESSFUL": "**Tes alertes marchent!**",
     "SKIN_NOT_FOR_SALE": "Pas en vente",
     "SKIN_PRICES_HIDDEN": "Prix cachés",
     "LOGGED_IN": "Tu t'es connecté en tant que **{u}**!",

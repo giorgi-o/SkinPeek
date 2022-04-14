@@ -3,7 +3,7 @@ import {getUserList} from "../valorant/auth.js";
 import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
 import fs from "fs";
-import {VAL_COLOR_1} from "./embed.js";
+import {basicEmbed, VAL_COLOR_1} from "./embed.js";
 import config from "../misc/config.js";
 import {s} from "../misc/languages.js";
 
@@ -87,13 +87,14 @@ export const checkAlerts = async () => {
             if(!offers.success) {
                 if(offers.maintenance) return; // retry in a few hours?
                 const channelsSent = [];
-                for(const alert of alerts) {
+                for(const alert of userAlerts) {
                     if(!channelsSent.includes(alert.channel_id)) {
                         await sendCredentialsExpired(alert);
                         channelsSent.push(alert.channel_id);
                     }
                 }
-                return;
+                await wait(config.delayBetweenAlerts);
+                continue;
             }
 
             const positiveAlerts = userAlerts.filter(alert => offers.offers.includes(alert.uuid));
@@ -151,7 +152,7 @@ const sendCredentialsExpired = async (alert) => {
     const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
     if(!channel) {
         const user = await client.users.fetch(alert.id).catch(() => {});
-        if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again.`)
+        if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again.`);
         return removeAlertsInChannel(alert.channel_id);
     }
 
@@ -166,9 +167,24 @@ const sendCredentialsExpired = async (alert) => {
 
         try { // try to log the alert to the console
             const user = await client.users.fetch(alert.id).catch(() => {});
-            if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again.`);
+            if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again. Also tell them that they should fix their perms.`);
         } catch(e) {}
 
         console.error(e);
     });
+}
+
+export const testAlerts = async (interaction) => {
+    try {
+        await interaction.channel.send({
+            embeds: [basicEmbed(s(interaction).info.ALERT_TEST)]
+        });
+        return true;
+    } catch(e) {
+        console.error(`${interaction.user.tag} tried to /testalerts, but failed!`);
+        if(e.code === 50013) console.error("Failed with 'Missing Access' error");
+        else if(e.code === 50001) console.error("Failed with 'Missing Permissions' error");
+        else console.error(e);
+        return false;
+    }
 }
