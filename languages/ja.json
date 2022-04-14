@@ -71,6 +71,7 @@
       "MFA_EMAIL": "**Riotは{e}**にコードを送信しました。`/2fa`を使用してログインを完了します。",
       "MFA_EMAIL_HIDDEN": "**Riotがあなたのメールアドレスにコードを送信しました！**ログインを完了するには`/2fa`を使用してください。",
       "MFA_GENERIC": "**2FAが有効になっています！**コードを入力するには`/2fa`を使用してください。",
+      "AUTH_ERROR_RETRY": "リトライ",
       "ACCOUNT_DELETED": "あなたのアカウントはデータベースから削除されました！",
       "UNHANDLED_COMMAND": "Yer a wizard harry!"
     },
