@@ -431,6 +431,18 @@ const priceDescription = (VPemojiString, price) => {
     if(price) return `${VPemojiString} ${price}`;
 }
 
+export const alertTestResponse = async (interaction, success) => {
+    if(success) {
+        await interaction.followUp({
+            embeds: [secondaryEmbed(s(interaction).info.ALERT_TEST_SUCCESSFUL)]
+        });
+    } else {
+        await interaction.followUp({
+            embeds: [basicEmbed(s(interaction).error.ALERT_NO_PERMS)]
+        });
+    }
+}
+
 export const basicEmbed = (content) => {
     return {
         description: content,

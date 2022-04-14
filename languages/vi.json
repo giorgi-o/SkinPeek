@@ -14,7 +14,7 @@
     "AUTH_ERROR_BALANCE": "**Không thể xem tài khoản của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
     "AUTH_ERROR_BPASS": "**Không thể lấy thông tin Battlepass của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
     "AUTH_ERROR_ALERTS": "**Báo skin không hoạt động vì bạn đã bị đăng xuất!** Thử `/login` lại nhé.",
-    "AUTH_ERROR_ALERTS_HAPPENED": "**<${u}> Không thể kiểm tra alert của bạn!** Liệu có phải bạn đã đổi mật khẩu?\nVui lòng `/login` lại nhé.",
+    "AUTH_ERROR_ALERTS_HAPPENED": "**<@{u}> Không thể kiểm tra alert của bạn!** Liệu có phải bạn đã đổi mật khẩu?\nVui lòng `/login` lại nhé.",
     "SKIN_NOT_FOUND": "**Không thể tìm được skin nào với tên như thế!** Kiểm tra lại tên skin nhé.",
     "BUNDLE_NOT_FOUND": "**Không thể tìm được bộ sưu tập với tên đó!** Kiểm tra lại tên bộ sưu tập nhé.",
     "UNKNOWN_ITEM_TYPE": "**Khum bít đây là zì hết chơn!** `{t}`",

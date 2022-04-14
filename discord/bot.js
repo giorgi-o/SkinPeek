@@ -7,7 +7,7 @@ import {
     checkAlerts, removeAlert,
     removeAlertsFromUser,
     removeAlertsInChannel,
-    setClient
+    setClient, testAlerts
 } from "./alerts.js";
 import cron from "node-cron";
 import {
@@ -16,6 +16,7 @@ import {
     getUser, getUserList,
 } from "../valorant/auth.js";
 import {
+    canSendMessages,
     defer,
     emojiToString,
     externalEmojisAllowed,
@@ -36,7 +37,7 @@ import {
     renderOffers,
     secondaryEmbed,
     skinChosenEmbed,
-    VAL_COLOR_1, botInfoEmbed, ownerMessageEmbed
+    VAL_COLOR_1, botInfoEmbed, ownerMessageEmbed, alertTestResponse
 } from "./embed.js";
 import {
     getQueueItemStatus,
@@ -130,6 +131,10 @@ const commands = [
     {
         name: "alerts",
         description: "Show all your active alerts!"
+    },
+    {
+        name: "testalerts",
+        description: "Make sure alerts are working for your account and in this channel"
     },
     {
         name: "login",
@@ -497,6 +502,10 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
+                    if(!canSendMessages(interaction.channel)) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.ALERT_NO_PERMS)]
+                    });
+
                     await defer(interaction);
 
                     const searchQuery = interaction.options.get("skin").value
@@ -666,6 +675,15 @@ client.on("interactionCreate", async (interaction) => {
                         components: actionRows,
                         ephemeral: true
                     });
+
+                    break;
+                }
+                case "testalerts": {
+                    await defer(interaction);
+
+                    const success = await testAlerts(interaction);
+
+                    await alertTestResponse(interaction, success);
 
                     break;
                 }

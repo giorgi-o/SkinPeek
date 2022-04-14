@@ -14,7 +14,7 @@
       "AUTH_ERROR_BALANCE": "**No se pudo obtener su saldo**, lo más probable es que se desconectó. Intente iniciar sesión de nuevo.",
       "AUTH_ERROR_BPASS": "**No se pudo obtener el progreso de tu pase de batalla**, lo más probable es que te hayas desconectado. Intente iniciar sesión de nuevo.",
       "AUTH_ERROR_ALERTS": "**¡Tus alertas no funcionarán porque te desconectaste!** Por favor `/login` otra vez.",
-      "AUTH_ERROR_ALERTS_HAPPENED": "**<${u}> ¡No pude revisar tus alertas!** ¿Cambió su contraseña?\nPor favor `/login` otra vez.",
+      "AUTH_ERROR_ALERTS_HAPPENED": "**<@{u}> ¡No pude revisar tus alertas!** ¿Cambió su contraseña?\nPor favor `/login` otra vez.",
       "SKIN_NOT_FOUND": "**¡No se pudo encontrar un aspecto con ese nombre!** Revisa la ortografía y inténtalo de nuevo.",
       "BUNDLE_NOT_FOUND": "**¡No se pudo encontrar un paquete con ese nombre!** Revisa la ortografía y inténtalo de nuevo.",
       "UNKNOWN_ITEM_TYPE": "**¡Tipo de artículo desconocido!** `{t}`",
