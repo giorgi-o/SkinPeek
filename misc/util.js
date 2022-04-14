@@ -164,7 +164,7 @@ export const defer = async (interaction, ephemeral=false) => {
 
 export const skinNameAndEmoji = async (skin, channel) => {
     if(!skin.rarity) return skin.name;
-    const rarityIcon = await rarityEmoji(channel.guild, skin.rarity.name, skin.rarity.icon, externalEmojisAllowed(channel));
+    const rarityIcon = await rarityEmoji(channel, skin.rarity.name, skin.rarity.icon, externalEmojisAllowed(channel));
     return rarityIcon ? `${rarityIcon} ${skin.name}` : skin.name;
 }
 
@@ -176,11 +176,12 @@ export const removeAlertActionRow = (id, uuid, buttonText) => new MessageActionR
 export const retryAuthButton = (id, operationId, buttonText) => new MessageButton().setCustomId(`retry_auth/${operationId}`).setStyle("PRIMARY").setLabel(buttonText).setEmoji("🔄");
 
 // apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
-export const externalEmojisAllowed = (channel) => channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
+export const externalEmojisAllowed = (channel) => !channel.guild || channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
 export const canCreateEmojis = (guild) => guild && guild.me && guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS);
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
 
 export const canSendMessages = (channel) => {
+    if(!channel.guild) return true;
     const permissions = channel.permissionsFor(channel.guild.me);
     return permissions.has(Permissions.FLAGS.VIEW_CHANNEL) && permissions.has(Permissions.FLAGS.SEND_MESSAGES) && permissions.has(Permissions.FLAGS.EMBED_LINKS);
 }
