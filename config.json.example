@@ -8,6 +8,7 @@
   "checkGameVersion": "*/15 * * * *",
   "cleanupAccounts": "0 * * * *",
   "delayBetweenAlerts": 5000,
+  "alertsPerPage": 10,
   "emojiCacheExpiration": 10000,
   "useLoginQueue": false,
   "loginQueue": "*/2 * * * * *",

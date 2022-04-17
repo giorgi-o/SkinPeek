@@ -3,8 +3,7 @@ import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valora
 import {
     addAlert,
     alertExists, alertsForGuild,
-    alertsForUser,
-    checkAlerts, removeAlert,
+    checkAlerts, filteredAlertsForUser, removeAlert,
     removeAlertsFromUser,
     removeAlertsInChannel,
     setClient, testAlerts
@@ -20,7 +19,7 @@ import {
     defer,
     emojiToString,
     externalEmojisAllowed,
-    removeAlertActionRow, removeAlertButton,
+    removeAlertActionRow,
     skinNameAndEmoji, wait
 } from "../misc/util.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
@@ -37,7 +36,7 @@ import {
     renderOffers,
     secondaryEmbed,
     skinChosenEmbed,
-    VAL_COLOR_1, botInfoEmbed, ownerMessageEmbed, alertTestResponse
+    VAL_COLOR_1, botInfoEmbed, ownerMessageEmbed, alertTestResponse, alertsPageEmbed
 } from "./embed.js";
 import {
     getQueueItemStatus,
@@ -62,6 +61,8 @@ client.on("ready", async () => {
     setClient(client);
 
     scheduleTasks();
+
+    await client.user.setActivity("your store!", {type: "WATCHING"});
 });
 
 const scheduleTasks = () => {
@@ -270,7 +271,7 @@ client.on("messageCreate", async (message) => {
                         config[target] = parseFloat(value);
                         break;
                     case 'boolean':
-                        config[target] = value.toLowerCase() === "true";
+                        config[target] = value.toLowerCase().startsWith('t');
                         break;
                     default:
                         return await message.reply("[Error] I don't know what type the config is in, so I can't convert it!");
@@ -313,7 +314,7 @@ client.on("messageCreate", async (message) => {
                         embeds: [messageEmbed]
                     });
                 } catch(e) {
-                    if(e.code === 50013) {
+                    if(e.code === 50013 || e.code === 50001) {
                         console.error(`Don't have perms to send !message to ${guild.name}!`)
                     } else {
                         console.error(`Error while sending !message to guild ${guild.name}!`);
@@ -579,103 +580,13 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    // todo create a page system when there are >25 alerts
-                    let alerts = alertsForUser(interaction.user.id).slice(0, 25)
-
-                    // filter out alerts for deleted channels
-                    const removedChannels = [];
-                    for(const alert of alerts) {
-                        if(removedChannels.includes(alert.channel_id)) continue;
-
-                        const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
-                        if(!channel) {
-                            removeAlertsInChannel(alert.channel_id);
-                            removedChannels.push(alert.channel_id);
-                        }
-                    }
-                    if(removedChannels.length) alerts = alertsForUser(interaction.user.id).slice(0, 25);
-
-                    if(alerts.length === 0) {
-                        return await interaction.followUp({
-                            embeds: [basicEmbed(s(interaction).error.NO_ALERTS)],
-                            ephemeral: true
-                        });
-                    }
-
                     const auth = await authUser(interaction.user.id);
                     if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     const emojiString = emojiToString(await VPEmoji(channel, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
 
-                    const alertFieldDescription = (channel_id, price) => {
-                        return channel_id !== interaction.channelId ? s(interaction).info.ALERT_IN_CHANNEL.f({c: channel_id}) :
-                            price ? `${emojiString} ${price}` :
-                                config.fetchSkinPrices ? s(interaction).info.SKIN_NOT_FOR_SALE : s(interaction).info.SKIN_PRICES_HIDDEN;
-                    }
-
-                    if(alerts.length === 1) {
-                        const alert = alerts[0];
-                        const skin = await getSkin(alert.uuid);
-
-                        return await interaction.followUp({
-                            embeds: [{
-                                title: s(interaction).info.ONE_ALERT,
-                                color: VAL_COLOR_1,
-                                description: `**${await skinNameAndEmoji(skin, channel)}**\n${alertFieldDescription(alert.channel_id, skin.price)}`,
-                                thumbnail: {
-                                    url: skin.icon
-                                }
-                            }],
-                            components: [removeAlertActionRow(interaction.user.id, alert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
-                            ephemeral: true
-                        });
-                    }
-
-                    // bring the alerts in this channel to the top
-                    const alertPriority = (alert) => {
-                        if(alert.channel_id === interaction.channelId) return 2;
-                        if(interaction.guild && client.channels.cache.get(alert.channel_id).guild.id === interaction.guild.id) return 1;
-                        return 0;
-                    }
-                    alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
-
-                    const embed = { // todo switch this to a "one embed per alert" message, kinda like /shop
-                        title: s(interaction).info.MULTIPLE_ALERTS,
-                        color: VAL_COLOR_1,
-                        footer: {
-                            text: s(interaction).info.REMOVE_ALERTS_FOOTER
-                        },
-                        fields: []
-                    }
-                    const buttons = [];
-
-                    let n = 1;
-                    for(const alert of alerts) {
-                        const skin = await getSkin(alert.uuid);
-                        embed.fields.push({
-                            name: `**${n}.** ${await skinNameAndEmoji(skin, channel)}`,
-                            value: alertFieldDescription(alert.channel_id, skin.price),
-                            inline: alerts.length > 6
-                        });
-                        buttons.push(removeAlertButton(interaction.user.id, alert.uuid, `${n}.`));
-                        n++;
-                    }
-
-                    const actionRows = [];
-                    for(let i = 0; i < alerts.length; i += 5) {
-                        const actionRow = new MessageActionRow();
-                        for(let j = i; j < i + 5 && j < alerts.length; j++) {
-                            actionRow.addComponents(buttons[j]);
-                        }
-                        actionRows.push(actionRow);
-                    }
-
-                    await interaction.followUp({
-                        embeds: [embed],
-                        components: actionRows,
-                        ephemeral: true
-                    });
+                    await interaction.followUp(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), 0, emojiString));
 
                     break;
                 }
@@ -894,7 +805,7 @@ client.on("interactionCreate", async (interaction) => {
                         const actionRow = removeAlertActionRow(interaction.user.id, uuid, s(interaction).info.REMOVE_ALERT_BUTTON);
                         actionRow.components[0].setDisabled(true).setLabel("Removed");
 
-                        await interaction.message.edit({components: [actionRow]}).catch(() => {});
+                        await interaction.update({components: [actionRow]}).catch(() => {});
                     }
                 } else {
                     await interaction.reply({embeds: [basicEmbed(s(interaction).error.GHOST_ALERT)], ephemeral: true});
@@ -903,6 +814,16 @@ client.on("interactionCreate", async (interaction) => {
                 await interaction.deferReply({ephemeral: true});
                 const [, operationIndex] = interaction.customId.split('/');
                 await retryFailedOperation(interaction, parseInt(operationIndex));
+            } else if(interaction.customId.startsWith("changepage")) {
+                const [, id, pageIndex] = interaction.customId.split('/');
+
+                if(id !== interaction.user.id) return await interaction.reply({
+                    embeds: [basicEmbed(s(interaction).error.NOT_UR_ALERT)],
+                    ephemeral: true
+                });
+
+                const emojiString = emojiToString(await VPEmoji(interaction.channel, externalEmojisAllowed(interaction.channel)) || s(interaction).info.PRICE);
+                await interaction.update(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), parseInt(pageIndex), emojiString));
             }
         } catch(e) {
             await handleError(e, interaction);

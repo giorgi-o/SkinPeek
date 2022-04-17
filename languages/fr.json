@@ -62,6 +62,7 @@
     "ALERT_SET": "Tu as désormais une alerte pour la **{s}**!",
     "ALERT_BP_SKIN": "\n***Attention:** C'est un skin du passe de combat, donc il ne va jamais apparaitre dans ton shop!*",
     "ALERT_IN_CHANNEL": "dans <#{c}>",
+    "ALERT_IN_DM_CHANNEL": "en messages privés",
     "ONE_ALERT": "Tu as actuellement une alerte:",
     "MULTIPLE_ALERTS": "Voici la liste de tes alertes:",
     "REMOVE_ALERTS_FOOTER": "Clique sur le bouton pour enlever l'alerte:",

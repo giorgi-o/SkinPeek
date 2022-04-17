@@ -1,3 +1,7 @@
+import {rarityEmoji} from "../discord/emoji.js";
+import {MessageActionRow, MessageButton, Permissions, Util} from "discord.js";
+import {getItem} from "../valorant/cache.js";
+
 import https from "https";
 import fs from "fs";
 
@@ -151,13 +155,8 @@ export const formatBundle = async (rawBundle) => {
 
 // discord utils
 
-import {rarityEmoji} from "../discord/emoji.js";
-import {MessageActionRow, MessageButton, Permissions, Util} from "discord.js";
-import {getItem} from "../valorant/cache.js";
-
 export const defer = async (interaction, ephemeral=false) => {
-    // discord only sets deferred to true once the event
-    // is sent over ws, which doesn't happen immediately
+    // discord only sets deferred to true once the event is sent over ws, which doesn't happen immediately
     await interaction.deferReply({ephemeral});
     interaction.deferred = true;
 }
@@ -185,6 +184,8 @@ export const canSendMessages = (channel) => {
     const permissions = channel.permissionsFor(channel.guild.me);
     return permissions.has(Permissions.FLAGS.VIEW_CHANNEL) && permissions.has(Permissions.FLAGS.SEND_MESSAGES) && permissions.has(Permissions.FLAGS.EMBED_LINKS);
 }
+
+export const canEditInteraction = (interaction) => Date.now() - interaction.createdTimestamp < 14.8 * 60 * 1000;
 
 export const escapeMarkdown = Util.escapeMarkdown;
 

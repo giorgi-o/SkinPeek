@@ -44,6 +44,33 @@ export const alertsForUser = (id) => {
     return alerts.filter(alert => alert.id === id);
 }
 
+export const filteredAlertsForUser = async (interaction) => {
+    let alerts = alertsForUser(interaction.user.id);
+
+    // filter out alerts for deleted channels
+    const removedChannels = [];
+    for(const alert of alerts) {
+        if(removedChannels.includes(alert.channel_id)) continue;
+
+        const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
+        if(!channel) {
+            removeAlertsInChannel(alert.channel_id);
+            removedChannels.push(alert.channel_id);
+        }
+    }
+    if(removedChannels.length) alerts = alertsForUser(interaction.user.id);
+
+    // bring the alerts in this channel to the top
+    const alertPriority = (alert) => {
+        if(alert.channel_id === interaction.channelId) return 2;
+        if(interaction.guild && client.channels.cache.get(alert.channel_id).guildId === interaction.guild.id) return 1;
+        return 0;
+    }
+    alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
+
+    return alerts;
+}
+
 export const alertsForGuild = async (id) => {
     const alertsInGuild = [];
 

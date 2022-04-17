@@ -37,6 +37,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "checkGameVersion", "*/15 * * * *");
     applyConfig(loadedConfig, "cleanupAccounts", "0 * * * *");
     applyConfig(loadedConfig, "delayBetweenAlerts", 5 * 1000);
+    applyConfig(loadedConfig, "alertsPerPage", 10);
     applyConfig(loadedConfig, "emojiCacheExpiration", 10 * 1000);
     applyConfig(loadedConfig, "useLoginQueue", false);
     applyConfig(loadedConfig, "loginQueue", "*/3 * * * * *");

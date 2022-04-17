@@ -62,6 +62,7 @@
     "ALERT_SET": "Successfully set an alert for the **{s}**!",
     "ALERT_BP_SKIN": "\n***Note:** This is a battlepass skin, so it's not gonna appear in your shop!*",
     "ALERT_IN_CHANNEL": "in <#{c}>",
+    "ALERT_IN_DM_CHANNEL": "in DMs",
     "ONE_ALERT": "You have one alert set up:",
     "MULTIPLE_ALERTS": "The alerts you currently have set up:",
     "REMOVE_ALERTS_FOOTER": "Click on a button to remove the alert:",

@@ -42,6 +42,7 @@ const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllo
         }
     }
 
+    // couldn't find usable emoji, create it
     if(guild) return await createEmoji(guild, name, filenameOrUrl);
 }
 

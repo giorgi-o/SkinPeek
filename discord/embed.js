@@ -3,10 +3,11 @@ import {
     emojiToString,
     skinNameAndEmoji,
     escapeMarkdown,
-    itemTypes
+    itemTypes, removeAlertActionRow, removeAlertButton
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {s} from "../misc/languages.js";
+import {MessageActionRow, MessageButton} from "discord.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -429,6 +430,94 @@ export const ownerMessageEmbed = (messageContent, author) => {
 
 const priceDescription = (VPemojiString, price) => {
     if(price) return `${VPemojiString} ${price}`;
+}
+
+const pageButtons = (id, current) => {
+    const leftButton = new MessageButton().setStyle("PRIMARY").setEmoji("◀").setCustomId(`changepage/${id}/${current - 1}`);
+    const rightButton = new MessageButton().setStyle("PRIMARY").setEmoji("▶").setCustomId(`changepage/${id}/${current + 1}`);
+
+    return new MessageActionRow().setComponents(leftButton, rightButton);
+}
+
+const alertFieldDescription = async (interaction, channel_id, emojiString, price) => {
+    if(channel_id === interaction.channelId) {
+        if(price) return `${emojiString} ${price}`;
+        if(config.fetchSkinPrices) return s(interaction).info.SKIN_NOT_FOR_SALE;
+        return s(interaction).info.SKIN_PRICES_HIDDEN;
+    } else {
+        const channel = await interaction.client.channels.fetch(channel_id);
+        if(channel && !channel.guild) return s(interaction).info.ALERT_IN_DM_CHANNEL;
+        return s(interaction).info.ALERT_IN_CHANNEL.f({c: channel_id})
+    }
+}
+
+export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiString) => {
+    if(alerts.length === 0) {
+        return {
+            embeds: [basicEmbed(s(interaction).error.NO_ALERTS)]
+        }
+    }
+
+    if(alerts.length === 1) {
+        const alert = alerts[0];
+        const skin = await getSkin(alert.uuid);
+
+        return {
+            embeds: [{
+                title: s(interaction).info.ONE_ALERT,
+                color: VAL_COLOR_1,
+                description: `**${await skinNameAndEmoji(skin, interaction.channel)}**\n${await alertFieldDescription(interaction, alert.channel_id, emojiString, skin.price)}`,
+                thumbnail: {
+                    url: skin.icon
+                }
+            }],
+            components: [removeAlertActionRow(interaction.user.id, alert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
+            ephemeral: true
+        }
+    }
+
+    const maxPages = Math.ceil(alerts.length / config.alertsPerPage);
+
+    if(pageIndex < 0) pageIndex = maxPages;
+    if(pageIndex >= maxPages) pageIndex = 0;
+
+    const embed = { // todo switch this to a "one embed per alert" message, kinda like /shop
+        title: s(interaction).info.MULTIPLE_ALERTS,
+        color: VAL_COLOR_1,
+        footer: {
+            text: s(interaction).info.REMOVE_ALERTS_FOOTER
+        },
+        fields: []
+    }
+    const buttons = [];
+
+    let n = pageIndex * config.alertsPerPage;
+    const alertsToRender = alerts.slice(n, n + config.alertsPerPage);
+    for(const alert of alertsToRender) {
+        const skin = await getSkin(alert.uuid);
+        embed.fields.push({
+            name: `**${n+1}.** ${await skinNameAndEmoji(skin, interaction.channel)}`,
+            value: await alertFieldDescription(interaction, alert.channel_id, emojiString, skin.price),
+            inline: alerts.length > 5
+        });
+        buttons.push(removeAlertButton(interaction.user.id, alert.uuid, `${n+1}.`));
+        n++;
+    }
+
+    const actionRows = [];
+    for(let i = 0; i < alertsToRender.length; i += 5) {
+        const actionRow = new MessageActionRow();
+        for(let j = i; j < i + 5 && j < alertsToRender.length; j++) {
+            actionRow.addComponents(buttons[j]);
+        }
+        actionRows.push(actionRow);
+    }
+    actionRows.push(pageButtons(interaction.user.id, pageIndex));
+
+    return {
+        embeds: [embed],
+        components: actionRows
+    }
 }
 
 export const alertTestResponse = async (interaction, success) => {
