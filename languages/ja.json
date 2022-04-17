@@ -25,6 +25,7 @@
       "NO_ALERTS": "**アラートは設定されていません！**開始するには`/alert`を使用してください。",
       "DUPLICATE_ALERT": "すでに<＃{c}>にある** {s} **のアラートがあります！",
       "GHOST_ALERT": "そのアラートはもう存在しません！",
+      "ALERT_NO_PERMS": "**I don't have the necessary permissions to send alerts in this channel!** Do I have the right role?\nMake sure I can `View Channel`, `Send Messages`, `Embed Links` and `Use External Emojis` in this channel, then try `/testalerts`.",
       "NO_NMARKET": "**現在ナイトマーケットはありません！**",
       "GENERIC_ERROR": ":no_entry_sign: **それを行おうとしてエラーが発生しました！**ライアットのせいです。\n `{e}`"
     },
@@ -65,6 +66,8 @@
       "REMOVE_ALERTS_FOOTER": "ボタンをクリックしてアラートを削除します:",
       "REMOVE_ALERT_BUTTON": "アラートを削除する",
       "ALERT_REMOVED": "のアラートを削除しました。 **{s}**!",
+      "ALERT_TEST": "If you are reading this, **the bot has all the right permissions** to send alerts in this channel!",
+      "ALERT_TEST_SUCCESSFUL": "**Your alerts should be working!**",
       "SKIN_NOT_FOR_SALE": "非売品",
       "SKIN_PRICES_HIDDEN": "価格は表示されていません",
       "LOGGED_IN": "として正常にログインしました **{u}**!",

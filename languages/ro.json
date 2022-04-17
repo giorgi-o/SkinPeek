@@ -25,6 +25,7 @@
       "NO_ALERTS": "**Nu aveti nici o alerta setata!** Folositi `/alerta` sa incepeti.",
       "DUPLICATE_ALERT": "Deja aveti o alerta pentru **{s}** in <#{c}>!",
       "GHOST_ALERT": "Aceasta alerta nu mai exista!",
+      "ALERT_NO_PERMS": "**I don't have the necessary permissions to send alerts in this channel!** Do I have the right role?\nMake sure I can `View Channel`, `Send Messages`, `Embed Links` and `Use External Emojis` in this channel, then try `/testalerts`.",
       "NO_NMARKET": "**There is no Night Market currently!**",
       "GENERIC_ERROR": ":no_entry_sign: **There was an error trying to do that!** I blame Riot.\n`{e}`"
     },
@@ -65,6 +66,8 @@
       "REMOVE_ALERTS_FOOTER": "Apasati click pe un button sa stergeti alerta:",
       "REMOVE_ALERT_BUTTON": "Alerta stersa",
       "ALERT_REMOVED": "Alerta pentru **{s}** a fost stersa!",
+      "ALERT_TEST": "If you are reading this, **the bot has all the right permissions** to send alerts in this channel!",
+      "ALERT_TEST_SUCCESSFUL": "**Your alerts should be working!**",
       "SKIN_NOT_FOR_SALE": "Nu este disponibil",
       "SKIN_PRICES_HIDDEN": "Preturile nu apar",
       "LOGGED_IN": "Successfully logged in as **{u}**!",
