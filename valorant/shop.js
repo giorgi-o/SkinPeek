@@ -1,6 +1,7 @@
 import {authUser, deleteUser, getUser} from "./auth.js";
 import {fetch, formatBundle, isMaintenance, userRegion} from "../misc/util.js";
 import {addBundleData} from "./cache.js";
+import {addStore} from "../misc/stats.js";
 
 export const getShop = async (id) => {
     const authSuccess = await authUser(id);
@@ -23,6 +24,15 @@ export const getShop = async (id) => {
         deleteUser(id);
         return {success: false}
     } else if(isMaintenance(json)) return {success: false, maintenance: true};
+
+    // shop stats tracking
+    try {
+        addStore(user.puuid, json.SkinsPanelLayout.SingleItemOffers);
+    } catch(e) {
+        console.error("Error adding shop stats!");
+        console.error(e);
+        console.error(json);
+    }
 
     return {success: true, shop: json};
 }

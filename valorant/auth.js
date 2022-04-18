@@ -144,7 +144,7 @@ export const redeem2FACode = async (id, code) => {
     };
 
     const json = JSON.parse(req.body);
-    if(json.error === "multifactor_attempt_failed") {
+    if(json.error === "multifactor_attempt_failed" || json.type === "error") {
         console.error("Authentication failure!", json);
         return {success: false};
     }

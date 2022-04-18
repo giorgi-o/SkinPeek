@@ -587,7 +587,15 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "testalerts": {
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
+
                     await defer(interaction);
+
+                    const auth = await authUser(interaction.user.id);
+                    if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
                     const success = await testAlerts(interaction);
 

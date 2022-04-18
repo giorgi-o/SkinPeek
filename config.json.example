@@ -15,6 +15,7 @@
   "loginQueue": "*/2 * * * * *",
   "loginRetryTimeout": 600000,
   "storePasswords": false,
+  "trackStoreStats": false,
   "ownerId": "",
   "ownerName": "",
   "status": "Up and running!"
