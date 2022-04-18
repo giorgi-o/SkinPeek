@@ -38,7 +38,7 @@
     "BUNDLE_CHOICE": "Quelle collection veux-tu regarder?",
     "BUNDLE_CHOICE_PLACEHOLDER": "Choisir une collection:",
     "NO_BUNDLE_DATA": "Riot ne donne pas d'infos sur les collections qui ne sont pas encore sorties :(",
-    "BUNDLE_NAME": "Collection {b}",
+    "BUNDLE_NAME": "{b}",
     "EXPIRES": "jusqu'à <t:{t}:R>",
     "EXPIRED": "expiré depuis <t:{t}:R>",
     "PRICE": "Prix: ",

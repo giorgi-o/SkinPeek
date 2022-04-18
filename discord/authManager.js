@@ -23,6 +23,7 @@ export const loginUsernamePassword = async (interaction, username, password, ope
             embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))],
             ephemeral: true
         });
+        user.locale = interaction.locale;
 
         if(operationIndex !== null) {
             const index = failedOperations.findIndex(o => o.index === operationIndex);
@@ -64,6 +65,7 @@ export const login2FA = async (interaction, code, operationIndex=null) => {
         await interaction.followUp({
             embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))]
         });
+        user.locale = interaction.locale;
     } else if(login.error) {
         console.log(`${interaction.user.tag} 2FA error`);
         const index = operationIndex || generateOperationIndex();
@@ -88,8 +90,8 @@ export const login2FA = async (interaction, code, operationIndex=null) => {
 }
 
 export const retryFailedOperation = async (interaction, index) => {
-    const operation = failedOperations.find(o => o.c === index); // CLEANINT UP ACCOUNTS DOESNT" WORK
-    if(!operation /*|| Date.now() - operation.timestamp > config.loginRetryTimeout*/) return await interaction.followUp({
+    const operation = failedOperations.find(o => o.c === index);
+    if(!operation) return await interaction.followUp({
         embeds: [basicEmbed(s(interaction).error.AUTH_ERROR_RETRY_EXPIRED)],
         ephemeral: true
     });

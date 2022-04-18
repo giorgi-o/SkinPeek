@@ -6,7 +6,7 @@ import {
     itemTypes, removeAlertActionRow, removeAlertButton
 } from "../misc/util.js";
 import config from "../misc/config.js";
-import {s} from "../misc/languages.js";
+import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
 
 
@@ -53,7 +53,7 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
 
 export const skinChosenEmbed = async (interaction, skin) => {
     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
-    let description = s(interaction).info.ALERT_SET.f({s: await skinNameAndEmoji(skin, channel)});
+    let description = s(interaction).info.ALERT_SET.f({s: await skinNameAndEmoji(skin, channel, interaction.locale)});
     if(config.fetchSkinPrices && !skin.price) description += s(interaction).info.ALERT_BP_SKIN;
     return {
         description: description,
@@ -107,11 +107,11 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
     for(const bundleData of bundles) {
         const bundle = await getBundle(bundles[0].uuid);
 
-        const subName = bundle.subName ? bundle.subName + "\n" : "";
-        const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
+        const subName = bundle.subNames ? l(bundle.subNames, interaction) + "\n" : "";
+        const slantedDescription = bundle.descriptions ? "*" + l(bundle.descriptions, interaction) + "*\n" : "";
         const strikedBundleBasePrice = bundle.basePrice ? " ~~" + bundle.basePrice + "~~" : "";
         const embed = {
-            title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
+            title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
             description: `${subName}${slantedDescription}${emojiString} **${bundle.price}**${strikedBundleBasePrice} ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
             color: VAL_COLOR_2,
             thumbnail: {
@@ -125,12 +125,12 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
 }
 
 export const renderBundle = async (bundle, interaction, emoji, includeExpires=true) => {
-    const subName = bundle.subName ? bundle.subName + "\n" : "";
-    const slantedDescription = bundle.description ? "*" + bundle.description + "*\n" : "";
+    const subName = bundle.subNames ? l(bundle.subNames, interaction) + "\n" : "";
+    const slantedDescription = bundle.descriptions ? "*" + l(bundle.descriptions, interaction) + "*\n" : "";
     const strikedBundleBasePrice = bundle.basePrice ? " ~~" + bundle.basePrice + "~~" : "";
 
     if(!bundle.items) return {embeds: [{
-        title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
+        title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
         description: `${subName}${slantedDescription}`,
         color: VAL_COLOR_1,
         image: {
@@ -143,7 +143,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 
     const emojiString = emoji ? emojiToString(emoji) : s(interaction).info.PRICE;
     const bundleTitleEmbed = {
-        title: s(interaction).info.BUNDLE_NAME.f({b: bundle.name}),
+        title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
         description: `${subName}${slantedDescription}${emojiString} **${bundle.price}**${strikedBundleBasePrice}`,
         color: VAL_COLOR_3,
         image: {
@@ -296,10 +296,10 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
 const bundleItemEmbed = async (item, interaction, VPemojiString) => {
     switch(item.type) {
         case itemTypes.SKIN: return skinEmbed(item.uuid, item.price, interaction, VPemojiString);
-        case itemTypes.BUDDY: return buddyEmbed(item.uuid, item.price, VPemojiString);
-        case itemTypes.CARD: return cardEmbed(item.uuid, item.price, VPemojiString);
-        case itemTypes.SPRAY: return sprayEmbed(item.uuid, item.price, VPemojiString);
-        case itemTypes.TITLE: return titleEmbed(item.uuid, item.price, VPemojiString);
+        case itemTypes.BUDDY: return buddyEmbed(item.uuid, item.price, interaction.locale, VPemojiString);
+        case itemTypes.CARD: return cardEmbed(item.uuid, item.price, interaction.locale, VPemojiString);
+        case itemTypes.SPRAY: return sprayEmbed(item.uuid, item.price, interaction.locale, VPemojiString);
+        case itemTypes.TITLE: return titleEmbed(item.uuid, item.price, interaction.locale, VPemojiString);
         default: return basicEmbed(s(interaction).error.UNKNOWN_ITEM_TYPE.f({t: item.type}));
     }
 }
@@ -307,7 +307,7 @@ const bundleItemEmbed = async (item, interaction, VPemojiString) => {
 const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
     const skin = await getSkin(uuid);
     return {
-        title: await skinNameAndEmoji(skin, interaction.channel),
+        title: await skinNameAndEmoji(skin, interaction.channel, interaction.locale),
         url: config.linkItemImage ? skin.icon : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
@@ -317,10 +317,10 @@ const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
     };
 }
 
-const buddyEmbed = async (uuid, price, VPemojiString) => {
+const buddyEmbed = async (uuid, price, locale, VPemojiString) => {
     const buddy = await getBuddy(uuid);
     return {
-        title: buddy.name,
+        title: l(buddy.names, locale),
         url: config.linkItemImage ? buddy.icon : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
@@ -330,10 +330,10 @@ const buddyEmbed = async (uuid, price, VPemojiString) => {
     }
 }
 
-const cardEmbed = async (uuid, price, VPemojiString) => {
+const cardEmbed = async (uuid, price, locale, VPemojiString) => {
     const card = await getCard(uuid);
     return {
-        title: card.name,
+        title: l(card.names, locale),
         url: config.linkItemImage ? card.icons.large : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
@@ -343,10 +343,10 @@ const cardEmbed = async (uuid, price, VPemojiString) => {
     }
 }
 
-const sprayEmbed = async (uuid, price, VPemojiString) => {
+const sprayEmbed = async (uuid, price, locale, VPemojiString) => {
     const spray = await getSpray(uuid);
     return {
-        title: spray.name,
+        title: l(spray.names, locale),
         url: config.linkItemImage ? spray.icon : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
@@ -356,10 +356,10 @@ const sprayEmbed = async (uuid, price, VPemojiString) => {
     }
 }
 
-const titleEmbed = async (uuid, price, VPemojiString) => {
+const titleEmbed = async (uuid, price, locale, VPemojiString) => {
     const title = await getTitle(uuid);
     return {
-        title: title.name,
+        title: l(title.names, locale),
         description: "`" + title.text + "`\n\n" + (priceDescription(VPemojiString, price) || ""),
         color: VAL_COLOR_2,
     }
@@ -408,7 +408,7 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
 
     return {
         embeds: [{
-            title: ":pencil: Stats",
+            title: s(interaction).info.INFO_HEADER,
             description: s(interaction).info.INFO_RUNNING.f({t1: readyTimestamp, t2: readyTimestamp}),
             color: VAL_COLOR_3,
             fields: fields
@@ -466,7 +466,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
             embeds: [{
                 title: s(interaction).info.ONE_ALERT,
                 color: VAL_COLOR_1,
-                description: `**${await skinNameAndEmoji(skin, interaction.channel)}**\n${await alertFieldDescription(interaction, alert.channel_id, emojiString, skin.price)}`,
+                description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}**\n${await alertFieldDescription(interaction, alert.channel_id, emojiString, skin.price)}`,
                 thumbnail: {
                     url: skin.icon
                 }
@@ -496,7 +496,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
     for(const alert of alertsToRender) {
         const skin = await getSkin(alert.uuid);
         embed.fields.push({
-            name: `**${n+1}.** ${await skinNameAndEmoji(skin, interaction.channel)}`,
+            name: `**${n+1}.** ${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}`,
             value: await alertFieldDescription(interaction, alert.channel_id, emojiString, skin.price),
             inline: alerts.length > 5
         });
@@ -512,7 +512,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
         }
         actionRows.push(actionRow);
     }
-    actionRows.push(pageButtons(interaction.user.id, pageIndex));
+    if(maxPages > 1) actionRows.push(pageButtons(interaction.user.id, pageIndex));
 
     return {
         embeds: [embed],

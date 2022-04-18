@@ -2,6 +2,7 @@
   "token": "token goes here",
   "fetchSkinPrices": true,
   "fetchSkinRarities": true,
+  "localiseSkinNames": true,
   "linkItemImage": true,
   "useEmojisFromServer": "",
   "refreshSkins": "10 0 0 * * *",

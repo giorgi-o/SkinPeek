@@ -31,6 +31,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "token", "token goes here");
     applyConfig(loadedConfig, "fetchSkinPrices", true);
     applyConfig(loadedConfig, "fetchSkinRarities", true);
+    applyConfig(loadedConfig, "localiseSkinNames", true);
     applyConfig(loadedConfig, "linkItemImage", true);
     applyConfig(loadedConfig, "useEmojisFromServer", "");
     applyConfig(loadedConfig, "refreshSkins", "10 0 0 * * *");

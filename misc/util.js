@@ -4,6 +4,7 @@ import {getItem} from "../valorant/cache.js";
 
 import https from "https";
 import fs from "fs";
+import {l} from "./languages.js";
 
 const tlsCiphers = [
     "TLS_AES_128_GCM_SHA256",
@@ -161,10 +162,11 @@ export const defer = async (interaction, ephemeral=false) => {
     interaction.deferred = true;
 }
 
-export const skinNameAndEmoji = async (skin, channel) => {
-    if(!skin.rarity) return skin.name;
+export const skinNameAndEmoji = async (skin, channel, locale='en-GB') => {
+    const name = l(skin.names, locale);
+    if(!skin.rarity) return name;
     const rarityIcon = await rarityEmoji(channel, skin.rarity.name, skin.rarity.icon, externalEmojisAllowed(channel));
-    return rarityIcon ? `${rarityIcon} ${skin.name}` : skin.name;
+    return rarityIcon ? `${rarityIcon} ${name}` : name;
 }
 
 export const actionRow = (button) => new MessageActionRow().addComponents(button);

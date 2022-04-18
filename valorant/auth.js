@@ -3,6 +3,7 @@ import fs from "fs";
 
 import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../misc/util.js";
 import {cleanupFailedOperations} from "../discord/authManager.js";
+import {removeAlertsFromUser} from "../discord/alerts.js";
 
 let users;
 
@@ -298,7 +299,8 @@ export const cleanupAccounts = () => {
     }
 }
 
-export const deleteUser = (id) => {
+export const deleteUser = (id, deleteAlerts=false) => {
     delete users[id];
+    if(deleteAlerts) removeAlertsFromUser(id);
     saveUserData();
 }

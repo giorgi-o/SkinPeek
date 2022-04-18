@@ -4,7 +4,6 @@ import {
     addAlert,
     alertExists, alertsForGuild,
     checkAlerts, filteredAlertsForUser, removeAlert,
-    removeAlertsFromUser,
     removeAlertsInChannel,
     setClient, testAlerts
 } from "./alerts.js";
@@ -43,7 +42,7 @@ import {
     processQueue,
     queueCookiesLogin,
 } from "../valorant/authQueue.js";
-import {s} from "../misc/languages.js";
+import {l, s} from "../misc/languages.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
 
 const client = new Client({
@@ -339,13 +338,15 @@ client.on("messageCreate", async (message) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
+    const valorantUser = getUser(interaction.user.id);
+    if(valorantUser) valorantUser.locale = interaction.locale;
+
     if(interaction.isCommand()) {
         try {
             console.log(`${interaction.user.tag} used /${interaction.commandName}`);
             switch (interaction.commandName) {
                 case "skins":
                 case "shop": {
-                    const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
@@ -369,7 +370,6 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "bundles": {
-                    const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
@@ -393,7 +393,7 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     const searchQuery = interaction.options.get("bundle").value.replace(/collection/i, "").replace(/bundle/i, "");
-                    const searchResults = await searchBundle(searchQuery);
+                    const searchResults = await searchBundle(searchQuery, interaction.locale);
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
@@ -409,16 +409,15 @@ client.on("interactionCreate", async (interaction) => {
 
                         return await interaction.followUp(message);
                     } else {
-                        // some bundles have the same name (e.g. Magepunk)
-
                         const row = new MessageActionRow();
                         const options = searchResults.splice(0, 25).map(result => {
                             return {
-                                label: result.name,
+                                label: l(result.names, interaction),
                                 value: `bundle-${result.uuid}`
                             }
                         });
 
+                        // some bundles have the same name (e.g. Magepunk)
                         const nameCount = {};
                         for(const option of options) {
                             if(option.label in nameCount) nameCount[option.label]++;
@@ -441,7 +440,6 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "nightmarket": {
-                    const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
@@ -459,11 +457,9 @@ client.on("interactionCreate", async (interaction) => {
 
                     console.log(`Sent ${interaction.user.tag}'s night market!`);
 
-
                     break;
                 }
                 case "balance": {
-                    const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
@@ -497,7 +493,6 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "alert": {
-                    const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
@@ -511,7 +506,7 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     const searchQuery = interaction.options.get("skin").value
-                    const searchResults = await searchSkin(searchQuery);
+                    const searchResults = await searchSkin(searchQuery, interaction.locale);
 
                     // filter out results for which the user already has an alert set up
                     const filteredResults = [];
@@ -536,11 +531,13 @@ client.on("interactionCreate", async (interaction) => {
                         const skin = searchResults[0];
                         const otherAlert = alertExists(interaction.user.id, skin.uuid);
                         return await interaction.followUp({
-                            embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: skin.name, c: otherAlert.channel_id}))],
+                            embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction.locale), c: otherAlert.channel_id}))],
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                             ephemeral: true
                         });
-                    } else if(filteredResults.length === 1 || filteredResults[0].name.toLowerCase() === searchQuery.toLowerCase()) {
+                    } else if(filteredResults.length === 1 ||
+                        l(filteredResults[0].names, interaction.locale).toLowerCase() === searchQuery.toLowerCase() ||
+                        l(filteredResults[0].names).toLowerCase() === searchQuery.toLowerCase()) {
                         const skin = filteredResults[0];
 
                         addAlert({
@@ -557,7 +554,7 @@ client.on("interactionCreate", async (interaction) => {
                         const row = new MessageActionRow();
                         const options = filteredResults.splice(0, 25).map(result => {
                             return {
-                                label: result.name,
+                                label: l(result.names, interaction),
                                 value: `skin-${result.uuid}`
                             }
                         });
@@ -572,7 +569,6 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "alerts": {
-                    const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
@@ -610,7 +606,6 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "2fa": {
-                    const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser || !valorantUser.waiting2FA) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.UNEXPECTED_2FA)],
                         ephemeral: true
@@ -642,6 +637,7 @@ client.on("interactionCreate", async (interaction) => {
                     if(success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
                         embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
+                        user.locale = interaction.locale;
                     } else {
                         console.log(`${interaction.user.tag} cookies login failed`);
                         embed = basicEmbed(s(interaction).error.INVALID_COOKIES);
@@ -655,16 +651,14 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "forget": {
-                    const user = getUser(interaction.user.id);
-                    if(!user) return await interaction.reply({
+                    if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.FORGET_FORGOTTEN)],
                         ephemeral: true
                     });
 
                     await defer(interaction);
 
-                    deleteUser(interaction.user.id);
-                    removeAlertsFromUser(interaction.user.id);
+                    deleteUser(interaction.user.id, true);
                     console.log(`${interaction.user.tag} deleted their account`);
 
                     await interaction.followUp({
@@ -674,7 +668,6 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "battlepass": {
-                    const valorantUser = getUser(interaction.user.id);
                     if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
@@ -732,7 +725,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     const otherAlert = alertExists(interaction.user.id, chosenSkin);
                     if(otherAlert) return await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: skin.name, c: otherAlert.channel_id}))],
+                        embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction.locale), c: otherAlert.channel_id}))],
                         components: [removeAlertActionRow(interaction.user.id, otherAlert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                         ephemeral: true
                     });
@@ -793,7 +786,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({s: await skinNameAndEmoji(skin, channel)}))],
+                        embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({s: await skinNameAndEmoji(skin, channel, interaction.locale)}))],
                         ephemeral: true
                     });
 
