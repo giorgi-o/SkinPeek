@@ -187,8 +187,10 @@ const sendCredentialsExpired = async (alert) => {
         return removeAlertsInChannel(alert.channel_id);
     }
 
-    const memberInGuild = await channel.guild.members.fetch(alert.id).catch(() => {});
-    if(!memberInGuild) return;
+    if(channel.guild) {
+        const memberInGuild = await channel.guild.members.fetch(alert.id).catch(() => {});
+        if(!memberInGuild) return; // the user is no longer in that guild
+    }
 
     const valorantUser = getUser(alert.id);
     await channel.send({
