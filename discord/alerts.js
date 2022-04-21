@@ -1,9 +1,11 @@
-import {removeAlertActionRow, skinNameAndEmoji} from "../misc/util.js";
-import {getUserList} from "../valorant/auth.js";
+import {removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
+import {deleteUser, getUser, getUserList} from "../valorant/auth.js";
 import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
 import fs from "fs";
-import {VAL_COLOR_1} from "./embed.js";
+import {basicEmbed, VAL_COLOR_1} from "./embed.js";
+import config from "../misc/config.js";
+import {s} from "../misc/languages.js";
 
 let alerts = [];
 
@@ -15,7 +17,7 @@ export const setClient = (theClient) => client = theClient;
  *     uuid: skin uuid
  *     channel_id: discord text channel id the alert was sent in
  * }
- * There should only be one alert per ID/UUID pair, aka each user can have one alert per skin.
+ * There should only be one alert per ID/UUID pair, i.e. each user can have one alert per skin.
  */
 
 export const loadAlerts = (filename="data/alerts.json") => {
@@ -42,6 +44,46 @@ export const alertsForUser = (id) => {
     return alerts.filter(alert => alert.id === id);
 }
 
+export const filteredAlertsForUser = async (interaction) => {
+    let alerts = alertsForUser(interaction.user.id);
+
+    // filter out alerts for deleted channels
+    const removedChannels = [];
+    for(const alert of alerts) {
+        if(removedChannels.includes(alert.channel_id)) continue;
+
+        const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
+        if(!channel) {
+            removeAlertsInChannel(alert.channel_id);
+            removedChannels.push(alert.channel_id);
+        }
+    }
+    if(removedChannels.length) alerts = alertsForUser(interaction.user.id);
+
+    // bring the alerts in this channel to the top
+    const alertPriority = (alert) => {
+        if(alert.channel_id === interaction.channelId) return 2;
+        if(interaction.guild && client.channels.cache.get(alert.channel_id).guildId === interaction.guild.id) return 1;
+        return 0;
+    }
+    alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
+
+    return alerts;
+}
+
+export const alertsForGuild = async (id) => {
+    const alertsInGuild = [];
+
+    const guild = await client.guilds.fetch(id);
+    for(const alert of alerts) {
+        const channel = await client.channels.fetch(alert.channel_id)
+        if(channel.guildId === guild.id)
+            alertsInGuild.push(alert);
+    }
+
+    return alertsInGuild;
+}
+
 export const removeAlert = (id, uuid) => {
     const alertCount = alerts.length;
     alerts = alerts.filter(alert => alert.id !== id || alert.uuid !== uuid);
@@ -59,7 +101,7 @@ export const removeAlertsInChannel = (channel_id) => {
     saveAlerts();
 }
 
-export const checkAlerts = () => {
+export const checkAlerts = async () => {
     if(!alerts) return;
     console.debug("Checking new shop skins for alerts...");
 
@@ -68,22 +110,27 @@ export const checkAlerts = () => {
             const userAlerts = alerts.filter(alert => alert.id === id);
             if(!userAlerts.length) continue;
 
-            getOffers(id).then(resp => {
-                if(!resp.success) {
-                    if(resp.maintenance) return; // retry in a few hours?
-                    const channelsSent = [];
-                    for(const alert of alerts) {
-                        if(!channelsSent.includes(alert.channel_id)) {
-                            sendCredentialsExpired(alert);
-                            channelsSent.push(alert.channel_id);
-                        }
-                    }
-                    return;
-                }
+            const offers = await getOffers(id);
+            if(!offers.success) {
+                if(offers.maintenance) return; // retry in a few hours?
 
-                const positiveAlerts = userAlerts.filter(alert => resp.offers.includes(alert.uuid));
-                if(positiveAlerts.length) sendAlert(positiveAlerts, resp.expires);
-            });
+                // user login is invalid
+                const channelsSent = [];
+                for(const alert of userAlerts) {
+                    if(!channelsSent.includes(alert.channel_id)) {
+                        await sendCredentialsExpired(alert);
+                        channelsSent.push(alert.channel_id);
+                    }
+                }
+                deleteUser(id);
+                await wait(config.delayBetweenAlerts);
+                continue;
+            }
+
+            const positiveAlerts = userAlerts.filter(alert => offers.offers.includes(alert.uuid));
+            if(positiveAlerts.length) await sendAlert(positiveAlerts, offers.expires);
+
+            await wait(config.delayBetweenAlerts); // to prevent being ratelimited
         }
     } catch(e) {
         // should I send messages in the discord channels?
@@ -98,6 +145,9 @@ const sendAlert = async (alerts, expires) => {
     for(let i = 0; i < alerts.length; i++) {
         let alert = alerts[i];
 
+        const valorantUser = getUser(alert.id);
+        if(!valorantUser) return;
+
         const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
         if(!channel) {
             removeAlertsInChannel(alert.channel_id);
@@ -111,13 +161,13 @@ const sendAlert = async (alerts, expires) => {
         await channel.send({
             content: `<@${alert.id}>`,
             embeds: [{
-                description: `:tada: <@${alert.id}> The **${await skinNameAndEmoji(skin, channel)}** is in your daily shop!\nIt will be gone <t:${expires}:R>.`,
+                description: s(valorantUser.locale).info.ALERT_HAPPENED.f({u: alert.id, s: await skinNameAndEmoji(skin, channel, valorantUser.locale), t: expires}),
                 color: VAL_COLOR_1,
                 thumbnail: {
                     url: skin.icon
                 }
             }],
-            components: [removeAlertActionRow(alert.id, alert.uuid)]
+            components: [removeAlertActionRow(alert.id, alert.uuid, s(valorantUser.locale).info.REMOVE_ALERT_BUTTON)]
         }).catch(async e => {
             console.error(`Could not send alert message in #${channel.name}! Do I have the right role?`);
 
@@ -135,14 +185,22 @@ const sendCredentialsExpired = async (alert) => {
     const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
     if(!channel) {
         const user = await client.users.fetch(alert.id).catch(() => {});
-        if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again.`)
+        if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again.`);
         return removeAlertsInChannel(alert.channel_id);
     }
+
+    if(channel.guild) {
+        const memberInGuild = await channel.guild.members.fetch(alert.id).catch(() => {});
+        if(!memberInGuild) return; // the user is no longer in that guild
+    }
+
+    const valorantUser = getUser(alert.id);
+    if(!valorantUser) return;
 
     await channel.send({
         content: `<@${alert.id}>`,
         embeds: [{
-            description: `**<@${alert.id}> I couldn't check your alerts!** Did you change your password?\nPlease \`/login\` again.`,
+            description: s(valorantUser.locale).error.AUTH_ERROR_ALERTS_HAPPENED.f({u: alert.id}),
             color: VAL_COLOR_1,
         }]
     }).catch(async e => {
@@ -150,9 +208,25 @@ const sendCredentialsExpired = async (alert) => {
 
         try { // try to log the alert to the console
             const user = await client.users.fetch(alert.id).catch(() => {});
-            if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again.`);
+            if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again. Also tell them that they should fix their perms.`);
         } catch(e) {}
 
         console.error(e);
     });
+}
+
+export const testAlerts = async (interaction) => {
+    try {
+        const channel = interaction.channel || await client.channels.fetch(interaction.channel_id);
+        await channel.send({
+            embeds: [basicEmbed(s(interaction).info.ALERT_TEST)]
+        });
+        return true;
+    } catch(e) {
+        console.error(`${interaction.user.tag} tried to /testalerts, but failed!`);
+        if(e.code === 50013) console.error("Failed with 'Missing Access' error");
+        else if(e.code === 50001) console.error("Failed with 'Missing Permissions' error");
+        else console.error(e);
+        return false;
+    }
 }

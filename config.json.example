@@ -2,9 +2,21 @@
   "token": "token goes here",
   "fetchSkinPrices": true,
   "fetchSkinRarities": true,
+  "localiseSkinNames": true,
   "linkItemImage": true,
+  "useEmojisFromServer": "",
   "refreshSkins": "10 0 0 * * *",
   "checkGameVersion": "*/15 * * * *",
   "cleanupAccounts": "0 * * * *",
-  "storePasswords": false
+  "delayBetweenAlerts": 5000,
+  "alertsPerPage": 10,
+  "emojiCacheExpiration": 10000,
+  "useLoginQueue": false,
+  "loginQueue": "*/2 * * * * *",
+  "loginRetryTimeout": 600000,
+  "storePasswords": false,
+  "trackStoreStats": false,
+  "ownerId": "",
+  "ownerName": "",
+  "status": "Up and running!"
 }

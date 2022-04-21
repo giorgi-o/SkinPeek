@@ -2,6 +2,8 @@ import config from "../misc/config.js";
 import fs from "fs";
 
 import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../misc/util.js";
+import {cleanupFailedOperations} from "../discord/authManager.js";
+import {removeAlertsFromUser} from "../discord/alerts.js";
 
 let users;
 
@@ -32,7 +34,7 @@ export const getUserList = () => {
 export const authUser = async (id) => {
     // doesn't check if token is valid, only checks it hasn't expired
     const user = getUser(id);
-    if(!user) return {success: false};
+    if(!user || !user.rso) return {success: false};
 
     const rsoExpiry = tokenExpiry(user.rso);
     if(rsoExpiry - Date.now() > 10_000) return {success: true};
@@ -74,10 +76,13 @@ export const redeemUsernamePassword = async (id, login, password) => {
         body: JSON.stringify({
             'type': 'auth',
             'username': login,
-            'password': password
+            'password': password,
+            'remember': true
         })
     });
     console.assert(req2.statusCode === 200, `Auth status code is ${req2.statusCode}!`, req2);
+
+    if(req2.statusCode === 429) return {success: false, rateLimit: true};
 
     cookies = {
         ...cookies,
@@ -126,10 +131,12 @@ export const redeem2FACode = async (id, code) => {
         body: JSON.stringify({
             'type': 'multifactor',
             'code': code.toString(),
-            'rememberDevice': false
+            'rememberDevice': true
         })
     });
     console.assert(req.statusCode === 200, `2FA status code is ${req.statusCode}!`, req);
+
+    if(req.statusCode === 429) return {success: false, rateLimit: true};
 
     user.cookies = {
         ...cookies,
@@ -137,9 +144,9 @@ export const redeem2FACode = async (id, code) => {
     };
 
     const json = JSON.parse(req.body);
-    if(json.error === "multifactor_attempt_failed") {
+    if(json.error === "multifactor_attempt_failed" || json.type === "error") {
         console.error("Authentication failure!", json);
-        return false;
+        return {success: false};
     }
 
     await processAuthResponse(id, {login: user.login, password: user.password, cookies: user.cookies}, json);
@@ -147,7 +154,7 @@ export const redeem2FACode = async (id, code) => {
     delete user.waiting2FA;
     saveUserData();
 
-    return true;
+    return {success: true};
 }
 
 const processAuthResponse = async (id, authData, resp) => {
@@ -274,7 +281,7 @@ export const refreshToken = async (id) => {
     if(user.cookies) response.success = await redeemCookies(id, stringifyCookies(user.cookies));
     if(!response.success && user.login && user.password) response = await redeemUsernamePassword(id, user.login, user.password);
 
-    if(!response.success && !response.mfa) deleteUser(id);
+    if(!response.success && !response.mfa && !response.rateLimit) deleteUser(id);
     return response;
 }
 
@@ -284,13 +291,16 @@ export const cleanupAccounts = () => {
             if(user.waiting2FA && Date.now() - user.waiting2FA > 10 * 60 * 1000) deleteUser(id);
             else if(!user.cookies && (!user.login || !user.password)) deleteUser(id);
         }
+
+        cleanupFailedOperations();
     } catch(e) {
         console.error("There was an error while trying to cleanup accounts!");
         console.error(e);
     }
 }
 
-export const deleteUser = (id) => {
+export const deleteUser = (id, deleteAlerts=false) => {
     delete users[id];
+    if(deleteAlerts) removeAlertsFromUser(id);
     saveUserData();
 }

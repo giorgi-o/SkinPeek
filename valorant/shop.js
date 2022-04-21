@@ -1,6 +1,7 @@
 import {authUser, deleteUser, getUser} from "./auth.js";
-import {fetch, formatBundle, isMaintenance} from "../misc/util.js";
+import {fetch, formatBundle, isMaintenance, userRegion} from "../misc/util.js";
 import {addBundleData} from "./cache.js";
+import {addStore} from "../misc/stats.js";
 
 export const getShop = async (id) => {
     const authSuccess = await authUser(id);
@@ -10,7 +11,7 @@ export const getShop = async (id) => {
     console.debug(`Fetching shop for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetStorefrontV2.md
-    const req = await fetch(`https://pd.${user.region}.a.pvp.net/store/v2/storefront/${user.puuid}`, {
+    const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v2/storefront/${user.puuid}`, {
         headers: {
             "Authorization": "Bearer " + user.rso,
             "X-Riot-Entitlements-JWT": user.ent
@@ -23,6 +24,15 @@ export const getShop = async (id) => {
         deleteUser(id);
         return {success: false}
     } else if(isMaintenance(json)) return {success: false, maintenance: true};
+
+    // shop stats tracking
+    try {
+        addStore(user.puuid, json.SkinsPanelLayout.SingleItemOffers);
+    } catch(e) {
+        console.error("Error adding shop stats!");
+        console.error(e);
+        console.error(json);
+    }
 
     return {success: true, shop: json};
 }
@@ -74,7 +84,7 @@ export const getBalance = async (id) => {
     console.debug(`Fetching balance for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetWallet.md
-    const req = await fetch(`https://pd.${user.region}.a.pvp.net/store/v1/wallet/${user.puuid}`, {
+    const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/wallet/${user.puuid}`, {
         headers: {
             "Authorization": "Bearer " + user.rso,
             "X-Riot-Entitlements-JWT": user.ent

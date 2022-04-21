@@ -1,17 +1,17 @@
-import {asyncReadJSONFile, fetch, isMaintenance, itemTypes} from "../misc/util.js";
+import {asyncReadJSONFile, fetch, isMaintenance, itemTypes, userRegion} from "../misc/util.js";
 import {authUser, getUser, getUserList} from "./auth.js";
 import config from "../misc/config.js";
 import Fuse from "fuse.js";
 import fs from "fs";
+import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
 
-const formatVersion = 3;
+const formatVersion = 5;
 let gameVersion;
 
 let skins, rarities, buddies, sprays, cards, titles, bundles;
 let prices = {timestamp: null};
 
-let skinSearcher;
-let bundleSearcher;
+let skinSearchers, bundleSearchers;
 
 export const getValorantVersion = async () => {
     console.debug("Fetching current valorant version...");
@@ -72,7 +72,7 @@ export const fetchData = async (types=null, checkVersion=false) => {
 export const getSkinList = async (gameVersion) => {
     console.debug("Fetching valorant skin list...");
 
-    const req = await fetch("https://valorant-api.com/v1/weapons/skins");
+    const req = await fetch("https://valorant-api.com/v1/weapons/skins?language=all");
     console.assert(req.statusCode === 200, `Valorant skins status code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
@@ -83,7 +83,7 @@ export const getSkinList = async (gameVersion) => {
         const levelOne = skin.levels[0];
         skins[levelOne.uuid] = {
             uuid: levelOne.uuid,
-            name: skin.displayName,
+            names: skin.displayName,
             icon: levelOne.displayIcon,
             rarity: skin.contentTierUuid
         }
@@ -95,7 +95,10 @@ export const getSkinList = async (gameVersion) => {
 }
 
 const formatSearchableSkinList = () => {
-    skinSearcher = new Fuse(Object.values(skins).filter(o => typeof o === "object"), {keys: ['name'], includeScore: true});
+    skinSearchers = {};
+    for(const locale of new Set(Object.values(discToValLang))) {
+        skinSearchers[locale] = new Fuse(Object.values(skins).filter(o => typeof o === "object"), {keys: [`names.${locale}`, `names.${DEFAULT_VALORANT_LANG}`], includeScore: true});
+    }
 }
 
 const getPrices = async (gameVersion, id=null) => {
@@ -112,7 +115,7 @@ const getPrices = async (gameVersion, id=null) => {
     }
 
     const user = getUser(id);
-    if(!user) return;
+    if(!user) return false;
 
     const authSuccess = await authUser(id);
     if(!authSuccess.success || !user.rso || !user.ent || !user.region) return false;
@@ -120,7 +123,7 @@ const getPrices = async (gameVersion, id=null) => {
     console.debug(`Fetching skin prices using ${user.username}'s access token...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetOffers.md
-    const req = await fetch(`https://pd.${user.region}.a.pvp.net/store/v1/offers/`, {
+    const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/offers/`, {
         headers: {
             "Authorization": "Bearer " + user.rso,
             "X-Riot-Entitlements-JWT": user.ent
@@ -148,7 +151,7 @@ const getPrices = async (gameVersion, id=null) => {
 const getBundleList = async (gameVersion) => {
     console.debug("Fetching valorant bundle list...");
 
-    const req = await fetch("https://valorant-api.com/v1/bundles");
+    const req = await fetch("https://valorant-api.com/v1/bundles?language=all");
     console.assert(req.statusCode === 200, `Valorant bundles status code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
@@ -158,10 +161,64 @@ const getBundleList = async (gameVersion) => {
     for(const bundle of json.data) {
         bundles[bundle.uuid] = {
             uuid: bundle.uuid,
-            name: bundle.displayName,
-            subName: bundle.displayNameSubText,
-            description: bundle.extraDescription,
-            icon: bundle.displayIcon2
+            names: bundle.displayName,
+            subNames: bundle.displayNameSubText,
+            descriptions: bundle.extraDescription,
+            icon: bundle.displayIcon2,
+            items: null,
+            price: null,
+            basePrice: null,
+            expires: null
+        }
+    }
+
+    // get bundle items from https://docs.valtracker.gg/bundles
+    const req2 = await fetch("https://api.valtracker.gg/bundles");
+    console.assert(req2.statusCode === 200, `ValTracker bundles items status code is ${req.statusCode}!`, req);
+
+    const json2 = JSON.parse(req2.body);
+    console.assert(json.status === 200, `ValTracker bundles items data status code is ${json.status}!`, json);
+
+    for(const bundleData of json2.data) {
+        if(bundles[bundleData.uuid]) {
+            const bundle = bundles[bundleData.uuid];
+            const items = [];
+            const defaultItemData = {
+                amount: 1,
+                discount: 0
+            }
+
+            for(const weapon of bundleData.weapons)
+                items.push({
+                    uuid: weapon.levels[0].uuid,
+                    type: itemTypes.SKIN,
+                    price: weapon.price,
+                    ...defaultItemData
+                });
+            for(const buddy of bundleData.buddies)
+                items.push({
+                    uuid: buddy.levels[0].uuid,
+                    type: itemTypes.BUDDY,
+                    price: buddy.price,
+                    ...defaultItemData
+                });
+            for(const card of bundleData.cards)
+                items.push({
+                    uuid: card.uuid,
+                    type: itemTypes.CARD,
+                    price: card.price,
+                    ...defaultItemData
+                });
+            for(const spray of bundleData.sprays)
+                items.push({
+                    uuid: spray.uuid,
+                    type: itemTypes.SPRAY,
+                    price: spray.price,
+                    ...defaultItemData
+                });
+
+            bundle.items = items;
+            bundle.price = bundleData.price;
         }
     }
 
@@ -171,16 +228,32 @@ const getBundleList = async (gameVersion) => {
 }
 
 export const formatSearchableBundleList = () => {
-    bundleSearcher = new Fuse(Object.values(bundles).filter(o => typeof o === "object"), {keys: ['name'], includeScore: true});
+    bundleSearchers = {};
+    for(const locale of new Set(Object.values(discToValLang))) {
+        bundleSearchers[locale] = new Fuse(Object.values(bundles).filter(o => typeof o === "object"), {keys: [`names.${locale}`, `names.${DEFAULT_VALORANT_LANG}`], includeScore: true});
+    }
 }
 
-export const addBundleData = async (bundle) => {
+export const addBundleData = async (bundleData) => {
     await fetchData([bundles]);
-    if(bundles[bundle.uuid]){
-        bundles[bundle.uuid].data = bundle;
+    if(bundles[bundleData.uuid]) {
+        const bundle = bundles[bundleData.uuid];
+        bundle.items = bundleData.items.map(item => {
+            return {
+                uuid: item.uuid,
+                type: item.type,
+                price: item.price,
+                basePrice: item.basePrice,
+                discount: item.discount,
+                amount: item.amount
+            }
+        });
+        bundle.price = bundleData.price;
+        bundle.basePrice = bundleData.basePrice;
+        bundle.expires = bundleData.expires;
+
         saveSkinsJSON();
     }
-
 }
 
 const getRarities = async (gameVersion) => {
@@ -211,7 +284,7 @@ const getRarities = async (gameVersion) => {
 export const getBuddies = async (gameVersion) => {
     console.debug("Fetching gun buddies list...");
 
-    const req = await fetch("https://valorant-api.com/v1/buddies");
+    const req = await fetch("https://valorant-api.com/v1/buddies?language=all");
     console.assert(req.statusCode === 200, `Valorant buddies status code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
@@ -222,7 +295,7 @@ export const getBuddies = async (gameVersion) => {
         const levelOne = buddy.levels[0];
         buddies[levelOne.uuid] = {
             uuid: levelOne.uuid,
-            name: buddy.displayName,
+            names: buddy.displayName,
             icon: levelOne.displayIcon
         }
     }
@@ -233,7 +306,7 @@ export const getBuddies = async (gameVersion) => {
 export const getCards = async (gameVersion) => {
     console.debug("Fetching player cards list...");
 
-    const req = await fetch("https://valorant-api.com/v1/playercards");
+    const req = await fetch("https://valorant-api.com/v1/playercards?language=all");
     console.assert(req.statusCode === 200, `Valorant cards status code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
@@ -243,7 +316,7 @@ export const getCards = async (gameVersion) => {
     for(const card of json.data) {
         cards[card.uuid] = {
             uuid: card.uuid,
-            name: card.displayName,
+            names: card.displayName,
             icons: {
                 small: card.smallArt,
                 wide: card.wideArt,
@@ -258,7 +331,7 @@ export const getCards = async (gameVersion) => {
 export const getSprays = async (gameVersion) => {
     console.debug("Fetching sprays list...");
 
-    const req = await fetch("https://valorant-api.com/v1/sprays");
+    const req = await fetch("https://valorant-api.com/v1/sprays?language=all");
     console.assert(req.statusCode === 200, `Valorant sprays status code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
@@ -268,7 +341,7 @@ export const getSprays = async (gameVersion) => {
     for(const spray of json.data) {
         sprays[spray.uuid] = {
             uuid: spray.uuid,
-            name: spray.displayName,
+            names: spray.displayName,
             icon: spray.fullTransparentIcon || spray.displayIcon
         }
     }
@@ -279,7 +352,7 @@ export const getSprays = async (gameVersion) => {
 export const getTitles = async (gameVersion) => {
     console.debug("Fetching player titles list...");
 
-    const req = await fetch("https://valorant-api.com/v1/playertitles");
+    const req = await fetch("https://valorant-api.com/v1/playertitles?language=all");
     console.assert(req.statusCode === 200, `Valorant titles status code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
@@ -289,7 +362,7 @@ export const getTitles = async (gameVersion) => {
     for(const title of json.data) {
         titles[title.uuid] = {
             uuid: title.uuid,
-            name: title.displayName,
+            names: title.displayName,
             text: title.titleText
         }
     }
@@ -319,7 +392,7 @@ export const getSkin = async (uuid) => {
     return skin;
 }
 
-const getPrice = async (uuid) => {
+export const getPrice = async (uuid) => {
     if(!prices) await fetchData([prices]);
     return prices[uuid] || null;
 }
@@ -329,11 +402,11 @@ const getRarity = async (uuid) => {
     if(rarities) return rarities[uuid] || null;
 }
 
-export const searchSkin = async (query) => {
+export const searchSkin = async (query, locale) => {
     await fetchData([skins]);
 
-    if(!skinSearcher) formatSearchableSkinList();
-    const results = skinSearcher.search(query).filter(result => result.score < 0.3);
+    if(!skinSearchers) formatSearchableSkinList();
+    const results = skinSearchers[discToValLang[locale] || DEFAULT_VALORANT_LANG].search(query).filter(result => result.score < 0.3);
 
     return await Promise.all(results.map(result => getSkin(result.item.uuid)));
 }
@@ -343,11 +416,11 @@ export const getBundle = async (uuid) => {
     return bundles[uuid];
 }
 
-export const searchBundle = async (query) => {
+export const searchBundle = async (query, locale) => {
     await fetchData([bundles]);
 
-    if(!bundleSearcher) formatSearchableBundleList();
-    const results = bundleSearcher.search(query).filter(result => result.score < 0.3);
+    if(!bundleSearchers) formatSearchableBundleList();
+    const results = bundleSearchers[discToValLang[locale] || DEFAULT_VALORANT_LANG].search(query).filter(result => result.score < 0.3);
 
     return await Promise.all(results.map(result => getBundle(result.item.uuid)));
 }

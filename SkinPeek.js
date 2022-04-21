@@ -1,7 +1,8 @@
-import {startBot} from "./discord/bot.js";
+import {loadConfig} from "./misc/config.js";
 import {loadUserData} from "./valorant/auth.js";
 import {loadAlerts} from "./discord/alerts.js";
-import {loadConfig} from "./misc/config.js";
+import {loadStats} from "./misc/stats.js";
+import {startBot} from "./discord/bot.js";
 
 /* TODO list:
  * (done) Balance
@@ -21,5 +22,6 @@ const config = loadConfig();
 if(config) {
     loadUserData();
     loadAlerts();
+    loadStats();
     startBot();
 }
