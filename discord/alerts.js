@@ -155,6 +155,8 @@ const sendAlert = async (alerts, expires) => {
         }
 
         const valorantUser = getUser(alert.id);
+        if(!valorantUser) return;
+
         const skin = await getSkin(alert.uuid);
         await channel.send({
             content: `<@${alert.id}>`,
@@ -193,6 +195,8 @@ const sendCredentialsExpired = async (alert) => {
     }
 
     const valorantUser = getUser(alert.id);
+    if(!valorantUser) return;
+
     await channel.send({
         content: `<@${alert.id}>`,
         embeds: [{

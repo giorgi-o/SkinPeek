@@ -89,10 +89,6 @@ const destroyTasks = () => {
 
 const commands = [
     {
-        name: "skins",
-        description: "Deprecated, use /shop instead."
-    },
-    {
         name: "shop",
         description: "Show your current daily shop!"
     },
