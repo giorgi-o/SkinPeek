@@ -81,6 +81,7 @@
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Cálculos do passe de batalha",
+    "FINISHED": "\uD83C\uDF89 Congratulations, you've finished the battlepass!",
     "TIER_HEADER": "{u} nível do passe de batalha:",
     "GENERAL_COL": "Geral",
     "XP_COL": "XP",

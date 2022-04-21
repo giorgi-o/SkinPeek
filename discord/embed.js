@@ -188,72 +188,80 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 export const renderBattlepass = async (battlepass, targetlevel, interaction, valorantUser) => {
     if(!battlepass.success) return authFailureMessage(interaction, battlepass, s(interaction).error.AUTH_ERROR_BPASS);
 
-    const embeds = [{
-        title: s(interaction).battlepass.CALCULATIONS_TITLE,
-        thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
-        description: `${s(interaction).battlepass.TIER_HEADER.f({u: valorantUser.username})}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
-        color: VAL_COLOR_1,
-        fields: [
-            {
-                "name": s(interaction).battlepass.GENERAL_COL,
-                "value": `${s(interaction).battlepass.TOTAL_ROW}\n${s(interaction).battlepass.LVLUP_ROW}\n${s(interaction).battlepass.TIER50_ROW.f({t: targetlevel})}\n${s(interaction).battlepass.WEEKLY_LEFT_ROW}`,
-                "inline": true
-            },
-            {
-                "name": s(interaction).battlepass.XP_COL,
-                "value": `\`${battlepass.totalxp}\`\n\`${battlepass.xpneeded}\`\n\`${battlepass.totalxpneeded}\`\n\`${battlepass.weeklyxp}\``,
-                "inline": true
+    let embeds = []
+    if(battlepass.bpdata.progressionLevelReached < 55) {
+        embeds.push({
+            title: s(interaction).battlepass.CALCULATIONS_TITLE,
+            thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
+            description: `${s(interaction).battlepass.TIER_HEADER.f({u: valorantUser.username})}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
+            color: VAL_COLOR_1,
+            fields: [
+                {
+                    "name": s(interaction).battlepass.GENERAL_COL,
+                    "value": `${s(interaction).battlepass.TOTAL_ROW}\n${s(interaction).battlepass.LVLUP_ROW}\n${s(interaction).battlepass.TIER50_ROW.f({t: targetlevel})}\n${s(interaction).battlepass.WEEKLY_LEFT_ROW}`,
+                    "inline": true
+                },
+                {
+                    "name": s(interaction).battlepass.XP_COL,
+                    "value": `\`${battlepass.totalxp}\`\n\`${battlepass.xpneeded}\`\n\`${battlepass.totalxpneeded}\`\n\`${battlepass.weeklyxp}\``,
+                    "inline": true
+                }
+            ],
+            footer: {
+                text: battlepass.battlepassPurchased ? s(interaction).battlepass.BP_PURCHASED.f({u: valorantUser.username}) : ""
             }
-        ],
-        footer: {
-            text: battlepass.battlepassPurchased ? s(interaction).battlepass.BP_PURCHASED.f({u: valorantUser.username}) : ""
-        }
-    },
-    {
-        title: s(interaction).battlepass.GAMES_HEADER,
-        color: VAL_COLOR_1,
-        fields: [
-            {
-                "name": s(interaction).battlepass.GAMEMODE_COL,
-                "value": `${s(interaction).battlepass.SPIKERUSH_ROW}\n${s(interaction).battlepass.NORMAL_ROW}\n`,
-                "inline": true
-            },
-            {
-                "name": "#",
-                "value": `\`${battlepass.spikerushneeded}\`\n\`${battlepass.normalneeded}\``,
-                "inline": true
-            },
-            {
-                "name": s(interaction).battlepass.INCL_WEEKLIES_COL,
-                "value": `\`${battlepass.spikerushneededwithweeklies}\`\n\`${battlepass.normalneededwithweeklies}\``,
-                "inline": true
+        },
+        {
+            title: s(interaction).battlepass.GAMES_HEADER,
+            color: VAL_COLOR_1,
+            fields: [
+                {
+                    "name": s(interaction).battlepass.GAMEMODE_COL,
+                    "value": `${s(interaction).battlepass.SPIKERUSH_ROW}\n${s(interaction).battlepass.NORMAL_ROW}\n`,
+                    "inline": true
+                },
+                {
+                    "name": "#",
+                    "value": `\`${battlepass.spikerushneeded}\`\n\`${battlepass.normalneeded}\``,
+                    "inline": true
+                },
+                {
+                    "name": s(interaction).battlepass.INCL_WEEKLIES_COL,
+                    "value": `\`${battlepass.spikerushneededwithweeklies}\`\n\`${battlepass.normalneededwithweeklies}\``,
+                    "inline": true
+                }
+            ],
+            footer: {
+                text: s(interaction).battlepass.ACT_END.f({d: battlepass.season_days_left})
             }
-        ],
-        footer: {
-            text: s(interaction).battlepass.ACT_END.f({d: battlepass.season_days_left})
-        }
-    },
-    {
-        title: s(interaction).battlepass.XP_HEADER,
-        color: VAL_COLOR_1,
-        fields: [
-            {
-                "name": s(interaction).battlepass.AVERAGE_COL,
-                "value": `${s(interaction).battlepass.DAILY_XP_ROW}\n${s(interaction).battlepass.WEEKLY_XP_ROW}`,
-                "inline": true
-            },
-            {
-                "name": s(interaction).battlepass.XP_COL,
-                "value": `\`${battlepass.dailyxpneeded}\`\n\`${battlepass.weeklyxpneeded}\``,
-                "inline": true
-            },
-            {
-                "name": s(interaction).battlepass.INCL_WEEKLIES_COL,
-                "value": `\`${battlepass.dailyxpneededwithweeklies}\`\n\`${battlepass.weeklyxpneededwithweeklies}\``,
-                "inline": true
-            }
-        ]
-    }];
+        },
+        {
+            title: s(interaction).battlepass.XP_HEADER,
+            color: VAL_COLOR_1,
+            fields: [
+                {
+                    "name": s(interaction).battlepass.AVERAGE_COL,
+                    "value": `${s(interaction).battlepass.DAILY_XP_ROW}\n${s(interaction).battlepass.WEEKLY_XP_ROW}`,
+                    "inline": true
+                },
+                {
+                    "name": s(interaction).battlepass.XP_COL,
+                    "value": `\`${battlepass.dailyxpneeded}\`\n\`${battlepass.weeklyxpneeded}\``,
+                    "inline": true
+                },
+                {
+                    "name": s(interaction).battlepass.INCL_WEEKLIES_COL,
+                    "value": `\`${battlepass.dailyxpneededwithweeklies}\`\n\`${battlepass.weeklyxpneededwithweeklies}\``,
+                    "inline": true
+                }
+            ]
+        });
+    } else {
+        embeds.push({
+            description: s(interaction).battlepass.FINISHED,
+            color: VAL_COLOR_1,
+        })
+    }
 
     return {embeds};
 }
