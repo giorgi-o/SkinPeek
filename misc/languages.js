@@ -60,11 +60,11 @@ importLanguage(DEFAULT_LANG);
 
 // get the strings for a language
 export const s = (interaction) => {
-    if(typeof interaction === 'string') return languages[interaction];
-    if(!interaction || !interaction.locale) return languages['en-GB'];
+    if(typeof interaction === 'string') return languages[interaction] || languages[DEFAULT_LANG];
+    if(!interaction || !interaction.locale) return languages[DEFAULT_LANG];
     const lang = interaction.locale;
     if(!languages[lang]) importLanguage(lang);
-    return languages[lang] || languages['en-GB'];
+    return languages[lang] || languages[DEFAULT_LANG];
 }
 
 // format a string

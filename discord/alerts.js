@@ -145,6 +145,9 @@ const sendAlert = async (alerts, expires) => {
     for(let i = 0; i < alerts.length; i++) {
         let alert = alerts[i];
 
+        const valorantUser = getUser(alert.id);
+        if(!valorantUser) return;
+
         const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
         if(!channel) {
             removeAlertsInChannel(alert.channel_id);
@@ -153,9 +156,6 @@ const sendAlert = async (alerts, expires) => {
             }
             continue;
         }
-
-        const valorantUser = getUser(alert.id);
-        if(!valorantUser) return;
 
         const skin = await getSkin(alert.uuid);
         await channel.send({
