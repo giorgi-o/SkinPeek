@@ -81,7 +81,7 @@ export const l = (names, interaction) => {
 
     if(!config.localiseSkinNames) valLocale = DEFAULT_VALORANT_LANG;
 
-    if(typeof interaction === 'string') valLocale = discToValLang[interaction];
+    else if(typeof interaction === 'string') valLocale = discToValLang[interaction];
     else if(interaction && interaction.locale) valLocale = discToValLang[interaction.locale];
 
     if(!valLocale) valLocale = DEFAULT_VALORANT_LANG;
