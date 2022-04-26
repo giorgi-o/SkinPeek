@@ -2,6 +2,7 @@
     "translation_by": "Mars :) & Bjarne",
     "error":{
       "NOT_REGISTERED": "**Du bist nicht aktuell nicht registriert!** Versuche `/login`.",
+      "USER_NOT_REGISTERED": "**User ist nicht registriert!**",
       "INVALID_PASSWORD": "Falscher Nutzername oder Passwort!",
       "INVALID_COOKIES": "Ups, das hat nicht geklappt! Sind deine Cookies richtig formatiert?",
       "INVALID_2FA": "**Ungültiger 2FA Code!** Bitte versuche es erneut.",
