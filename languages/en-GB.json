@@ -2,6 +2,7 @@
   "translation_by": "Put your name here if translating :)",
   "error":{
     "NOT_REGISTERED": "**You're not registered with the bot!** Try `/login`.",
+    "USER_NOT_REGISTERED": "**User not registered with the bot!**",
     "INVALID_PASSWORD": "Invalid username or password!",
     "INVALID_COOKIES": "Whoops, that didn't work! Are your cookies formatted correctly?",
     "INVALID_2FA": "**Invalid 2FA code!** Please try again.",
