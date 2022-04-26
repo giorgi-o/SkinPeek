@@ -90,7 +90,13 @@ const destroyTasks = () => {
 const commands = [
     {
         name: "shop",
-        description: "Show your current daily shop!"
+        description: "Show your current daily shop!",
+        options: [{
+            type: "USER",
+            name: "user",
+            description: "From wich user you will see the daily shop?",
+            required: false
+        }]
     },
     {
         name: "bundles",
@@ -353,17 +359,33 @@ client.on("interactionCreate", async (interaction) => {
                     // fetch the channel if not in cache
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
 
+                    const user = interaction.options.getUser('user');
+
                     // start uploading emoji now
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
                     const shop = await getOffers(interaction.user.id);
 
-                    const message = await renderOffers(shop, interaction, valorantUser, await emojiPromise);
-                    await interaction.followUp(message);
-
-                    console.log(`Sent ${interaction.user.tag}'s shop!`); // also logged if maintenance/login failed
-
-                    break;
+                    if(!user) {
+                        const message = await renderOffers(shop, interaction, valorantUser, await emojiPromise);
+                        await interaction.followUp(message);
+    
+                        console.log(`Sent ${interaction.user.tag}'s shop!`); // also logged if maintenance/login failed
+                        break;
+                    } else {
+                        const valorantUser2 = getUser(user.id);
+                        if(!valorantUser2) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.USER_NOT_REGISTERED)],
+                            ephemeral: true
+                        });
+                        const shopuser = await getOffers(user.id);
+                        const message = await renderOffers(shopuser, interaction, valorantUser2, await emojiPromise);
+                        await interaction.followUp(message);
+    
+                        console.log(`Sent ${interaction.user.tag} shop from ${user.tag}!`);
+    
+                        break;
+                    }
                 }
                 case "bundles": {
                     if(!valorantUser) return await interaction.reply({
