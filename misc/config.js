@@ -45,6 +45,8 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "loginRetryTimeout", 10 * 60 * 1000);
     applyConfig(loadedConfig, "storePasswords", false);
     applyConfig(loadedConfig, "trackStoreStats", false);
+    applyConfig(loadedConfig, "statsExpirationDays", 14);
+    applyConfig(loadedConfig, "statsPerPage", 8);
     applyConfig(loadedConfig, "ownerId", "");
     applyConfig(loadedConfig, "ownerName", "");
     applyConfig(loadedConfig, "status", "Up and running!");

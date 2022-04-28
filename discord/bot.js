@@ -35,7 +35,13 @@ import {
     renderOffers,
     secondaryEmbed,
     skinChosenEmbed,
-    VAL_COLOR_1, botInfoEmbed, ownerMessageEmbed, alertTestResponse, alertsPageEmbed
+    VAL_COLOR_1,
+    botInfoEmbed,
+    ownerMessageEmbed,
+    alertTestResponse,
+    alertsPageEmbed,
+    statsForSkinEmbed,
+    allStatsEmbed
 } from "./embed.js";
 import {
     getQueueItemStatus,
@@ -44,6 +50,7 @@ import {
 } from "../valorant/authQueue.js";
 import {l, s} from "../misc/languages.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
+import {getOverallStats, getStatsFor} from "../misc/stats.js";
 
 const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -189,6 +196,16 @@ const commands = [
         }]
     },
     {
+        name: "stats",
+        description: "See the stats for a skin",
+        options: [{
+            type: "STRING",
+            name: "skin",
+            description: "The name of the skin you want to see the stats of",
+            required: false
+        }]
+    },
+    {
         name: "info",
         description: "Show information about the bot"
     }
@@ -208,13 +225,13 @@ client.on("messageCreate", async (message) => {
         if(content === "!deploy guild") {
             if(!message.guild) return;
 
-            console.log("deploying commands...");
+            console.log("Deploying commands in guild...");
 
             await message.guild.commands.set(commands).then(() => console.log(`Commands deployed in guild ${message.guild.name}!`));
 
             await message.reply("Deployed in guild!");
         } else if(content === "!deploy global") {
-            console.log("Deploying commands in guild...");
+            console.log("Deploying commands...");
 
             await client.application.commands.set(commands).then(() => console.log("Commands deployed globally!"));
 
@@ -406,7 +423,9 @@ client.on("interactionCreate", async (interaction) => {
                         return await interaction.followUp(message);
                     } else {
                         const row = new MessageActionRow();
-                        const options = searchResults.splice(0, 25).map(result => {
+
+                        // reverse the array so that older bundles are first
+                        const options = searchResults.reverse().splice(0, 25).map(result => {
                             return {
                                 label: l(result.names, interaction),
                                 value: `bundle-${result.uuid}`
@@ -520,8 +539,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     if(filteredResults.length === 0) {
                         if(searchResults.length === 0) return await interaction.followUp({
-                            embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)],
-                            ephemeral: true
+                            embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)]
                         });
 
                         const skin = searchResults[0];
@@ -691,6 +709,50 @@ client.on("interactionCreate", async (interaction) => {
 
                     break;
                 }
+                case "stats": {
+                    await defer(interaction);
+
+                    const skinName = (interaction.options.get("skin") || {}).value;
+
+                    if(skinName) {
+                        const skins = await searchSkin(skinName, interaction.locale);
+
+                        if(skins.length === 0) {
+                            return await interaction.followUp({
+                                embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)]
+                            });
+                        } else if(skins.length === 1 ||
+                            l(skins[0].names, interaction.locale).toLowerCase() === skinName.toLowerCase() ||
+                            l(skins[0].names).toLowerCase() === skinName.toLowerCase()) {
+                            const skin = skins[0];
+
+                            const stats = getStatsFor(skin.uuid);
+
+                            return await interaction.followUp({
+                                embeds: [await statsForSkinEmbed(skin, stats, interaction)]
+                            });
+                        } else {
+                            const row = new MessageActionRow();
+                            const options = skins.splice(0, 25).map(result => {
+                                return {
+                                    label: l(result.names, interaction),
+                                    value: `skin-${result.uuid}`
+                                }
+                            });
+                            row.addComponents(new MessageSelectMenu().setCustomId("skin-select-stats").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
+
+                            await interaction.followUp({
+                                embeds: [secondaryEmbed(s(interaction).info.STATS_CHOICE)],
+                                components: [row]
+                            });
+                        }
+
+                    } else {
+                        await interaction.followUp(await allStatsEmbed(interaction, getOverallStats()));
+                    }
+
+                    break;
+                }
                 case "info": {
                     const guildCount = client.guilds.cache.size;
 
@@ -747,6 +809,25 @@ client.on("interactionCreate", async (interaction) => {
 
                     break;
                 }
+                case "skin-select-stats": {
+                    if(interaction.message.interaction.user.id !== interaction.user.id) {
+                        return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_STATS)],
+                            ephemeral: true
+                        });
+                    }
+
+                    const chosenSkin = interaction.values[0].substr(5);
+                    const skin = await getSkin(chosenSkin);
+                    const stats = getStatsFor(chosenSkin);
+
+                    await interaction.update({
+                        embeds: [await statsForSkinEmbed(skin, stats, interaction)],
+                        components: []
+                    });
+
+                    break;
+                }
                 case "bundle-select": {
                     if(interaction.message.interaction.user.id !== interaction.user.id) {
                         return await interaction.reply({
@@ -775,7 +856,7 @@ client.on("interactionCreate", async (interaction) => {
         }
     } else if(interaction.isButton()) {
         try {
-            console.log(`${interaction.user.tag} clicked ${interaction.component.label}`);
+            console.log(`${interaction.user.tag} clicked ${interaction.component.customId}`);
             if(interaction.customId.startsWith("removealert/")) {
                 const [, uuid, id] = interaction.customId.split('/');
 
@@ -811,7 +892,7 @@ client.on("interactionCreate", async (interaction) => {
                 await interaction.deferReply({ephemeral: true});
                 const [, operationIndex] = interaction.customId.split('/');
                 await retryFailedOperation(interaction, parseInt(operationIndex));
-            } else if(interaction.customId.startsWith("changepage")) {
+            } else if(interaction.customId.startsWith("changealertspage")) {
                 const [, id, pageIndex] = interaction.customId.split('/');
 
                 if(id !== interaction.user.id) return await interaction.reply({
@@ -821,6 +902,15 @@ client.on("interactionCreate", async (interaction) => {
 
                 const emojiString = emojiToString(await VPEmoji(interaction.channel, externalEmojisAllowed(interaction.channel)) || s(interaction).info.PRICE);
                 await interaction.update(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), parseInt(pageIndex), emojiString));
+            } else if(interaction.customId.startsWith("changestatspage")) {
+                const [, id, pageIndex] = interaction.customId.split('/');
+
+                if(id !== interaction.user.id) return await interaction.reply({
+                    embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_STATS)],
+                    ephemeral: true
+                });
+
+                await interaction.update(await allStatsEmbed(interaction, await getOverallStats(), parseInt(pageIndex)));
             }
         } catch(e) {
             await handleError(e, interaction);

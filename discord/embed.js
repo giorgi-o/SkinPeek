@@ -8,6 +8,7 @@ import {
 import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
+import {getStatsFor} from "../misc/stats.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -81,7 +82,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => 
 }
 
 export const renderBundles = async (bundles, interaction, VPemoji) => {
-    if(!bundles.success) return authFailureMessage(interaction, bundles, s(interaction).error.AUTH_ERROR_BUNLES);
+    if(!bundles.success) return authFailureMessage(interaction, bundles, s(interaction).error.AUTH_ERROR_BUNDLES);
 
     bundles = bundles.bundles;
 
@@ -440,9 +441,9 @@ const priceDescription = (VPemojiString, price) => {
     if(price) return `${VPemojiString} ${price}`;
 }
 
-const pageButtons = (id, current) => {
-    const leftButton = new MessageButton().setStyle("PRIMARY").setEmoji("◀").setCustomId(`changepage/${id}/${current - 1}`);
-    const rightButton = new MessageButton().setStyle("PRIMARY").setEmoji("▶").setCustomId(`changepage/${id}/${current + 1}`);
+const pageButtons = (pageId, userId, current) => {
+    const leftButton = new MessageButton().setStyle("PRIMARY").setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
+    const rightButton = new MessageButton().setStyle("PRIMARY").setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
 
     return new MessageActionRow().setComponents(leftButton, rightButton);
 }
@@ -486,7 +487,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
 
     const maxPages = Math.ceil(alerts.length / config.alertsPerPage);
 
-    if(pageIndex < 0) pageIndex = maxPages;
+    if(pageIndex < 0) pageIndex = maxPages - 1;
     if(pageIndex >= maxPages) pageIndex = 0;
 
     const embed = { // todo switch this to a "one embed per alert" message, kinda like /shop
@@ -520,7 +521,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
         }
         actionRows.push(actionRow);
     }
-    if(maxPages > 1) actionRows.push(pageButtons(interaction.user.id, pageIndex));
+    if(maxPages > 1) actionRows.push(pageButtons("changealertspage", interaction.user.id, pageIndex));
 
     return {
         embeds: [embed],
@@ -537,6 +538,51 @@ export const alertTestResponse = async (interaction, success) => {
         await interaction.followUp({
             embeds: [basicEmbed(s(interaction).error.ALERT_NO_PERMS)]
         });
+    }
+}
+
+export const allStatsEmbed = async (interaction, stats, pageIndex=0) => {
+    const skinCount = Object.keys(stats.items).length;
+
+    if(skinCount === 0) return {
+        embeds: [basicEmbed(config.trackStoreStats ? s(interaction).error.STATS_DISABLED : s(interaction).error.EMPTY_STATS)]
+    }
+
+    const maxPages = Math.ceil(skinCount / config.statsPerPage);
+
+    if(pageIndex < 0) pageIndex = maxPages - 1;
+    if(pageIndex >= maxPages) pageIndex = 0;
+
+    const skinsToDisplay = Object.keys(stats.items).slice(pageIndex * config.statsPerPage, pageIndex * config.statsPerPage + config.statsPerPage);
+    const embeds = [basicEmbed(s(interaction).info.STATS_HEADER.f({c: stats.shopsIncluded, p: pageIndex + 1, t: maxPages}))];
+    for(const uuid of skinsToDisplay) {
+        const skin = await getSkin(uuid);
+        const statsForSkin = getStatsFor(uuid);
+        embeds.push(await statsForSkinEmbed(skin, statsForSkin, interaction));
+    }
+
+    return {
+        embeds: embeds,
+        components: [pageButtons("changestatspage", interaction.user.id, pageIndex)]
+    }
+}
+
+export const statsForSkinEmbed = async (skin, stats, interaction) => {
+    let description;
+    if(stats.count === 0) description = s(interaction).error.NO_STATS_FOR_SKIN.f({d: config.statsExpirationDays || '∞'});
+    else {
+        const percentage = Math.round(stats.count / stats.shopsIncluded * 100 * 100) / 100;
+        const crownEmoji = stats.rank[0] === 1 || stats.rank[0] === stats.rank[1] ? ':crown: ' : '';
+        description = s(interaction).info.STATS_DESCRIPTION.f({c: crownEmoji, r: stats.rank[0], t: stats.rank[1], p: percentage});
+    }
+
+    return {
+        title: await skinNameAndEmoji(skin, interaction.channel, interaction.locale),
+        description: description,
+        color: VAL_COLOR_2,
+        thumbnail: {
+            url: skin.icon
+        }
     }
 }
 

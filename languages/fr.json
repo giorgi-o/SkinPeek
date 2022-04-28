@@ -20,6 +20,10 @@
     "BUNDLE_NOT_FOUND": "**Je n'ai pas pu trouver cette collection!** Vérifie le nom et réessaye.",
     "UNKNOWN_ITEM_TYPE": "**Type d'item inconnu!** `{t}`",
     "MAINTENANCE": "**Les serveurs Valorant sont en maintenance!** Réessaye plus tard.",
+    "STATS_DISABLED": "**Les statistiques de la boutique sont désactivées sur ce bot!**",
+    "EMPTY_STATS":  "**Je n'ai pas de statistiques à montrer!** Fais `/shop` pour commencer.",
+    "NO_STATS_FOR_SKIN":  "**Ce skin n'a été dans aucune boutique** les {d} derniers jours!",
+    "NOT_UR_MESSAGE_STATS": "**Ce n'est pas ton message!** Fais `/stats` pour voir les statistiques de la boutique.",
     "NOT_UR_MESSAGE_BUNDLE": "**Ce n'est pas ton message!** Fais `/bundle` pour voir des collections.",
     "NOT_UR_MESSAGE_ALERT": "**Ce n'est pas ton message!** Fais `/alert` pour mettre en place tes alertes.",
     "NOT_UR_ALERT": "**Ce n'est pas ton alerte!** Utilise `/alerts` pour voir tes alertes.",
@@ -78,6 +82,9 @@
     "MFA_GENERIC": "**Tu as activé l'authentification à 2 facteurs!** Utilise `/2fa` pour te connecter avec le code.",
     "AUTH_ERROR_RETRY": "Réessayer",
     "ACCOUNT_DELETED": "Ton compte à été supprimé du bot!",
+    "STATS_HEADER": "Statistiques basées sur **{c}** boutiques différents *(page **{p}** sur **{t}**)*",
+    "STATS_DESCRIPTION": "{c}[**{r}**/{t}] Dans **${p}%** des boutiques",
+    "STATS_CHOICE": "De quel skin voudrais-tu voir les statistiques?",
     "UNHANDLED_COMMAND": "Tu es un sorcier, Harry!"
   },
   "battlepass": {

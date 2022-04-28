@@ -1,8 +1,23 @@
 # SkinPeek
-Discord bot to see your daily VALORANT item shop without launching the game, set alerts for skins, and much more.
+
+**The best discord shop bot.** Easy to use, featureful, and battle-tested.  
+See your daily VALORANT item shop without launching the game, set alerts for skins, and much more.
 
 ![image](https://user-images.githubusercontent.com/20621396/153754892-2be9dff0-19e7-4cc3-976b-713c327b440b.png)  
 ![image](https://user-images.githubusercontent.com/20621396/153755071-62ffe0f5-ae36-4aa7-924c-b2ffd9e4dc1b.png)
+
+
+<details>
+<summary>See some more screenshots</summary>
+
+![image](https://user-images.githubusercontent.com/20621396/155337379-f9435975-2b6e-44fa-8bd4-9dd8413b5622.png)  
+![image](https://user-images.githubusercontent.com/20621396/155331133-6f078c13-eabb-4617-a5af-0e1339360c42.png)  
+![image](https://user-images.githubusercontent.com/20621396/155335268-6540b345-c08d-4252-ba31-725d216da880.png)
+![image](https://user-images.githubusercontent.com/20621396/165736062-08c3270f-fde8-4cfa-9fca-f11005f0d250.png)  
+![image](https://user-images.githubusercontent.com/20621396/155335737-6df6c650-212c-47b3-838b-18a9a15b3f94.png)
+
+</details>
+
 ## Features
 
 - Login using `/login`
@@ -12,19 +27,8 @@ Discord bot to see your daily VALORANT item shop without launching the game, set
 - See your battlepass progress using `/battlepass`
 - Set alerts using `/alert`
 - Manage your alerts using `/alerts`
+- See your shop statistics using `/stats`
 - Show your VALORANT Points & Radianite using `/balance`
-
-## Screenshots
-
-<details>
-<summary>See some more screenshots</summary>
-
-![image](https://user-images.githubusercontent.com/20621396/155337379-f9435975-2b6e-44fa-8bd4-9dd8413b5622.png)  
-![image](https://user-images.githubusercontent.com/20621396/155331133-6f078c13-eabb-4617-a5af-0e1339360c42.png)  
-![image](https://user-images.githubusercontent.com/20621396/155335268-6540b345-c08d-4252-ba31-725d216da880.png)  
-![image](https://user-images.githubusercontent.com/20621396/155335737-6df6c650-212c-47b3-838b-18a9a15b3f94.png)
-
-</details>
 
 ## Installation
 
