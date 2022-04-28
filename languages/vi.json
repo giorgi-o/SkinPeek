@@ -31,7 +31,7 @@
     "GHOST_ALERT": "Thông báo skin này không còn tồn tại nữa!",
     "ALERT_NO_PERMS": "**Tôi không có quyền gửi các thông báo vào kênh này!** Liệu tôi đã có đúng vai trò trong Discord chưa?\nHãy thêm cho tôi quyền `Xem Kênh`, `Gửi tin nhắn`, `Nhúng liên kết` và `Dùng emoji mở rộng` trong kênh này, rồi thử dùng `/testalerts`.",
     "NO_NMARKET": "**Hiện tại đang không có Chợ Đêm nào cả!**",
-    "GENERIC_ERROR": ":no_entry_sign: **Đã xảy ra lỗi nào đó, hãy báo cáo lại lỗi giúp mình!** Tất cả là tại Riot :(\n`{e}`"
+    "GENERIC_ERROR": ":no_entry_sign: **Đã xảy ra lỗi nào đó, hãy báo cáo lại lỗi giúp mình!** Lỗi tại Rito!!\n`{e}`"
   },
   "info":{
     "SHOP_HEADER": "Cửa hàng ngày hôm nay của **{u}** (làm mới <t:{t}:R>)",
