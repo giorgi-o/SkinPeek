@@ -19,6 +19,10 @@
       "BUNDLE_NOT_FOUND": "**その名前のバンドルが見つかりませんでした！** スペルを確認して、もう一度お試しください。",
       "UNKNOWN_ITEM_TYPE": "`{t}`**は不明なアイテムタイプです！**",
       "MAINTENANCE": "**VALORANTサーバーは現在メンテナンスのためダウンしています！** 時間をおいてからもう一度お試しください。",
+      "STATS_DISABLED": "**Shop statistics are currently disabled for this bot!**",
+      "EMPTY_STATS":  "**I have no shop stats to display!** use `/shop` to get started.",
+      "NO_STATS_FOR_SKIN":  "**That skin hasn't been in anyone's shop** in the past {d} days!",
+      "NOT_UR_MESSAGE_STATS": "**That's not your message!** Use `/stats` to browse skin stats.",
       "NOT_UR_MESSAGE_BUNDLE": "**それはあなたのメッセージではありません！** バンドルを検索するには`/bundle`を使用してください。",
       "NOT_UR_MESSAGE_ALERT": "**それはあなたのメッセージではありません！** `/alert`を使用して独自のアラートを設定します。",
       "NOT_UR_ALERT": "**そのアラートはあなたのものではありません！** アラートを管理するには`/alerts`を使用してください。",
@@ -76,6 +80,9 @@
       "MFA_GENERIC": "**二要素認証が有効になっています！** `/2fa`を使用して2FAコードを入力してください。",
       "AUTH_ERROR_RETRY": "リトライ",
       "ACCOUNT_DELETED": "あなたのアカウントはデータベースから削除されました！",
+      "STATS_HEADER": "Skin stats based on **{c}** different shops *(page **{p}** of **{t}**)*",
+      "STATS_DESCRIPTION": "{c}[**{r}**/{t}] In **${p}%** of shops",
+      "STATS_CHOICE": "Which skin would you like to see the stats of?",
       "UNHANDLED_COMMAND": "Yer a wizard harry!"
     },
     "battlepass": {

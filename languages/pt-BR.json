@@ -20,6 +20,10 @@
     "BUNDLE_NOT_FOUND": "**Couldn't find a bundle with that name!** Verifique a ortografia e tente novamente.",
     "UNKNOWN_ITEM_TYPE": "**Tipo do item desconhecido!** `{t}`",
     "MAINTENANCE": "**Servidores do valorante estão em manutenção no momento!** Tente novamente mais tarde.",
+    "STATS_DISABLED": "**Shop statistics are currently disabled for this bot!**",
+    "EMPTY_STATS":  "**I have no shop stats to display!** use `/shop` to get started.",
+    "NO_STATS_FOR_SKIN":  "**That skin hasn't been in anyone's shop** in the past {d} days!",
+    "NOT_UR_MESSAGE_STATS": "**That's not your message!** Use `/stats` to browse skin stats.",
     "NOT_UR_MESSAGE_BUNDLE": "**Esta não é sua mensagem!** Use `/bundle` para procurar por pacotes.",
     "NOT_UR_MESSAGE_ALERT": "**Esta não é sua mensagem!** Use `/alert` para setar seu próprio alerta.",
     "NOT_UR_ALERT": "**Este não é seu alerta!** Use `/alerts` para gerenciar seus alertas.",
@@ -77,6 +81,9 @@
     "MFA_GENERIC": "**Você possui 2FA ativado!** use `/2fa` para entrar com o código.",
     "AUTH_ERROR_RETRY": "Retentar",
     "ACCOUNT_DELETED": "Sua conta foi removida do banco de dados!",
+    "STATS_HEADER": "Skin stats based on **{c}** different shops *(page **{p}** of **{t}**)*",
+    "STATS_DESCRIPTION": "{c}[**{r}**/{t}] In **${p}%** of shops",
+    "STATS_CHOICE": "Which skin would you like to see the stats of?",
     "UNHANDLED_COMMAND": "Você é um mago, harry!"
   },
   "battlepass": {

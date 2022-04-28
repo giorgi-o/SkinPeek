@@ -17,8 +17,12 @@
     "AUTH_ERROR_ALERTS_HAPPENED": "**<@{u}> Không thể kiểm tra các thông báo của bạn!** Liệu có phải bạn đã đổi mật khẩu?\nVui lòng `/login` lại nhé.",
     "SKIN_NOT_FOUND": "**Không thể tìm được skin nào với tên như thế!** Kiểm tra lại tên skin nhé.",
     "BUNDLE_NOT_FOUND": "**Không thể tìm được bộ sưu tập với tên đó!** Kiểm tra lại tên bộ sưu tập nhé.",
-    "UNKNOWN_ITEM_TYPE": "**Tôi năm nay hơn 70 tuổi rồi mà chưa gặp vật phẩm nào như thế này cả!** `{t}`",
+    "UNKNOWN_ITEM_TYPE": "**Tôi năm nay hơn 70 tuổi rồi mà chưa gặp vật phẩm nào lạ như thế này cả!** `{t}`",
     "MAINTENANCE": "**Máy chủ VALORANT của Riot đang bảo trì!** Thử lại sau nhé.",
+    "STATS_DISABLED": "**Thống kê skin đã bị vô hiệu hoá trên bot này!**",
+    "EMPTY_STATS":  "**Tôi không có dữ liệu thống kê cửa hàng!** dùng `/shop` để bắt đầu nhé.",
+    "NO_STATS_FOR_SKIN":  "**Skin đó chưa vào trong bất kỳ một cửa hàng nào** trong {d} ngày qua!",
+    "NOT_UR_MESSAGE_STATS": "**Đó không phải là nút bấm của bạn!** Dùng `/stats` để xem thống kê skin nhé.",
     "NOT_UR_MESSAGE_BUNDLE": "**Đây có phải message của bạn đâu mà bấm!** Dùng `/bundle` để tìm bộ sưu tập nhé.",
     "NOT_UR_MESSAGE_ALERT": "**Đây có phải message của bạn đâu mà bấm!** Dùng `/alert` để cài báo skin cho bản thân mình nhé.",
     "NOT_UR_ALERT": "**Đây không phải là thông báo của bạn!** Dùng `/alerts` để quản lý báo skin đã cài của bản thân nhé.",
@@ -27,7 +31,7 @@
     "GHOST_ALERT": "Thông báo skin này không còn tồn tại nữa!",
     "ALERT_NO_PERMS": "**Tôi không có quyền gửi các thông báo vào kênh này!** Liệu tôi đã có đúng vai trò trong Discord chưa?\nHãy thêm cho tôi quyền `Xem Kênh`, `Gửi tin nhắn`, `Nhúng liên kết` và `Dùng emoji mở rộng` trong kênh này, rồi thử dùng `/testalerts`.",
     "NO_NMARKET": "**Hiện tại đang không có Chợ Đêm nào cả!**",
-    "GENERIC_ERROR": ":no_entry_sign: **Đã xảy ra lỗi nào đó, vui lòng báo lại cho dev!** Tất cả là tại Riot :(\n`{e}`"
+    "GENERIC_ERROR": ":no_entry_sign: **Đã xảy ra lỗi nào đó, hãy báo cáo lại lỗi giúp mình!** Lỗi tại Rito!!\n`{e}`"
   },
   "info":{
     "SHOP_HEADER": "Cửa hàng ngày hôm nay của **{u}** (làm mới <t:{t}:R>)",
@@ -76,6 +80,9 @@
     "MFA_GENERIC": "**Bạn đã bật 2FA!** dùng `/2fa` để nhập mã xác thực của bạn.",
     "AUTH_ERROR_RETRY": "Thử lại",
     "ACCOUNT_DELETED": "Tài khoản của bạn đã được xoá khỏi bot!",
+    "STATS_HEADER": "Thống kê skin dựa trên **{c}** cửa hàng khác nhau *(trang **{p}** trên **{t}**)*",
+    "STATS_DESCRIPTION": "{c}[**{r}**/{t}] Trong **${p}%** tổng số cửa hàng",
+    "STATS_CHOICE": "Bạn muốn xem thống kê của skin nào?",
     "UNHANDLED_COMMAND": "Bạn là một phù thuỷ đó, Harry!"
   },
   "battlepass": {
