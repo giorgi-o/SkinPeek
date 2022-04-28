@@ -12,7 +12,7 @@ See your daily VALORANT item shop without launching the game, set alerts for ski
 
 ![image](https://user-images.githubusercontent.com/20621396/155337379-f9435975-2b6e-44fa-8bd4-9dd8413b5622.png)  
 ![image](https://user-images.githubusercontent.com/20621396/155331133-6f078c13-eabb-4617-a5af-0e1339360c42.png)  
-![image](https://user-images.githubusercontent.com/20621396/155335268-6540b345-c08d-4252-ba31-725d216da880.png)
+![image](https://user-images.githubusercontent.com/20621396/155335268-6540b345-c08d-4252-ba31-725d216da880.png)  
 ![image](https://user-images.githubusercontent.com/20621396/165736062-08c3270f-fde8-4cfa-9fca-f11005f0d250.png)  
 ![image](https://user-images.githubusercontent.com/20621396/155335737-6df6c650-212c-47b3-838b-18a9a15b3f94.png)
 
@@ -69,6 +69,7 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 * ~~See current bundles~~
 * ~~See battlepass progress~~ (thanks muckelba!)
 * ~~Localization support~~
+* ~~Shop statistics~~
 * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
 * Option to send shop automatically every day
 * Admin commands (delete user, see/edit everyone's alerts, etc.)
