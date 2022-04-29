@@ -441,9 +441,12 @@ const priceDescription = (VPemojiString, price) => {
     if(price) return `${VPemojiString} ${price}`;
 }
 
-const pageButtons = (pageId, userId, current) => {
-    const leftButton = new MessageButton().setStyle("PRIMARY").setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
-    const rightButton = new MessageButton().setStyle("PRIMARY").setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
+const pageButtons = (pageId, userId, current, max) => {
+    const leftButton = new MessageButton().setStyle("SECONDARY").setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
+    const rightButton = new MessageButton().setStyle("SECONDARY").setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
+
+    if(current === 0) leftButton.setEmoji("⏩");
+    if(current === max - 1) rightButton.setEmoji("⏪");
 
     return new MessageActionRow().setComponents(leftButton, rightButton);
 }
@@ -521,7 +524,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
         }
         actionRows.push(actionRow);
     }
-    if(maxPages > 1) actionRows.push(pageButtons("changealertspage", interaction.user.id, pageIndex));
+    if(maxPages > 1) actionRows.push(pageButtons("changealertspage", interaction.user.id, pageIndex, maxPages));
 
     return {
         embeds: [embed],
@@ -563,7 +566,7 @@ export const allStatsEmbed = async (interaction, stats, pageIndex=0) => {
 
     return {
         embeds: embeds,
-        components: [pageButtons("changestatspage", interaction.user.id, pageIndex)]
+        components: [pageButtons("changestatspage", interaction.user.id, pageIndex, maxPages)]
     }
 }
 
