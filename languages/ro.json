@@ -81,7 +81,7 @@
       "AUTH_ERROR_RETRY": "Reîncercare",
       "ACCOUNT_DELETED": "Contul vostru a fost sters din system!",
       "STATS_HEADER": "Skin stats based on **{c}** different shops *(page **{p}** of **{t}**)*",
-      "STATS_DESCRIPTION": "{c}[**{r}**/{t}] In **${p}%** of shops",
+      "STATS_DESCRIPTION": "{c}[**{r}**/{t}] In **{p}%** of shops",
       "STATS_CHOICE": "Which skin would you like to see the stats of?",
       "UNHANDLED_COMMAND": "Yer a wizard harry!"
     },

@@ -83,7 +83,7 @@
     "AUTH_ERROR_RETRY": "Réessayer",
     "ACCOUNT_DELETED": "Ton compte à été supprimé du bot!",
     "STATS_HEADER": "Statistiques basées sur **{c}** boutiques différents *(page **{p}** sur **{t}**)*",
-    "STATS_DESCRIPTION": "{c}[**{r}**/{t}] Dans **${p}%** des boutiques",
+    "STATS_DESCRIPTION": "{c}[**{r}**/{t}] Dans **{p}%** des boutiques",
     "STATS_CHOICE": "De quel skin voudrais-tu voir les statistiques?",
     "UNHANDLED_COMMAND": "Tu es un sorcier, Harry!"
   },

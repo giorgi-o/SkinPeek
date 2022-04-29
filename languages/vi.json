@@ -81,7 +81,7 @@
     "AUTH_ERROR_RETRY": "Thử lại",
     "ACCOUNT_DELETED": "Tài khoản của bạn đã được xoá khỏi bot!",
     "STATS_HEADER": "Thống kê skin dựa trên **{c}** cửa hàng khác nhau *(trang **{p}** trên **{t}**)*",
-    "STATS_DESCRIPTION": "{c}[**{r}**/{t}] Trong **${p}%** tổng số cửa hàng",
+    "STATS_DESCRIPTION": "{c}[**{r}**/{t}] Trong **{p}%** tổng số cửa hàng",
     "STATS_CHOICE": "Bạn muốn xem thống kê của skin nào?",
     "UNHANDLED_COMMAND": "Bạn là một phù thuỷ đó, Harry!"
   },
