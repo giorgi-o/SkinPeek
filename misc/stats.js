@@ -5,7 +5,10 @@ let stats = {
     fileVersion: 2,
     stats: {}
 };
-let overallStats;
+let overallStats = {
+    shopsIncluded: 0,
+    items: {}
+};
 
 export const loadStats = (filename="data/stats.json") => {
     if(!config.trackStoreStats) return;

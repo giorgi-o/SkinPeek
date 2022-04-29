@@ -548,7 +548,7 @@ export const allStatsEmbed = async (interaction, stats, pageIndex=0) => {
     const skinCount = Object.keys(stats.items).length;
 
     if(skinCount === 0) return {
-        embeds: [basicEmbed(config.trackStoreStats ? s(interaction).error.STATS_DISABLED : s(interaction).error.EMPTY_STATS)]
+        embeds: [basicEmbed(config.trackStoreStats ? s(interaction).error.EMPTY_STATS : s(interaction).error.STATS_DISABLED)]
     }
 
     const maxPages = Math.ceil(skinCount / config.statsPerPage);
