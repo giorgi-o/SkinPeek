@@ -18,6 +18,8 @@ See your daily VALORANT item shop without launching the game, set alerts for ski
 
 </details>
 
+Feel free to join the [support server](https://discord.gg/yx5sPJxWth) for any help with the bot or if you want to use a public instance without hosting it yourself!
+
 ## Features
 
 - Login using `/login`
@@ -81,7 +83,7 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 - [muckelba](https://github.com/muckelba) for writing the battlepass calculator
 - [Spirit](https://github.com/SpiritLetsPlays) for his [API](https://docs.valtracker.gg/bundles) for getting past bundle items and prices
 - [warriorzz](https://github.com/warriorzz) for setting up the Docker
-- [The discord server](https://discord.gg/a9yzrw3KAm), join here!
+- [The dev discord server](https://discord.gg/a9yzrw3KAm), join here!
 
 ## Translations
 
