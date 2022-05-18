@@ -5,7 +5,7 @@ import Fuse from "fuse.js";
 import fs from "fs";
 import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
 
-const formatVersion = 5;
+const formatVersion = 6;
 let gameVersion;
 
 let skins, rarities, buddies, sprays, cards, titles, bundles;
@@ -387,7 +387,6 @@ export const getSkin = async (uuid) => {
     if(!skin) return null;
 
     skin.price = await getPrice(uuid);
-    skin.rarity = await getRarity(skin.rarity);
 
     return skin;
 }
@@ -397,7 +396,7 @@ export const getPrice = async (uuid) => {
     return prices[uuid] || null;
 }
 
-const getRarity = async (uuid) => {
+export const getRarity = async (uuid) => {
     if(!rarities) await fetchData([rarities]);
     if(rarities) return rarities[uuid] || null;
 }

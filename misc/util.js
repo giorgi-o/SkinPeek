@@ -1,6 +1,6 @@
 import {rarityEmoji} from "../discord/emoji.js";
 import {MessageActionRow, MessageButton, Permissions, Util} from "discord.js";
-import {getItem} from "../valorant/cache.js";
+import {getItem, getRarity} from "../valorant/cache.js";
 
 import https from "https";
 import fs from "fs";
@@ -165,7 +165,11 @@ export const defer = async (interaction, ephemeral=false) => {
 export const skinNameAndEmoji = async (skin, channel, locale=DEFAULT_LANG) => {
     const name = l(skin.names, locale);
     if(!skin.rarity) return name;
-    const rarityIcon = await rarityEmoji(channel, skin.rarity.name, skin.rarity.icon, externalEmojisAllowed(channel));
+
+    const rarity = await getRarity(skin.rarity, channel);
+    if(!rarity) return name;
+
+    const rarityIcon = await rarityEmoji(channel, rarity.name, rarity.icon, externalEmojisAllowed(channel));
     return rarityIcon ? `${rarityIcon} ${name}` : name;
 }
 
