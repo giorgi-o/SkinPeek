@@ -300,11 +300,12 @@ client.on("messageCreate", async (message) => {
             const messageContent = content.substring(9);
             const messageEmbed = ownerMessageEmbed(messageContent, message.author);
 
-            await message.reply(`Sending message to ${client.guilds.cache.size} guilds...`);
+            await message.reply(`Sending message to ${client.guilds.cache.size} guilds (if they have alerts set up)`);
 
             for(const guild of client.guilds.cache.values()) {
                 try {
                     const alerts = await alertsForGuild(guild.id);
+                    console.debug(`Found ${alerts.length} alerts for guild ${guild.name}`);
                     if(!alerts.length) continue;
 
                     const alertsPerChannel = {};
@@ -322,6 +323,7 @@ client.on("messageCreate", async (message) => {
                     if(channelWithMostAlerts[0] === null) continue;
 
                     const channel = await guild.channels.fetch(channelWithMostAlerts[0]);
+                    console.debug(`Channel with most alerts: #${channel.name} (${channelWithMostAlerts[1]} alerts)`);
                     if(channel) await channel.send({
                         embeds: [messageEmbed]
                     });

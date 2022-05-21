@@ -72,13 +72,12 @@ export const filteredAlertsForUser = async (interaction) => {
 }
 
 export const alertsForGuild = async (id) => {
-    const alertsInGuild = [];
-
     const guild = await client.guilds.fetch(id);
+    if(!guild) return [];
+
+    const alertsInGuild = [];
     for(const alert of alerts) {
-        const channel = await client.channels.fetch(alert.channel_id)
-        if(channel.guildId === guild.id)
-            alertsInGuild.push(alert);
+        if(guild.channels.cache.has(alert.channel_id)) alertsInGuild.push(alert);
     }
 
     return alertsInGuild;
