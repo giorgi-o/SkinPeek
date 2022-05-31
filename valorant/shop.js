@@ -1,7 +1,7 @@
 import {authUser, deleteUser, getUser} from "./auth.js";
 import {fetch, formatBundle, isMaintenance, userRegion} from "../misc/util.js";
 import {addBundleData} from "./cache.js";
-import {addStore} from "../misc/stats.js";
+import {addNightMarket, addStore} from "../misc/stats.js";
 
 export const getShop = async (id) => {
     const authSuccess = await authUser(id);
@@ -28,6 +28,7 @@ export const getShop = async (id) => {
     // shop stats tracking
     try {
         addStore(user.puuid, json.SkinsPanelLayout.SingleItemOffers);
+        addNightMarket(user.puuid, json.BonusStore.BonusStoreOffers.map(offer => offer.Offer.OfferID));
     } catch(e) {
         console.error("Error adding shop stats!");
         console.error(e);

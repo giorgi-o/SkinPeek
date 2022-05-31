@@ -8,7 +8,7 @@ import {
 import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
-import {getStatsFor} from "../misc/stats.js";
+import {getNMStatsFor, getShopStatsFor} from "../misc/stats.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -445,8 +445,8 @@ const pageButtons = (pageId, userId, current, max) => {
     const leftButton = new MessageButton().setStyle("SECONDARY").setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
     const rightButton = new MessageButton().setStyle("SECONDARY").setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
 
-    if(current === 0) leftButton.setEmoji("⏩");
-    if(current === max - 1) rightButton.setEmoji("⏪");
+    if(current === 0) leftButton.setEmoji("⏪");
+    if(current === max - 1) rightButton.setEmoji("⏩");
 
     return new MessageActionRow().setComponents(leftButton, rightButton);
 }
@@ -560,7 +560,7 @@ export const allStatsEmbed = async (interaction, stats, pageIndex=0) => {
     const embeds = [basicEmbed(s(interaction).info.STATS_HEADER.f({c: stats.shopsIncluded, p: pageIndex + 1, t: maxPages}))];
     for(const uuid of skinsToDisplay) {
         const skin = await getSkin(uuid);
-        const statsForSkin = getStatsFor(uuid);
+        const statsForSkin = interaction.commandName === "statsnm" ? getNMStatsFor(uuid) : getShopStatsFor(uuid);
         embeds.push(await statsForSkinEmbed(skin, statsForSkin, interaction));
     }
 

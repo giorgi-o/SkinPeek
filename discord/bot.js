@@ -1,4 +1,11 @@
-import {Client, Intents, MessageActionRow, MessageFlags, MessageSelectMenu} from "discord.js";
+import {
+    ApplicationCommand as SlashCommandBuilder,
+    Client,
+    Intents,
+    MessageActionRow,
+    MessageFlags,
+    MessageSelectMenu
+} from "discord.js";
 import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
 import {
     addAlert,
@@ -50,7 +57,7 @@ import {
 } from "../valorant/authQueue.js";
 import {l, s} from "../misc/languages.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
-import {getOverallStats, getStatsFor} from "../misc/stats.js";
+import {getNMStatsFor, getOverallNMStats, getOverallShopStats, getShopStatsFor} from "../misc/stats.js";
 
 const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -85,6 +92,8 @@ const scheduleTasks = () => {
 
     // if login queue is enabled, process an item every 3 seconds
     if(config.useLoginQueue && config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processQueue));
+
+    console.debug("Scheduled tasks!");
 }
 
 const destroyTasks = () => {
@@ -198,6 +207,16 @@ const commands = [
     {
         name: "stats",
         description: "See the stats for a skin",
+        options: [{
+            type: "STRING",
+            name: "skin",
+            description: "The name of the skin you want to see the stats of",
+            required: false
+        }]
+    },
+    {
+        name: "statsnm",
+        description: "See the stats for a skin in the Night Market",
         options: [{
             type: "STRING",
             name: "skin",
@@ -728,7 +747,7 @@ client.on("interactionCreate", async (interaction) => {
                             l(skins[0].names).toLowerCase() === skinName.toLowerCase()) {
                             const skin = skins[0];
 
-                            const stats = getStatsFor(skin.uuid);
+                            const stats = getShopStatsFor(skin.uuid);
 
                             return await interaction.followUp({
                                 embeds: [await statsForSkinEmbed(skin, stats, interaction)]
@@ -750,7 +769,51 @@ client.on("interactionCreate", async (interaction) => {
                         }
 
                     } else {
-                        await interaction.followUp(await allStatsEmbed(interaction, getOverallStats()));
+                        await interaction.followUp(await allStatsEmbed(interaction, getOverallShopStats()));
+                    }
+
+                    break;
+                }
+                case "statsnm": {
+                    await defer(interaction);
+
+                    const skinName = (interaction.options.get("skin") || {}).value;
+
+                    if(skinName) {
+                        const skins = await searchSkin(skinName, interaction.locale);
+
+                        if(skins.length === 0) {
+                            return await interaction.followUp({
+                                embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)]
+                            });
+                        } else if(skins.length === 1 ||
+                            l(skins[0].names, interaction.locale).toLowerCase() === skinName.toLowerCase() ||
+                            l(skins[0].names).toLowerCase() === skinName.toLowerCase()) {
+                            const skin = skins[0];
+
+                            const stats = getNMStatsFor(skin.uuid);
+
+                            return await interaction.followUp({
+                                embeds: [await statsForSkinEmbed(skin, stats, interaction)]
+                            });
+                        } else {
+                            const row = new MessageActionRow();
+                            const options = skins.splice(0, 25).map(result => {
+                                return {
+                                    label: l(result.names, interaction),
+                                    value: `skin-${result.uuid}`
+                                }
+                            });
+                            row.addComponents(new MessageSelectMenu().setCustomId("skin-select-stats").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
+
+                            await interaction.followUp({
+                                embeds: [secondaryEmbed(s(interaction).info.STATS_CHOICE)],
+                                components: [row]
+                            });
+                        }
+
+                    } else {
+                        await interaction.followUp(await allStatsEmbed(interaction, getOverallNMStats()));
                     }
 
                     break;
@@ -821,7 +884,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     const chosenSkin = interaction.values[0].substr(5);
                     const skin = await getSkin(chosenSkin);
-                    const stats = getStatsFor(chosenSkin);
+                    const stats = getShopStatsFor(chosenSkin);
 
                     await interaction.update({
                         embeds: [await statsForSkinEmbed(skin, stats, interaction)],
@@ -912,7 +975,7 @@ client.on("interactionCreate", async (interaction) => {
                     ephemeral: true
                 });
 
-                await interaction.update(await allStatsEmbed(interaction, await getOverallStats(), parseInt(pageIndex)));
+                await interaction.update(await allStatsEmbed(interaction, await getOverallShopStats(), parseInt(pageIndex)));
             }
         } catch(e) {
             await handleError(e, interaction);

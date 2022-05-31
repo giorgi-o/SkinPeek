@@ -1,26 +1,36 @@
 import config from "./config.js";
 import fs from "fs";
 
-let stats = {
+/*let stats = {
     fileVersion: 2,
     stats: {}
+};*/
+let stats = {
+    fileVersion: 3,
+    shopStats: {},
+    NMStats: {},
+    lastNM: 0,
+    nmUsersIncluded: []
 };
-let overallStats = {
+let overallShopStats = {
     shopsIncluded: 0,
     items: {}
 };
 
+// todo check all occurences of renamed functions
 export const loadStats = (filename="data/stats.json") => {
     if(!config.trackStoreStats) return;
     try {
         const obj = JSON.parse(fs.readFileSync(filename).toString());
 
-        if(!obj.fileVersion) transferStatsFromV1(obj);
+        if(!obj.fileVersion) stats = transferStatsFromV1(obj);
+        if(obj.fileVersion === 2) stats = transferStatsFromV2(obj);
         else stats = obj;
 
         saveStats(filename);
 
-        calculateOverallStats();
+        calculateOverallShopStats();
+        sortNMItemStats();
     } catch(e) {}
 }
 
@@ -28,23 +38,23 @@ const saveStats = (filename="data/stats.json") => {
     fs.writeFileSync(filename, JSON.stringify(stats, null, 2));
 }
 
-export const calculateOverallStats = () => {
+export const calculateOverallShopStats = () => {
     cleanupStats();
 
-    overallStats = {
+    overallShopStats = {
         shopsIncluded: 0,
         items: {}
     }
     let items = {};
 
-    for(let dateString in stats.stats) {
+    for(let dateString in stats.shopStats) {
         if(config.statsExpirationDays && daysAgo(dateString) > config.statsExpirationDays) {
-            // delete stats.stats[dateString];
+            // delete stats.shopStats[dateString];
             continue;
         }
-        const dayStats = stats.stats[dateString];
+        const dayStats = stats.shopStats[dateString];
 
-        overallStats.shopsIncluded += dayStats.shopsIncluded;
+        overallShopStats.shopsIncluded += dayStats.shopsIncluded;
         for(let item in dayStats.items) {
             if(item in items) {
                 items[item] += dayStats.items[item];
@@ -56,19 +66,43 @@ export const calculateOverallStats = () => {
 
     const sortedItems = Object.entries(items).sort(([,a], [,b]) => b - a);
     for(const [uuid, count] of sortedItems) {
-        overallStats.items[uuid] = count;
+        overallShopStats.items[uuid] = count;
     }
 }
 
-export const getOverallStats = () => {
-    return overallStats || {};
+const sortNMItemStats = () => { // todo should this be exported? calculateOverallStats is
+    const sortedItems = Object.entries(stats.NMStats).sort(([,a], [,b]) => b - a);
+
+    stats.NMStats = {};
+    for(const [uuid, count] of sortedItems) {
+        stats.NMStats[uuid] = count;
+    }
 }
 
-export const getStatsFor = (uuid) => {
+export const getOverallShopStats = () => {
+    return overallShopStats || {};
+}
+
+export const getOverallNMStats = () => {
     return {
-        shopsIncluded: overallStats.shopsIncluded,
-        count: overallStats.items[uuid] || 0,
-        rank: [Object.keys(overallStats.items).indexOf(uuid) + 1, Object.keys(overallStats.items).length]
+        NMsIncluded: stats.nmUsersIncluded.length,
+        items: stats.NMStats
+    };
+}
+
+export const getShopStatsFor = (uuid) => {
+    return {
+        shopsIncluded: overallShopStats.shopsIncluded,
+        count: overallShopStats.items[uuid] || 0,
+        rank: [Object.keys(overallShopStats.items).indexOf(uuid) + 1, Object.keys(overallShopStats.items).length]
+    }
+}
+
+export const getNMStatsFor = (uuid) => {
+    return {
+        shopsIncluded: stats.nmUsersIncluded.length,
+        count: stats.NMStats[uuid] || 0,
+        rank: [Object.keys(stats.NMStats).indexOf(uuid) + 1, Object.keys(stats.NMStats).length]
     }
 }
 
@@ -77,14 +111,14 @@ export const addStore = (puuid, items) => {
 
     const today = formatDate(new Date());
 
-    let todayStats = stats.stats[today];
+    let todayStats = stats.shopStats[today];
     if(!todayStats) {
         todayStats = {
             shopsIncluded: 0,
             items: {},
             users: []
         };
-        stats.stats[today] = todayStats;
+        stats.shopStats[today] = todayStats;
     }
 
     if(todayStats.users.includes(puuid)) return;
@@ -101,15 +135,40 @@ export const addStore = (puuid, items) => {
 
     saveStats();
 
-    calculateOverallStats();
+    calculateOverallShopStats();
+}
+
+export const addNightMarket = (puuid, items) => { // todo this
+    if(!config.trackStoreStats) return;
+
+    if(Date.now() - stats.lastNM > 1000 * 60 * 60 * 24 * 21) { // if last night market added was more than 21 days ago
+        stats.NMStats = {};
+        stats.nmUsersIncluded = [];
+    }
+    stats.lastNM = Date.now();
+
+    if(stats.nmUsersIncluded.includes(puuid)) return;
+    stats.nmUsersIncluded.push(puuid);
+
+    for(const item of items) {
+        if(item in stats.NMStats) {
+            stats.NMStats[item]++;
+        } else {
+            stats.NMStats[item] = 1;
+        }
+    }
+
+    saveStats();
+
+    sortNMItemStats();
 }
 
 const cleanupStats = () => {
     if(!config.statsExpirationDays) return;
 
-    for(const dateString in stats.stats) {
+    for(const dateString in stats.shopStats) {
         if(daysAgo(dateString) > config.statsExpirationDays) {
-            delete stats.stats[dateString];
+            delete stats.shopStats[dateString];
         }
     }
 
@@ -131,9 +190,26 @@ const daysAgo = (dateString) => {
 }
 
 const transferStatsFromV1 = (obj) => {
+    const stats = {
+        fileVersion: 2,
+        stats: {}
+    };
     stats.stats[formatDate(new Date())] = {
         shopsIncluded: obj.shopsIncluded,
         items: obj.itemStats,
         users: obj.usersAddedToday
     };
+    return stats;
+}
+
+const transferStatsFromV2 = (obj) => {
+    const stats = {
+        fileVersion: 3,
+        shopStats: {},
+        NMStats: {},
+        lastNM: 0,
+        nmUsersIncluded: []
+    };
+    stats.shopStats = obj.stats;
+    return stats;
 }
