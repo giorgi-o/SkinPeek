@@ -43,6 +43,8 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "useLoginQueue", false);
     applyConfig(loadedConfig, "loginQueue", "*/3 * * * * *");
     applyConfig(loadedConfig, "loginRetryTimeout", 10 * 60 * 1000);
+    applyConfig(loadedConfig, "useShopQueue", false);
+    applyConfig(loadedConfig, "shopQueue", "*/1 * * * * *");
     applyConfig(loadedConfig, "storePasswords", false);
     applyConfig(loadedConfig, "trackStoreStats", false);
     applyConfig(loadedConfig, "statsExpirationDays", 14);

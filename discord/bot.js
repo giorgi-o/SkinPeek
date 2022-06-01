@@ -22,7 +22,7 @@ import {
     skinNameAndEmoji, wait
 } from "../misc/util.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
-import {getBalance, getBundles, getNightMarket, getOffers} from "../valorant/shop.js";
+import {getBalance} from "../valorant/shop.js";
 import { getBattlepassProgress } from "../valorant/battlepass.js";
 import config, {saveConfig} from "../misc/config.js";
 import {
@@ -44,13 +44,20 @@ import {
     allStatsEmbed
 } from "./embed.js";
 import {
-    getQueueItemStatus,
-    processQueue,
+    getAuthQueueItemStatus,
+    processAuthQueue,
     queueCookiesLogin,
 } from "../valorant/authQueue.js";
 import {l, s} from "../misc/languages.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
 import {getOverallStats, getStatsFor} from "../misc/stats.js";
+import {
+    getShopQueueItemStatus,
+    processShopQueue,
+    queueBundles,
+    queueItemShop,
+    queueNightMarket
+} from "../valorant/shopQueue.js";
 
 const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -84,7 +91,10 @@ const scheduleTasks = () => {
     if(config.cleanupAccounts) cronTasks.push(cron.schedule(config.cleanupAccounts, cleanupAccounts));
 
     // if login queue is enabled, process an item every 3 seconds
-    if(config.useLoginQueue && config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processQueue));
+    if(config.useLoginQueue && config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processAuthQueue));
+
+    // if shop queue is enabled, process an item every second
+    if(config.useShopQueue && config.shopQueue) cronTasks.push(cron.schedule(config.shopQueue, processShopQueue));
 }
 
 const destroyTasks = () => {
@@ -375,7 +385,12 @@ client.on("interactionCreate", async (interaction) => {
                     // start uploading emoji now
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
-                    const shop = await getOffers(interaction.user.id);
+                    let shop = await queueItemShop(interaction.user.id);
+                    while(shop.inQueue) {
+                        const queueStatus = getShopQueueItemStatus(shop.c);
+                        if(queueStatus.processed) shop = queueStatus.result;
+                        else await wait(150);
+                    }
 
                     const message = await renderOffers(shop, interaction, valorantUser, await emojiPromise);
                     await interaction.followUp(message);
@@ -395,7 +410,12 @@ client.on("interactionCreate", async (interaction) => {
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
-                    const bundles = await getBundles(interaction.user.id);
+                    let bundles = await queueBundles(interaction.user.id);
+                    while(bundles.inQueue) {
+                        const queueStatus = getShopQueueItemStatus(bundles.c);
+                        if(queueStatus.processed) bundles = queueStatus.result;
+                        else await wait(150);
+                    }
 
                     const message = await renderBundles(bundles, interaction, await emojiPromise);
                     await interaction.followUp(message);
@@ -467,7 +487,12 @@ client.on("interactionCreate", async (interaction) => {
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
-                    const market = await getNightMarket(interaction.user.id);
+                    let market = await queueNightMarket(interaction.user.id);
+                    while(market.inQueue) {
+                        const queueStatus = getShopQueueItemStatus(market.c);
+                        if(queueStatus.processed) market = queueStatus.result;
+                        else await wait(150);
+                    }
 
                     const message = await renderNightMarket(market, interaction, valorantUser, await emojiPromise);
                     await interaction.followUp(message);
@@ -651,7 +676,7 @@ client.on("interactionCreate", async (interaction) => {
                     let success = await queueCookiesLogin(interaction.user.id, cookies);
 
                     while(success.inQueue) {
-                        const queueStatus = getQueueItemStatus(success.c);
+                        const queueStatus = getAuthQueueItemStatus(success.c);
                         if(queueStatus.processed) success = queueStatus.result;
                         else await wait(150);
                     }

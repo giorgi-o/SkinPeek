@@ -1,4 +1,4 @@
-import {getQueueItemStatus, Operations, queue2FACodeRedeem, queueUsernamePasswordLogin} from "../valorant/authQueue.js";
+import {getAuthQueueItemStatus, Operations, queue2FACodeRedeem, queueUsernamePasswordLogin} from "../valorant/authQueue.js";
 import {actionRow, retryAuthButton, wait} from "../misc/util.js";
 import {getUser} from "../valorant/auth.js";
 import {authFailureMessage, basicEmbed} from "./embed.js";
@@ -11,7 +11,7 @@ export const loginUsernamePassword = async (interaction, username, password, ope
     let login = await queueUsernamePasswordLogin(interaction.user.id, username, password);
 
     while(login.inQueue) {
-        const queueStatus = getQueueItemStatus(login.c);
+        const queueStatus = getAuthQueueItemStatus(login.c);
         if(queueStatus.processed) login = queueStatus.result;
         else await wait(150);
     }
@@ -54,7 +54,7 @@ export const login2FA = async (interaction, code, operationIndex=null) => {
     let login = await queue2FACodeRedeem(interaction.user.id, code);
 
     while(login.inQueue) {
-        const queueStatus = getQueueItemStatus(login.c);
+        const queueStatus = getAuthQueueItemStatus(login.c);
         if(queueStatus.processed) login = queueStatus.result;
         else await wait(150);
     }
