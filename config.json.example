@@ -14,8 +14,12 @@
   "useLoginQueue": false,
   "loginQueue": "*/2 * * * * *",
   "loginRetryTimeout": 600000,
+  "useShopQueue": true,
+  "shopQueue": "*/1 * * * * *",
   "storePasswords": false,
   "trackStoreStats": false,
+  "statsExpirationDays": 14,
+  "statsPerPage": 8,
   "ownerId": "",
   "ownerName": "",
   "status": "Up and running!"

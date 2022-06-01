@@ -106,14 +106,13 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
     }];
 
     for(const bundleData of bundles) {
-        const bundle = await getBundle(bundles[0].uuid);
+        const bundle = await getBundle(bundleData.uuid);
 
         const subName = bundle.subNames ? l(bundle.subNames, interaction) + "\n" : "";
         const slantedDescription = bundle.descriptions ? "*" + l(bundle.descriptions, interaction) + "*\n" : "";
-        const strikedBundleBasePrice = bundle.basePrice ? " ~~" + bundle.basePrice + "~~" : "";
         const embed = {
             title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
-            description: `${subName}${slantedDescription}${emojiString} **${bundle.price}**${strikedBundleBasePrice} ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
+            description: `${subName}${slantedDescription}${emojiString} **${bundle.price}** - ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: bundle.icon
