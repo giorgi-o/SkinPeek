@@ -14,7 +14,7 @@ let prices = {timestamp: null};
 let skinSearchers, bundleSearchers;
 
 export const getValorantVersion = async () => {
-    console.debug("Fetching current valorant version...");
+    console.log("Fetching current valorant version...");
 
     const req = await fetch("https://valorant-api.com/v1/version");
     console.assert(req.statusCode === 200, `Valorant version status code is ${req.statusCode}!`, req);
@@ -70,7 +70,7 @@ export const fetchData = async (types=null, checkVersion=false) => {
 }
 
 export const getSkinList = async (gameVersion) => {
-    console.debug("Fetching valorant skin list...");
+    console.log("Fetching valorant skin list...");
 
     const req = await fetch("https://valorant-api.com/v1/weapons/skins?language=all");
     console.assert(req.statusCode === 200, `Valorant skins status code is ${req.statusCode}!`, req);
@@ -120,7 +120,7 @@ const getPrices = async (gameVersion, id=null) => {
     const authSuccess = await authUser(id);
     if(!authSuccess.success || !user.rso || !user.ent || !user.region) return false;
 
-    console.debug(`Fetching skin prices using ${user.username}'s access token...`);
+    console.log(`Fetching skin prices using ${user.username}'s access token...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetOffers.md
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/offers/`, {
@@ -149,7 +149,7 @@ const getPrices = async (gameVersion, id=null) => {
 }
 
 const getBundleList = async (gameVersion) => {
-    console.debug("Fetching valorant bundle list...");
+    console.log("Fetching valorant bundle list...");
 
     const req = await fetch("https://valorant-api.com/v1/bundles?language=all");
     console.assert(req.statusCode === 200, `Valorant bundles status code is ${req.statusCode}!`, req);
@@ -260,7 +260,7 @@ export const addBundleData = async (bundleData) => {
 const getRarities = async (gameVersion) => {
     if(!config.fetchSkinRarities) return false;
 
-    console.debug("Fetching skin rarities list...");
+    console.log("Fetching skin rarities list...");
 
     const req = await fetch("https://valorant-api.com/v1/contenttiers/");
     console.assert(req.statusCode === 200, `Valorant rarities status code is ${req.statusCode}!`, req);
@@ -283,7 +283,7 @@ const getRarities = async (gameVersion) => {
 }
 
 export const getBuddies = async (gameVersion) => {
-    console.debug("Fetching gun buddies list...");
+    console.log("Fetching gun buddies list...");
 
     const req = await fetch("https://valorant-api.com/v1/buddies?language=all");
     console.assert(req.statusCode === 200, `Valorant buddies status code is ${req.statusCode}!`, req);
@@ -305,7 +305,7 @@ export const getBuddies = async (gameVersion) => {
 }
 
 export const getCards = async (gameVersion) => {
-    console.debug("Fetching player cards list...");
+    console.log("Fetching player cards list...");
 
     const req = await fetch("https://valorant-api.com/v1/playercards?language=all");
     console.assert(req.statusCode === 200, `Valorant cards status code is ${req.statusCode}!`, req);
@@ -330,7 +330,7 @@ export const getCards = async (gameVersion) => {
 }
 
 export const getSprays = async (gameVersion) => {
-    console.debug("Fetching sprays list...");
+    console.log("Fetching sprays list...");
 
     const req = await fetch("https://valorant-api.com/v1/sprays?language=all");
     console.assert(req.statusCode === 200, `Valorant sprays status code is ${req.statusCode}!`, req);
@@ -351,7 +351,7 @@ export const getSprays = async (gameVersion) => {
 }
 
 export const getTitles = async (gameVersion) => {
-    console.debug("Fetching player titles list...");
+    console.log("Fetching player titles list...");
 
     const req = await fetch("https://valorant-api.com/v1/playertitles?language=all");
     console.assert(req.statusCode === 200, `Valorant titles status code is ${req.statusCode}!`, req);

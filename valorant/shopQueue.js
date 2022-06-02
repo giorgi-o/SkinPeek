@@ -20,7 +20,7 @@ export const queueItemShop = async (id) => {
         operation: Operations.SHOP,
         c, id
     });
-    console.debug(`Added item shop fetch to shop queue for user ${id} (c=${c})`);
+    console.log(`Added item shop fetch to shop queue for user ${id} (c=${c})`);
     return {inQueue: true, c};
 }
 
@@ -31,7 +31,7 @@ export const queueNightMarket = async (id) => {
         operation: Operations.NIGHT_MARKET,
         c, id
     });
-    console.debug(`Added night market fetch to shop queue for user ${id} (c=${c})`);
+    console.log(`Added night market fetch to shop queue for user ${id} (c=${c})`);
     return {inQueue: true, c};
 }
 
@@ -42,7 +42,7 @@ export const queueBundles = async (id) => {
         operation: Operations.BUNDLES,
         c, id
     });
-    console.debug(`Added bundles fetch to shop queue for user ${id} (c=${c})`);
+    console.log(`Added bundles fetch to shop queue for user ${id} (c=${c})`);
     return {inQueue: true, c};
 }
 
@@ -53,7 +53,7 @@ export const queueNullOperation = async (timeout) => {  // used for stress-testi
         operation: Operations.NULL,
         c, timeout
     });
-    console.debug(`Added null operation to shop queue with timeout ${timeout} (c=${c})`);
+    console.log(`Added null operation to shop queue with timeout ${timeout} (c=${c})`);
     return {inQueue: true, c};
 }
 
@@ -61,7 +61,7 @@ export const processShopQueue = async () => {
     if(!config.useShopQueue || !queue.length) return;
 
     const item = queue.shift();
-    console.debug(`Processing shop queue item "${item.operation}" for ${item.id} (c=${item.c})`);
+    console.log(`Processing shop queue item "${item.operation}" for ${item.id} (c=${item.c})`);
 
     let result;
     try {

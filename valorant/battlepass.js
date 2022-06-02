@@ -9,7 +9,7 @@ const LEVEL_MULTIPLIER = 750;
 const SEASON_END = 'June 22, 2022'; // TODO fetch season end from API, maybe store that date to reduce calls?
 
 const getWeeklies = async () => {
-    console.debug("Fetching mission data...");
+    console.log("Fetching mission data...");
 
     const req = await fetch("https://valorant-api.com/v1/missions");
     console.assert(req.statusCode === 200, `Valorant mission status code is ${req.statusCode}!`, req);
@@ -51,7 +51,7 @@ export const getBattlepassProgress = async (id, maxlevel) => {
         return authSuccess;
 
     const user = getUser(id);
-    console.debug(`Fetching battlepass progress for ${user.username}...`);
+    console.log(`Fetching battlepass progress for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Contracts/GET%20Contracts_Fetch.md
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/contracts/v1/contracts/${user.puuid}`, {
@@ -174,7 +174,7 @@ const getBattlepassPurchase = async (id) => {
         return authSuccess;
 
     const user = getUser(id);
-    console.debug(`Fetching battlepass purchases for ${user.username}...`);
+    console.log(`Fetching battlepass purchases for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetEntitlements.md
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/entitlements/${user.puuid}/f85cb6f7-33e5-4dc8-b609-ec7212301948`, {

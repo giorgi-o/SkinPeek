@@ -102,7 +102,7 @@ export const removeAlertsInChannel = (channel_id) => {
 
 export const checkAlerts = async () => {
     if(!alerts) return;
-    console.debug("Checking new shop skins for alerts...");
+    console.log("Checking new shop skins for alerts...");
 
     try {
         for(const id of getUserList()) {
@@ -139,7 +139,7 @@ export const checkAlerts = async () => {
 }
 
 const sendAlert = async (alerts, expires) => {
-    console.debug(`Sending alerts...`);
+    console.log(`Sending alerts...`);
 
     for(let i = 0; i < alerts.length; i++) {
         let alert = alerts[i];

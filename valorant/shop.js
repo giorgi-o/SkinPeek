@@ -8,7 +8,7 @@ export const getShop = async (id) => {
     if(!authSuccess.success) return authSuccess;
 
     const user = getUser(id);
-    console.debug(`Fetching shop for ${user.username}...`);
+    console.log(`Fetching shop for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetStorefrontV2.md
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v2/storefront/${user.puuid}`, {
@@ -81,7 +81,7 @@ export const getBalance = async (id) => {
     if(!authSuccess.success) return authSuccess;
 
     const user = getUser(id);
-    console.debug(`Fetching balance for ${user.username}...`);
+    console.log(`Fetching balance for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetWallet.md
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/wallet/${user.puuid}`, {

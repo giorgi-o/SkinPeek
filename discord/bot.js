@@ -79,7 +79,7 @@ client.on("ready", async () => {
 });
 
 const scheduleTasks = () => {
-    console.debug("Scheduling tasks...");
+    console.log("Scheduling tasks...");
 
     // check alerts every day at 00:00:10 GMT
     if(config.refreshSkins) cronTasks.push(cron.schedule(config.refreshSkins, checkAlerts, {timezone: "GMT"}));
@@ -98,7 +98,7 @@ const scheduleTasks = () => {
 }
 
 const destroyTasks = () => {
-    console.debug("Destroying scheduled tasks...");
+    console.log("Destroying scheduled tasks...");
     for(const task of cronTasks)
         task.stop();
     cronTasks.length = 0;
@@ -230,7 +230,7 @@ client.on("messageCreate", async (message) => {
 
         const content = message.content.replace(/<@!?\d+> ?/, ""); // remove @bot mention
         if(!content.startsWith('!')) return;
-        console.debug(`${message.author.tag} sent admin command ${content}`);
+        console.log(`${message.author.tag} sent admin command ${content}`);
 
         if(content === "!deploy guild") {
             if(!message.guild) return;
@@ -315,7 +315,7 @@ client.on("messageCreate", async (message) => {
             for(const guild of client.guilds.cache.values()) {
                 try {
                     const alerts = await alertsForGuild(guild.id);
-                    console.debug(`Found ${alerts.length} alerts for guild ${guild.name}`);
+                    console.log(`Found ${alerts.length} alerts for guild ${guild.name}`);
                     if(!alerts.length) continue;
 
                     const alertsPerChannel = {};
@@ -333,7 +333,7 @@ client.on("messageCreate", async (message) => {
                     if(channelWithMostAlerts[0] === null) continue;
 
                     const channel = await guild.channels.fetch(channelWithMostAlerts[0]);
-                    console.debug(`Channel with most alerts: #${channel.name} (${channelWithMostAlerts[1]} alerts)`);
+                    console.log(`Channel with most alerts: #${channel.name} (${channelWithMostAlerts[1]} alerts)`);
                     if(channel) await channel.send({
                         embeds: [messageEmbed]
                     });

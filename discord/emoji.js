@@ -52,13 +52,13 @@ const emojiInGuild = (guild, name) => {
 
 const createEmoji = async (guild, name, filenameOrUrl) => {
     if(!guild || !name || !filenameOrUrl) return;
-    if(!canCreateEmojis(guild)) return console.debug(`Don't have permission to create emoji ${name} in guild ${guild.name}!`);
+    if(!canCreateEmojis(guild)) return console.log(`Don't have permission to create emoji ${name} in guild ${guild.name}!`);
 
     await updateEmojiCache(guild);
     if(guild.emojis.cache.size >= maxEmojis(guild))
-        return console.debug(`Emoji limit of ${maxEmojis(guild)} reached for ${guild.name} while uploading ${name}!`);
+        return console.log(`Emoji limit of ${maxEmojis(guild)} reached for ${guild.name} while uploading ${name}!`);
 
-    console.debug(`Uploading emoji ${name} in ${guild.name}...`);
+    console.log(`Uploading emoji ${name} in ${guild.name}...`);
     try {
         return await guild.emojis.create(await resolveFilenameOrUrl(filenameOrUrl), name);
     } catch(e) {
@@ -81,7 +81,7 @@ const updateEmojiCache = async (guild) => {
     await guild.emojis.fetch();
 
     lastEmojiFetch[guild.id] = Date.now();
-    console.debug(`Updated emoji cache for ${guild.name}`);
+    console.log(`Updated emoji cache for ${guild.name}`);
 }
 
 const maxEmojis = (guild) => {
