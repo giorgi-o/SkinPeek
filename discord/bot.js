@@ -433,12 +433,15 @@ client.on("interactionCreate", async (interaction) => {
                     const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
                     const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
 
+                    // if the name matches exactly, and there is only one with that name
+                    const nameMatchesExactly = (interaction) => searchResults.filter(r => l(r.names, interaction).toLowerCase() === searchQuery.toLowerCase()).length === 1;
+
                     if(searchResults.length === 0) {
                         return await interaction.followUp({
                             embeds: [basicEmbed(s(interaction).error.BUNDLE_NOT_FOUND)],
                             ephemeral: true
                         });
-                    } else if(searchResults.length === 1) {
+                    } else if(searchResults.length === 1 || nameMatchesExactly(interaction) || nameMatchesExactly()) { // check both localized and english
                         const bundle = searchResults[0];
                         const message = await renderBundle(bundle, interaction, emoji)
 
@@ -446,8 +449,7 @@ client.on("interactionCreate", async (interaction) => {
                     } else {
                         const row = new MessageActionRow();
 
-                        // reverse the array so that older bundles are first
-                        const options = searchResults.reverse().splice(0, 25).map(result => {
+                        const options = searchResults.splice(0, 25).map(result => {
                             return {
                                 label: l(result.names, interaction),
                                 value: `bundle-${result.uuid}`
@@ -938,6 +940,20 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 await interaction.update(await allStatsEmbed(interaction, await getOverallStats(), parseInt(pageIndex)));
+            } else if(interaction.customId.startsWith("viewbundle")) {
+                const [, id, uuid] = interaction.customId.split('/');
+
+                if(id !== interaction.user.id) return await interaction.reply({
+                    embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_BUNDLE)],
+                    ephemeral: true
+                });
+
+                const bundle = await getBundle(uuid);
+                const emoji = await VPEmoji(interaction.channel, externalEmojisAllowed(interaction.channel));
+                await interaction.update({
+                    components: [],
+                    ...await renderBundle(bundle, interaction, emoji),
+                });
             }
         } catch(e) {
             await handleError(e, interaction);

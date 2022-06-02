@@ -105,6 +105,8 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         color: VAL_COLOR_1
     }];
 
+    const buttons = [];
+
     for(const bundleData of bundles) {
         const bundle = await getBundle(bundleData.uuid);
 
@@ -119,9 +121,16 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
             }
         };
         embeds.push(embed);
+
+        if(buttons.length < 5) {
+            buttons.push(new MessageButton().setCustomId(`viewbundle/${interaction.user.id}/${bundle.uuid}`).setStyle("PRIMARY").setLabel(l(bundle.names, interaction)).setEmoji("🔎"));
+        }
     }
 
-    return {embeds};
+    return {
+        embeds: embeds,
+        components: [new MessageActionRow().addComponents(...buttons)]
+    };
 }
 
 export const renderBundle = async (bundle, interaction, emoji, includeExpires=true) => {

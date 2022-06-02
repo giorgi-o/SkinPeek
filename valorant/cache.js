@@ -230,7 +230,8 @@ const getBundleList = async (gameVersion) => {
 export const formatSearchableBundleList = () => {
     bundleSearchers = {};
     for(const locale of new Set(Object.values(discToValLang))) {
-        bundleSearchers[locale] = new Fuse(Object.values(bundles).filter(o => typeof o === "object"), {keys: [`names.${locale}`, `names.${DEFAULT_VALORANT_LANG}`], includeScore: true});
+        // reverse the array so that older bundles are first
+        bundleSearchers[locale] = new Fuse(Object.values(bundles).reverse().filter(o => typeof o === "object"), {keys: [`names.${locale}`, `names.${DEFAULT_VALORANT_LANG}`], includeScore: true});
     }
 }
 
