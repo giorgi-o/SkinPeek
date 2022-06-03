@@ -52,6 +52,8 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "ownerId", "");
     applyConfig(loadedConfig, "ownerName", "");
     applyConfig(loadedConfig, "status", "Up and running!");
+    applyConfig(loadedConfig, "logToChannel", "");
+    applyConfig(loadedConfig, "logFrequency", "*/10 * * * * *");
 
     saveConfig(filename, config);
 

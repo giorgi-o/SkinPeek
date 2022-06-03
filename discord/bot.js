@@ -58,6 +58,7 @@ import {
     queueItemShop,
     queueNightMarket
 } from "../valorant/shopQueue.js";
+import {sendConsoleOutput, setClient as setLoggerClient} from "../misc/logger.js";
 
 const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -72,6 +73,7 @@ client.on("ready", async () => {
     fetchData().then(() => console.log("Skins loaded!"));
 
     setClient(client);
+    setLoggerClient(client);
 
     scheduleTasks();
 
@@ -95,6 +97,9 @@ const scheduleTasks = () => {
 
     // if shop queue is enabled, process an item every second
     if(config.useShopQueue && config.shopQueue) cronTasks.push(cron.schedule(config.shopQueue, processShopQueue));
+
+    // if send console to discord channel is enabled, send console output every 10 seconds
+    if(config.logToChannel && config.logFrequency) cronTasks.push(cron.schedule(config.logFrequency, sendConsoleOutput));
 }
 
 const destroyTasks = () => {

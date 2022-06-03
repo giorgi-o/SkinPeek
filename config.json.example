@@ -22,5 +22,7 @@
   "statsPerPage": 8,
   "ownerId": "",
   "ownerName": "",
-  "status": "Up and running!"
+  "status": "Up and running!",
+  "logToChannel": "",
+  "logFrequency": "*/10 * * * * *"
 }
