@@ -106,8 +106,10 @@ const getPrices = async (gameVersion, id=null) => {
 
     // if no ID is passed, try with all users
     if(id === null) {
-        for(const id of getUserList().sort( // start with the users using cookies to avoid triggering 2FA
-            (a, b) => !!getUser(a).cookies - !!getUser(b).cookies)) {
+        for(const id of getUserList()) {
+            const user = getUser(id);
+            if(!user.auth) continue;
+
             const success = await getPrices(gameVersion, id);
             if(success) return true;
         }
@@ -118,15 +120,15 @@ const getPrices = async (gameVersion, id=null) => {
     if(!user) return false;
 
     const authSuccess = await authUser(id);
-    if(!authSuccess.success || !user.rso || !user.ent || !user.region) return false;
+    if(!authSuccess.success || !user.auth.rso || !user.auth.ent || !user.region) return false;
 
     console.log(`Fetching skin prices using ${user.username}'s access token...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetOffers.md
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/offers/`, {
         headers: {
-            "Authorization": "Bearer " + user.rso,
-            "X-Riot-Entitlements-JWT": user.ent
+            "Authorization": "Bearer " + user.auth.rso,
+            "X-Riot-Entitlements-JWT": user.auth.ent
         }
     });
     console.assert(req.statusCode === 200, `Valorant skins prices code is ${req.statusCode}!`, req);
@@ -237,8 +239,9 @@ export const formatSearchableBundleList = () => {
 
 export const addBundleData = async (bundleData) => {
     await fetchData([bundles]);
-    if(bundles[bundleData.uuid]) {
-        const bundle = bundles[bundleData.uuid];
+
+    const bundle = bundles[bundleData.uuid];
+    if(bundle) {
         bundle.items = bundleData.items.map(item => {
             return {
                 uuid: item.uuid,

@@ -1,13 +1,9 @@
 import config from "./config.js";
 import {escapeMarkdown} from "./util.js";
+import {client} from "../discord/bot.js";
 
 const oldLog = console.log;
 const oldError = console.error;
-
-let client;
-export const setClient = (c) => {
-    client = c;
-}
 
 const messagesToLog = [];
 

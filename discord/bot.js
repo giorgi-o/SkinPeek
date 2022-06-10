@@ -1,66 +1,23 @@
 import {Client, Intents, MessageActionRow, MessageFlags, MessageSelectMenu} from "discord.js";
-import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
-import {
-    addAlert,
-    alertExists, alertsForGuild,
-    checkAlerts, filteredAlertsForUser, removeAlert,
-    removeAlertsInChannel,
-    setClient, testAlerts
-} from "./alerts.js";
 import cron from "node-cron";
-import {
-    authUser,
-    cleanupAccounts, deleteUser,
-    getUser, getUserList,
-} from "../valorant/auth.js";
-import {
-    canSendMessages,
-    defer,
-    emojiToString,
-    externalEmojisAllowed,
-    removeAlertActionRow,
-    skinNameAndEmoji, wait
-} from "../misc/util.js";
-import {RadEmoji, VPEmoji} from "./emoji.js";
-import {getBalance} from "../valorant/shop.js";
-import { getBattlepassProgress } from "../valorant/battlepass.js";
-import config, {saveConfig} from "../misc/config.js";
-import {
-    authFailureMessage,
-    basicEmbed,
-    renderBundle,
-    renderBundles,
-    renderNightMarket,
-    renderBattlepass,
-    renderOffers,
-    secondaryEmbed,
-    skinChosenEmbed,
-    VAL_COLOR_1,
-    botInfoEmbed,
-    ownerMessageEmbed,
-    alertTestResponse,
-    alertsPageEmbed,
-    statsForSkinEmbed,
-    allStatsEmbed
-} from "./embed.js";
-import {
-    getAuthQueueItemStatus,
-    processAuthQueue,
-    queueCookiesLogin,
-} from "../valorant/authQueue.js";
-import {l, s} from "../misc/languages.js";
-import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
-import {getOverallStats, getStatsFor} from "../misc/stats.js";
-import {
-    getShopQueueItemStatus,
-    processShopQueue,
-    queueBundles,
-    queueItemShop,
-    queueNightMarket
-} from "../valorant/shopQueue.js";
-import {sendConsoleOutput, setClient as setLoggerClient} from "../misc/logger.js";
 
-const client = new Client({
+import {authFailureMessage, basicEmbed, renderBundle, renderBundles, renderNightMarket, renderBattlepass, renderOffers, secondaryEmbed, skinChosenEmbed, VAL_COLOR_1, botInfoEmbed, ownerMessageEmbed, alertTestResponse, alertsPageEmbed, statsForSkinEmbed, allStatsEmbed} from "./embed.js";
+import {authUser, deleteUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
+import {getBalance} from "../valorant/shop.js";
+import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
+import {addAlert, alertExists, alertsPerChannelPerGuild, checkAlerts, filteredAlertsForUser, removeAlert, testAlerts} from "./alerts.js";
+import {RadEmoji, VPEmoji} from "./emoji.js";
+import {getShopQueueItemStatus, processShopQueue, queueBundles, queueItemShop, queueNightMarket} from "../valorant/shopQueue.js";
+import {getAuthQueueItemStatus, processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
+import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
+import { getBattlepassProgress } from "../valorant/battlepass.js";
+import {getOverallStats, getStatsFor} from "../misc/stats.js";
+import {canSendMessages, defer, emojiToString, externalEmojisAllowed, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
+import config, {saveConfig} from "../misc/config.js";
+import {sendConsoleOutput} from "../misc/logger.js";
+import {l, s} from "../misc/languages.js";
+
+export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
     shards: "auto"
 });
@@ -71,9 +28,6 @@ client.on("ready", async () => {
 
     console.log("Loading skins...");
     fetchData().then(() => console.log("Skins loaded!"));
-
-    setClient(client);
-    setLoggerClient(client);
 
     scheduleTasks();
 
@@ -88,9 +42,6 @@ const scheduleTasks = () => {
 
     // check for new valorant version every 15mins
     if(config.checkGameVersion) cronTasks.push(cron.schedule(config.checkGameVersion, () => fetchData(null, true)));
-
-    // cleanup accounts every hour
-    if(config.cleanupAccounts) cronTasks.push(cron.schedule(config.cleanupAccounts, cleanupAccounts));
 
     // if login queue is enabled, process an item every 3 seconds
     if(config.useLoginQueue && config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processAuthQueue));
@@ -311,24 +262,19 @@ client.on("messageCreate", async (message) => {
                 if(configType === 'undefined') s += "\n**Note:** That config option wasn't there before! Are you sure that's not a typo?"
                 await message.reply(s);
             }
-        } else if(content.startsWith("!message")) {
+        } else if(content.startsWith("!message ")) {
             const messageContent = content.substring(9);
             const messageEmbed = ownerMessageEmbed(messageContent, message.author);
 
             await message.reply(`Sending message to ${client.guilds.cache.size} guilds (if they have alerts set up)`);
 
-            for(const guild of client.guilds.cache.values()) {
+            const alerts = await alertsPerChannelPerGuild();
+            for(const guildId in alerts) {
+                const guild = client.guilds.cache.get(guildId);
+                if(!guild) continue;
+
                 try {
-                    const alerts = await alertsForGuild(guild.id);
-                    console.log(`Found ${alerts.length} alerts for guild ${guild.name}`);
-                    if(!alerts.length) continue;
-
-                    const alertsPerChannel = {};
-                    for(const alert of alerts) {
-                        if(alertsPerChannel[alert.channel_id]) alertsPerChannel[alert.channel_id]++;
-                        else alertsPerChannel[alert.channel_id] = 1;
-                    }
-
+                    const alertsPerChannel = alerts[guildId];
                     let channelWithMostAlerts = [null, 0];
                     for(const channelId in alertsPerChannel) {
                         if(alertsPerChannel[channelId] > channelWithMostAlerts[1]) {
@@ -338,8 +284,10 @@ client.on("messageCreate", async (message) => {
                     if(channelWithMostAlerts[0] === null) continue;
 
                     const channel = await guild.channels.fetch(channelWithMostAlerts[0]);
+                    if(!channel) continue;
+
                     console.log(`Channel with most alerts: #${channel.name} (${channelWithMostAlerts[1]} alerts)`);
-                    if(channel) await channel.send({
+                    await channel.send({
                         embeds: [messageEmbed]
                     });
                 } catch(e) {
@@ -561,14 +509,7 @@ client.on("interactionCreate", async (interaction) => {
                     const filteredResults = [];
                     for(const result of searchResults) {
                         const otherAlert = alertExists(interaction.user.id, result.uuid);
-                        if(otherAlert) { // user already has an alert for this skin
-                            // maybe it's in a now deleted channel?
-                            const otherChannel = await client.channels.fetch(otherAlert.channel_id).catch(() => {});
-                            if(!otherChannel) {
-                                removeAlertsInChannel(otherAlert.channel_id);
-                                filteredResults.push(result);
-                            }
-                        } else filteredResults.push(result);
+                        if(!otherAlert) filteredResults.push(result);
                     }
 
                     if(filteredResults.length === 0) {
@@ -588,8 +529,7 @@ client.on("interactionCreate", async (interaction) => {
                         l(filteredResults[0].names).toLowerCase() === searchQuery.toLowerCase()) {
                         const skin = filteredResults[0];
 
-                        addAlert({
-                            id: interaction.user.id,
+                        addAlert(interaction.user.id, {
                             uuid: skin.uuid,
                             channel_id: interaction.channelId
                         });
@@ -662,7 +602,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "2fa": {
-                    if(!valorantUser || !valorantUser.waiting2FA) return await interaction.reply({
+                    if(!valorantUser || !valorantUser.auth || !valorantUser.auth.waiting2FA) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.UNEXPECTED_2FA)],
                         ephemeral: true
                     });
@@ -693,7 +633,7 @@ client.on("interactionCreate", async (interaction) => {
                     if(success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
                         embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
-                        user.locale = interaction.locale;
+                        setUserLocale(user, interaction.locale);
                     } else {
                         console.log(`${interaction.user.tag} cookies login failed`);
                         embed = basicEmbed(s(interaction).error.INVALID_COOKIES);
@@ -830,7 +770,7 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    addAlert({
+                    addAlert(interaction.user.id, {
                         id: interaction.user.id,
                         uuid: chosenSkin,
                         channel_id: interaction.channelId
@@ -964,10 +904,6 @@ client.on("interactionCreate", async (interaction) => {
             await handleError(e, interaction);
         }
     }
-});
-
-client.on("channelDelete", channel => {
-    removeAlertsInChannel(channel.id);
 });
 
 const handleError = async (e, interaction) => {

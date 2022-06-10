@@ -5,6 +5,7 @@ import {getItem, getRarity} from "../valorant/cache.js";
 import https from "https";
 import fs from "fs";
 import {DEFAULT_LANG, l} from "./languages.js";
+import {client} from "../discord/bot.js";
 
 const tlsCiphers = [
     'TLS_CHACHA20_POLY1305_SHA256',
@@ -206,8 +207,35 @@ export const canSendMessages = (channel) => {
     return permissions.has(Permissions.FLAGS.VIEW_CHANNEL) && permissions.has(Permissions.FLAGS.SEND_MESSAGES) && permissions.has(Permissions.FLAGS.EMBED_LINKS);
 }
 
+export const getChannelGuildId = async (channelId) => {
+    if(client.shard) {
+        const f = client => {
+            const channel = client.channels.get(channelId);
+            if(channel) return channel.guildId;
+        };
+        const results = await client.shard.broadcastEval(f);
+        return results.find(result => result);
+    } else {
+        const channel = client.channels.cache.get(channelId);
+        return channel && channel.guildId;
+    }
+}
+
 export const canEditInteraction = (interaction) => Date.now() - interaction.createdTimestamp < 14.8 * 60 * 1000;
+
+export const discordTag = id => {
+    const user = client.users.cache.get(id);
+    return user ? `${user.username}#${user.discriminator}` : id;
+}
 
 export const escapeMarkdown = Util.escapeMarkdown;
 
+// misc utils
+
 export const wait = ms => new Promise(r => setTimeout(r, ms));
+
+export const isToday = (timestamp) => isSameDay(timestamp, Date.now());
+export const isSameDay = (t1, t2) => {
+    t1 = new Date(t1); t2 = new Date(t2);
+    return t1.getUTCFullYear() === t2.getUTCFullYear() && t1.getUTCMonth() === t2.getUTCMonth() && t1.getUTCDate() === t2.getUTCDate();
+}

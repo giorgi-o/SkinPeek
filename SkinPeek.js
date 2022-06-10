@@ -1,8 +1,7 @@
 import {loadConfig} from "./misc/config.js";
-import {loadUserData} from "./valorant/auth.js";
-import {loadAlerts} from "./discord/alerts.js";
 import {loadStats} from "./misc/stats.js";
 import {startBot} from "./discord/bot.js";
+import {transferUserDataFromOldUsersJson} from "./valorant/auth.js";
 
 /* TODO list:
  * (done) Balance
@@ -20,8 +19,7 @@ import {startBot} from "./discord/bot.js";
 
 const config = loadConfig();
 if(config) {
-    loadUserData();
-    loadAlerts();
+    transferUserDataFromOldUsersJson();
     loadStats();
     startBot();
 }

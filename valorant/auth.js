@@ -1,42 +1,75 @@
+import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../misc/util.js";
 import config from "../misc/config.js";
 import fs from "fs";
 
-import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../misc/util.js";
-import {cleanupFailedOperations} from "../discord/authManager.js";
-import {removeAlertsFromUser} from "../discord/alerts.js";
-
-let users;
-
-export const loadUserData = () => {
-    if(!users) try {
-        if (!fs.existsSync("data")) fs.mkdirSync("data");
-        users = JSON.parse(fs.readFileSync("data/users.json", 'utf-8'));
-        saveUserData();
-    } catch(e) {
-        users = {};
+class User {
+    constructor({id, puuid, auth, alerts=[], username, region, locale}) {
+        this.id = id;
+        this.puuid = puuid;
+        this.auth = auth;
+        this.alerts = alerts || [];
+        this.username = username;
+        this.region = region;
+        this.locale = locale;
     }
 }
 
-const saveUserData = () => {
-    fs.writeFileSync("data/users.json", JSON.stringify(users, null, 2));
+export const transferUserDataFromOldUsersJson = () => {
+    if(!fs.existsSync("data/users.json")) return;
+
+    const usersJson = JSON.parse(fs.readFileSync("data/users.json", "utf-8"));
+    const alertsJson = fs.existsSync("data/alerts.json") ? JSON.parse(fs.readFileSync("data/alerts.json", "utf-8")) : {};
+    for(const id in usersJson) {
+        const userData = usersJson[id];
+        const user = new User({
+            id: id,
+            puuid: userData.puuid,
+            auth: {
+                rso: userData.rso,
+                idt: userData.idt,
+                ent: userData.ent,
+                cookies: userData.cookies,
+            },
+            alerts: alertsJson[id] ? alertsJson[id].map(alert => {return {uuid: alert.uuid, channel_id: alert.channel_id}}) : [],
+            username: userData.username,
+            region: userData.region,
+            locale: userData.locale
+        });
+        saveUser(user);
+    }
+    fs.renameSync("data/users.json", "data/users.json.old");
 }
 
 export const getUser = (id) => {
-    loadUserData();
-    return users[id];
+    try {
+        const userData = JSON.parse(fs.readFileSync("data/users/" + id + ".json", "utf-8"));
+        return new User(userData);
+    } catch(e) {
+        return null;
+    }
 }
 
+export const saveUser = (user) => {
+    if(!fs.existsSync("data/users")) fs.mkdirSync("data/users");
+    fs.writeFileSync("data/users/" + user.id + ".json", JSON.stringify(user, null, 2));
+}
+
+const userFilenameRegex = /\d+\.json/
 export const getUserList = () => {
-    loadUserData();
-    return Object.keys(users);
+    return fs.readdirSync("data/users").filter(filename => userFilenameRegex.test(filename)).map(filename => filename.replace(".json", ""));
+}
+
+export const setUserLocale = (user, locale) => {
+    user.locale = locale;
+    saveUser(user);
 }
 
 export const authUser = async (id) => {
     // doesn't check if token is valid, only checks it hasn't expired
     const user = getUser(id);
-    if(!user || !user.rso) return {success: false};
+    if(!user || !user.auth || !user.auth.rso) return {success: false};
 
-    const rsoExpiry = tokenExpiry(user.rso);
+    const rsoExpiry = tokenExpiry(user.auth.rso);
     if(rsoExpiry - Date.now() > 10_000) return {success: true};
 
     return await refreshToken(id);
@@ -45,8 +78,6 @@ export const authUser = async (id) => {
 const userAgent = "RiotClient/51.0.0.4429735.4381201 rso-auth (Windows;10;;Professional, x64)";
 
 export const redeemUsernamePassword = async (id, login, password) => {
-    const user = getUser(id) || {};
-
     // prepare cookies for auth request
     const req1 = await fetch("https://auth.riotgames.com/api/v1/authorization", {
         method: "POST",
@@ -92,25 +123,28 @@ export const redeemUsernamePassword = async (id, login, password) => {
     const json2 = JSON.parse(req2.body);
     if(json2.type === 'error') {
         if(json2.error === "auth_failure") console.error("Authentication failure!", json2);
-        else console.error("Unknown auth error!", json2);
+        else console.error("Unknown auth error!", JSON.stringify(json2, null, 2));
         return {success: false};
     }
 
-    users[id] = user;
-
     if(json2.type === 'response') {
-        await processAuthResponse(id, {login, password, cookies}, json2);
+        const user = await processAuthResponse(id, {login, password, cookies}, json2);
+        saveUser(user);
         return {success: true};
     } else if(json2.type === 'multifactor') { // 2FA
-        user.waiting2FA = Date.now();
-
-        user.cookies = cookies;
-        if(config.storePasswords) {
-            user.login = login;
-            user.password = password;
+        const user = getUser(id) || new User({id});
+        user.auth = {
+            ...user.auth,
+            waiting2FA: Date.now(),
+            cookies: cookies
         }
 
-        saveUserData();
+        if(config.storePasswords) {
+            user.auth.login = login;
+            user.auth.password = btoa(password);
+        }
+
+        saveUser(user);
         return {success: false, mfa: true, method: json2.multifactor.method, email: json2.multifactor.email};
     }
 
@@ -118,15 +152,14 @@ export const redeemUsernamePassword = async (id, login, password) => {
 }
 
 export const redeem2FACode = async (id, code) => {
-    const user = getUser(id) || {};
-    let cookies = user.cookies || {};
+    let user = getUser(id);
 
     const req = await fetch("https://auth.riotgames.com/api/v1/authorization", {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
             'user-agent': userAgent,
-            'cookie': stringifyCookies(cookies)
+            'cookie': stringifyCookies(user.auth.cookies)
         },
         body: JSON.stringify({
             'type': 'multifactor',
@@ -138,9 +171,12 @@ export const redeem2FACode = async (id, code) => {
 
     if(req.statusCode === 429) return {success: false, rateLimit: true};
 
-    user.cookies = {
-        ...cookies,
-        ...parseSetCookie(req.headers['set-cookie'])
+    user.auth = {
+        ...user.auth,
+        cookies: {
+            ...user.auth.cookies,
+            ...parseSetCookie(req.headers['set-cookie'])
+        }
     };
 
     const json = JSON.parse(req.body);
@@ -149,52 +185,51 @@ export const redeem2FACode = async (id, code) => {
         return {success: false};
     }
 
-    await processAuthResponse(id, {login: user.login, password: user.password, cookies: user.cookies}, json);
+    user = await processAuthResponse(id, {login: user.auth.login, password: atob(user.auth.password), cookies: user.auth.cookies}, json);
 
-    delete user.waiting2FA;
-    saveUserData();
+    delete user.auth.waiting2FA;
+    saveUser(user);
 
     return {success: true};
 }
 
 const processAuthResponse = async (id, authData, resp) => {
-    const user = getUser(id) || {};
-    users[id] = user;
-
+    const user = getUser(id) || new User({id});
     const [rso, idt] = extractTokensFromUri(resp.response.parameters.uri);
-    user.rso = rso;
-    user.idt = idt;
+    user.auth = {
+        ...user.auth,
+        rso: rso,
+        idt: idt,
+    }
 
     // save either cookies or login/password
-    if(config.storePasswords && !user.waiting2FA) { // don't store login/password for people with 2FA
-        user.login = authData.login;
-        user.password = authData.password; // I should encrypt this
-        delete user.cookies;
+    if(config.storePasswords && !user.auth.waiting2FA) { // don't store login/password for people with 2FA
+        user.auth.login = authData.login;
+        user.auth.password = btoa(authData.password);
+        delete user.auth.cookies;
     } else {
-        user.cookies = authData.cookies;
-        delete user.login; delete user.password;
+        user.auth.cookies = authData.cookies;
+        delete user.auth.login; delete user.auth.password;
     }
 
     // get user info
-    const userInfo = await getUserInfo(id);
+    const userInfo = await getUserInfo(user);
     user.puuid = userInfo.puuid;
     user.username = userInfo.username;
 
     // get entitlements token
-    user.ent = await getEntitlements(id);
+    user.auth.ent = await getEntitlements(user);
 
     // get region
-    user.region = await getRegion(id);
+    user.region = await getRegion(user);
 
-    // save data
-    saveUserData();
+    return user;
 }
 
-const getUserInfo = async (id) => {
-    const user = getUser(id);
+const getUserInfo = async (user) => {
     const req = await fetch("https://auth.riotgames.com/userinfo", {
         headers: {
-            'Authorization': "Bearer " + user.rso
+            'Authorization': "Bearer " + user.auth.rso
         }
     });
     console.assert(req.statusCode === 200, `User info status code is ${req.statusCode}!`, req);
@@ -206,13 +241,12 @@ const getUserInfo = async (id) => {
     }
 }
 
-const getEntitlements = async (id) => {
-    const user = getUser(id);
+const getEntitlements = async (user) => {
     const req = await fetch("https://entitlements.auth.riotgames.com/api/token/v1", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': "Bearer " + user.rso
+            'Authorization': "Bearer " + user.auth.rso
         }
     });
     console.assert(req.statusCode === 200, `Auth status code is ${req.statusCode}!`, req);
@@ -221,16 +255,15 @@ const getEntitlements = async (id) => {
     return json.entitlements_token;
 }
 
-const getRegion = async (id) => {
-    const user = getUser(id);
+const getRegion = async (user) => {
     const req = await fetch("https://riot-geo.pas.si.riotgames.com/pas/v1/product/valorant", {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': "Bearer " + user.rso
+            'Authorization': "Bearer " + user.auth.rso
         },
         body: JSON.stringify({
-            'id_token': user.idt,
+            'id_token': user.auth.idt,
         })
     });
     console.assert(req.statusCode === 200, `PAS token status code is ${req.statusCode}!`, req);
@@ -240,7 +273,7 @@ const getRegion = async (id) => {
 }
 
 export const redeemCookies = async (id, cookies) => {
-    const user = getUser(id) || {};
+    const user = getUser(id) || new User({id});
 
     const req = await fetch("https://auth.riotgames.com/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&scope=account%20openid&nonce=1", {
         headers: {
@@ -251,23 +284,23 @@ export const redeemCookies = async (id, cookies) => {
 
     if(req.headers.location.startsWith("/login")) return false; // invalid cookies
 
-    users[id] = user;
-    if(!user.login || !user.password) user.cookies = {
-        ...user.cookies,
+    if(!user.auth) user.auth = {};
+    if(!user.auth.login || !user.auth.password) user.auth.cookies = {
+        ...user.auth.cookies,
         ...parseSetCookie(req.headers['set-cookie'])
     };
 
     const [rso, idt] = extractTokensFromUri(req.headers.location);
-    user.rso = rso;
-    user.idt = idt;
+    user.auth.rso = rso;
+    user.auth.idt = idt;
 
-    const userInfo = await getUserInfo(id);
+    const userInfo = await getUserInfo(user);
     user.puuid = userInfo.puuid;
     user.username = userInfo.username;
-    user.ent = await getEntitlements(id);
-    user.region = await getRegion(id);
+    user.auth.ent = await getEntitlements(user);
+    user.region = await getRegion(user);
 
-    saveUserData();
+    saveUser(user);
 
     return true;
 }
@@ -278,29 +311,20 @@ export const refreshToken = async (id) => {
     const user = getUser(id);
     if(!user) return response;
 
-    if(user.cookies) response.success = await redeemCookies(id, stringifyCookies(user.cookies));
-    if(!response.success && user.login && user.password) response = await redeemUsernamePassword(id, user.login, user.password);
+    if(user.auth.cookies) response.success = await redeemCookies(id, stringifyCookies(user.auth.cookies));
+    if(!response.success && user.auth.login && user.auth.password) response = await redeemUsernamePassword(id, user.auth.login, atob(user.auth.password));
 
     if(!response.success && !response.mfa && !response.rateLimit) deleteUser(id);
     return response;
 }
 
-export const cleanupAccounts = () => {
-    try {
-        for(const [id, user] of Object.entries(users)) {
-            if(user.waiting2FA && Date.now() - user.waiting2FA > 10 * 60 * 1000) deleteUser(id);
-            else if(!user.cookies && (!user.login || !user.password)) deleteUser(id);
-        }
-
-        cleanupFailedOperations();
-    } catch(e) {
-        console.error("There was an error while trying to cleanup accounts!");
-        console.error(e);
-    }
-}
-
 export const deleteUser = (id, deleteAlerts=false) => {
-    delete users[id];
-    if(deleteAlerts) removeAlertsFromUser(id);
-    saveUserData();
+    const user = getUser(id);
+    if(!user) return;
+
+    if(deleteAlerts) fs.unlinkSync("data/users/" + id + ".json");
+    else {
+        user.auth = null;
+        saveUser(user);
+    }
 }
