@@ -1,10 +1,5 @@
 import {getBuddy, getBundle, getCard, getSkin, getSpray, getTitle} from "../valorant/cache.js";
-import {
-    emojiToString,
-    skinNameAndEmoji,
-    escapeMarkdown,
-    itemTypes, removeAlertActionRow, removeAlertButton
-} from "../misc/util.js";
+import {emojiToString, skinNameAndEmoji,escapeMarkdown, itemTypes, removeAlertActionRow, removeAlertButton, fetchChannel} from "../misc/util.js";
 import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
@@ -53,7 +48,7 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
 }
 
 export const skinChosenEmbed = async (interaction, skin) => {
-    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+    const channel = interaction.channel || await fetchChannel(interaction.channelId);
     let description = s(interaction).info.ALERT_SET.f({s: await skinNameAndEmoji(skin, channel, interaction.locale)});
     if(config.fetchSkinPrices && !skin.price) description += s(interaction).info.ALERT_BP_SKIN;
     return {
@@ -114,7 +109,7 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         const slantedDescription = bundle.descriptions ? "*" + l(bundle.descriptions, interaction) + "*\n" : "";
         const embed = {
             title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
-            description: `${subName}${slantedDescription}${emojiString} **${bundle.price}** - ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
+            description: `${subName}${slantedDescription}${emojiString} **${bundle.price || s(interaction).info.FREE}** - ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: bundle.icon
@@ -412,7 +407,7 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
     });
     if(interaction.client.shard) fields.push({
         name: "Running on shard",
-        value: interaction.client.shard.ids.join(),
+        value: interaction.client.shard.ids[0],
         inline: true
     });
     if(status) fields.push({
@@ -465,7 +460,7 @@ const alertFieldDescription = async (interaction, channel_id, emojiString, price
         if(config.fetchSkinPrices) return s(interaction).info.SKIN_NOT_FOR_SALE;
         return s(interaction).info.SKIN_PRICES_HIDDEN;
     } else {
-        const channel = await interaction.client.channels.fetch(channel_id);
+        const channel = await fetchChannel(channel_id);
         if(channel && !channel.guild) return s(interaction).info.ALERT_IN_DM_CHANNEL;
         return s(interaction).info.ALERT_IN_CHANNEL.f({c: channel_id})
     }

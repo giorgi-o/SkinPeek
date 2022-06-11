@@ -27,13 +27,15 @@ const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllo
     // check in other guilds
     if(externalEmojisAllowed) {
         if(config.useEmojisFromServer) {
-            const emojiGuild = await channel.client.guilds.fetch(config.useEmojisFromServer);
-            if(!emojiGuild) console.error("useEmojisFromServer server not found! Either the ID is incorrect or I am not in that server anymore!");
-            else {
-                await updateEmojiCache(emojiGuild);
-                const emoji = emojiInGuild(emojiGuild, name);
-                if(emoji && emoji.available) return emoji;
-            }
+            try {
+                const emojiGuild = await channel.client.guilds.fetch(config.useEmojisFromServer);
+                if(!emojiGuild) console.error("useEmojisFromServer server not found! Either the ID is incorrect or I am not in that server anymore!");
+                else {
+                    await updateEmojiCache(emojiGuild);
+                    const emoji = emojiInGuild(emojiGuild, name);
+                    if(emoji && emoji.available) return emoji;
+                }
+            } catch(e) {}
         }
 
         for(const otherGuild of channel.client.guilds.cache.values()) {

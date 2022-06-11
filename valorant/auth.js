@@ -1,6 +1,7 @@
 import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../misc/util.js";
 import config from "../misc/config.js";
 import fs from "fs";
+import {client} from "../discord/bot.js";
 
 class User {
     constructor({id, puuid, auth, alerts=[], username, region, locale}) {
@@ -16,9 +17,16 @@ class User {
 
 export const transferUserDataFromOldUsersJson = () => {
     if(!fs.existsSync("data/users.json")) return;
+    if(client.shard && client.shard.ids[0] !== 0) return;
+
+    console.log("Transferring user data from users.json to the new format...");
+    console.log("(The users.json file will be backed up as users.json.old, just in case)");
 
     const usersJson = JSON.parse(fs.readFileSync("data/users.json", "utf-8"));
-    const alertsJson = fs.existsSync("data/alerts.json") ? JSON.parse(fs.readFileSync("data/alerts.json", "utf-8")) : {};
+
+    const alertsArray = fs.existsSync("data/alerts.json") ? JSON.parse(fs.readFileSync("data/alerts.json", "utf-8")) : [];
+    const alertsForUser = (id) => alertsArray.filter(a => a.id === id);
+
     for(const id in usersJson) {
         const userData = usersJson[id];
         const user = new User({
@@ -30,7 +38,7 @@ export const transferUserDataFromOldUsersJson = () => {
                 ent: userData.ent,
                 cookies: userData.cookies,
             },
-            alerts: alertsJson[id] ? alertsJson[id].map(alert => {return {uuid: alert.uuid, channel_id: alert.channel_id}}) : [],
+            alerts: alertsForUser(id).map(alert => {return {uuid: alert.uuid, channel_id: alert.channel_id}}),
             username: userData.username,
             region: userData.region,
             locale: userData.locale

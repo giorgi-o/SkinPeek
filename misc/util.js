@@ -207,6 +207,14 @@ export const canSendMessages = (channel) => {
     return permissions.has(Permissions.FLAGS.VIEW_CHANNEL) && permissions.has(Permissions.FLAGS.SEND_MESSAGES) && permissions.has(Permissions.FLAGS.EMBED_LINKS);
 }
 
+export const fetchChannel = async (channelId) => {
+    try {
+        return await client.channels.fetch(channelId);
+    } catch(e) {
+        return null;
+    }
+}
+
 export const getChannelGuildId = async (channelId) => {
     if(client.shard) {
         const f = client => {

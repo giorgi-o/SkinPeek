@@ -1,4 +1,4 @@
-import {discordTag, getChannelGuildId, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
+import {discordTag, fetchChannel, getChannelGuildId, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
 import {deleteUser, getUser, getUserList, saveUser} from "../valorant/auth.js";
 import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
@@ -37,7 +37,8 @@ export const filteredAlertsForUser = async (interaction) => {
     // bring the alerts in this channel to the top
     const alertPriority = (alert) => {
         if(alert.channel_id === interaction.channelId) return 2;
-        if(interaction.guild && client.channels.cache.get(alert.channel_id).guildId === interaction.guild.id) return 1;
+        const channel = client.channels.cache.get(alert.channel_id)
+        if(interaction.guild && channel && channel.client.channels.cache.get(alert.channel_id).guildId === interaction.guild.id) return 1;
         return 0;
     }
     alerts.sort((alert1, alert2) => alertPriority(alert2) - alertPriority(alert1));
@@ -117,7 +118,7 @@ const sendAlert = async (id, alerts, expires) => {
         const valorantUser = getUser(id);
         if(!valorantUser) return;
 
-        const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
+        const channel = await fetchChannel(alert.channel_id);
         if(!channel) continue;
 
         const skin = await getSkin(alert.uuid);
@@ -145,10 +146,11 @@ const sendAlert = async (id, alerts, expires) => {
 }
 
 const sendCredentialsExpired = async (id, alert) => {
-    const channel = await client.channels.fetch(alert.channel_id).catch(() => {});
+    const channel = await fetchChannel(alert.channel_id);
     if(!channel) {
         const user = await client.users.fetch(id).catch(() => {});
         if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again.`);
+        return;
     }
 
     if(channel.guild) {
@@ -179,7 +181,7 @@ const sendCredentialsExpired = async (id, alert) => {
 
 export const testAlerts = async (interaction) => {
     try {
-        const channel = interaction.channel || await client.channels.fetch(interaction.channel_id);
+        const channel = interaction.channel || await fetchChannel(interaction.channel_id);
         await channel.send({
             embeds: [basicEmbed(s(interaction).info.ALERT_TEST)]
         });

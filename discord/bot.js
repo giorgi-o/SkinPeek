@@ -12,14 +12,13 @@ import {getAuthQueueItemStatus, processAuthQueue, queueCookiesLogin,} from "../v
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
 import { getBattlepassProgress } from "../valorant/battlepass.js";
 import {getOverallStats, getStatsFor} from "../misc/stats.js";
-import {canSendMessages, defer, emojiToString, externalEmojisAllowed, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
+import {canSendMessages, defer, emojiToString, externalEmojisAllowed, fetchChannel, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
 import config, {saveConfig} from "../misc/config.js";
 import {sendConsoleOutput} from "../misc/logger.js";
 import {l, s} from "../misc/languages.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
-    shards: "auto"
 });
 const cronTasks = [];
 
@@ -283,7 +282,7 @@ client.on("messageCreate", async (message) => {
                     }
                     if(channelWithMostAlerts[0] === null) continue;
 
-                    const channel = await guild.channels.fetch(channelWithMostAlerts[0]);
+                    const channel = await fetchChannel(channelWithMostAlerts[0]);
                     if(!channel) continue;
 
                     console.log(`Channel with most alerts: #${channel.name} (${channelWithMostAlerts[1]} alerts)`);
@@ -333,7 +332,7 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     // fetch the channel if not in cache
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
 
                     // start uploading emoji now
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
@@ -360,7 +359,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
                     let bundles = await queueBundles(interaction.user.id);
@@ -383,7 +382,7 @@ client.on("interactionCreate", async (interaction) => {
                     const searchQuery = interaction.options.get("bundle").value.replace(/collection/i, "").replace(/bundle/i, "");
                     const searchResults = await searchBundle(searchQuery, interaction.locale);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
 
                     // if the name matches exactly, and there is only one with that name
@@ -439,7 +438,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
                     let market = await queueNightMarket(interaction.user.id);
@@ -464,7 +463,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const VPEmojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
                     const RadEmojiPromise = RadEmoji(channel, externalEmojisAllowed(channel));
 
@@ -495,7 +494,7 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     if(!canSendMessages(channel)) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.ALERT_NO_PERMS)]
                     });
@@ -567,7 +566,7 @@ client.on("interactionCreate", async (interaction) => {
                     const auth = await authUser(interaction.user.id);
                     if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emojiString = emojiToString(await VPEmoji(channel, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
 
                     await interaction.followUp(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), 0, emojiString));
@@ -822,7 +821,7 @@ client.on("interactionCreate", async (interaction) => {
                     const chosenBundle = interaction.values[0].substring(7);
                     const bundle = await getBundle(chosenBundle);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
                     const message = await renderBundle(bundle, interaction, emoji);
 
@@ -852,7 +851,7 @@ client.on("interactionCreate", async (interaction) => {
                 if(success) {
                     const skin = await getSkin(uuid);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     await interaction.reply({
                         embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({s: await skinNameAndEmoji(skin, channel, interaction.locale)}))],
                         ephemeral: true
