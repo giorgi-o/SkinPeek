@@ -116,12 +116,13 @@ const getPrices = async (gameVersion, id=null) => {
         return false;
     }
 
-    const user = getUser(id);
+    let user = getUser(id);
     if(!user) return false;
 
     const authSuccess = await authUser(id);
     if(!authSuccess.success || !user.auth.rso || !user.auth.ent || !user.region) return false;
 
+    user = getUser(id);
     console.log(`Fetching skin prices using ${user.username}'s access token...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetOffers.md
