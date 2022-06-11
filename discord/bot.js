@@ -728,11 +728,20 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "info": {
-                    const guildCount = client.guilds.cache.size;
+                    let guildCount, userCount;
+                    if(client.shard) {
+                        const guildCounts = await client.shard.fetchClientValues('guilds.cache.size');
+                        guildCount = guildCounts.reduce((acc, guildCount) => acc + guildCount, 0);
 
-                    let userCount = 0;
-                    for(const guild of client.guilds.cache.values())
-                        userCount += guild.memberCount;
+                        const userCounts = await client.shard.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0));
+                        userCount = userCounts.reduce((acc, guildCount) => acc + guildCount, 0);
+                    } else {
+                        guildCount = client.guilds.cache.size;
+
+                        userCount = 0;
+                        for(const guild of client.guilds.cache.values())
+                            userCount += guild.memberCount;
+                    }
 
                     const registeredUserCount = getUserList().length;
 
