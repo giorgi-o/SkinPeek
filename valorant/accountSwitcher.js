@@ -18,6 +18,16 @@ export const readUserJson = (id) => {
 export const getUserJson = (id) => {
     const user = readUserJson(id);
     if(!user) return null;
+
+    if(!user.accounts) {
+        const userJson =  {
+            accounts: [user],
+            currentAccount: 1
+        }
+        saveUserJson(id, userJson);
+        return userJson;
+    }
+
     return user.accounts[user.currentAccount - 1];
 }
 
@@ -44,16 +54,30 @@ export const saveUser = (user) => {
 
 export const addUser = (user) => {
     const userJson = readUserJson(user.id);
-    if(!userJson) {
+    if(userJson) {
+        // check for duplicate accounts
+        let foundDuplicate = false;
+        for(let i = 0; i < userJson.accounts.length; i++) {
+            if(userJson.accounts[i].puuid === user.puuid) {
+                user.alerts = user.alerts.concat(userJson.accounts[i].alerts);
+                userJson.accounts[i] = user;
+                userJson.currentAccount = i + 1;
+                foundDuplicate = true;
+            }
+        }
+
+        if(!foundDuplicate) {
+            userJson.accounts.push(user);
+            userJson.currentAccount = userJson.accounts.length;
+        }
+
+        saveUserJson(user.id, userJson);
+    } else {
         const objectToWrite = {
             accounts: [user],
             currentAccount: 1
         }
         saveUserJson(user.id, objectToWrite);
-    } else {
-        userJson.accounts.push(user);
-        userJson.currentAccount = userJson.accounts.length;
-        saveUserJson(user.id, userJson);
     }
 }
 

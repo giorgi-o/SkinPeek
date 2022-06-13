@@ -108,7 +108,7 @@ const getPrices = async (gameVersion, id=null) => {
     if(id === null) {
         for(const id of getUserList()) {
             const user = getUser(id);
-            if(!user.auth) continue;
+            if(!user || !user.auth) continue;
 
             const success = await getPrices(gameVersion, id);
             if(success) return true;
