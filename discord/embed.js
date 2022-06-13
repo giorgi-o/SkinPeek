@@ -592,6 +592,25 @@ export const statsForSkinEmbed = async (skin, stats, interaction) => {
     }
 }
 
+export const accountsListEmbed = (interaction, userJson) => {
+    const fields = [];
+    for(const [i, account] of Object.entries(userJson.accounts)) {
+        fields.push({
+            name: `${parseInt(i) + 1}. ${userJson.currentAccount === parseInt(i) + 1 ? s(interaction).info.ACCOUNT_CURRENTLY_SELECTED : ''}`,
+            value: account.username || "[No username]",
+            inline: true
+        });
+    }
+
+    return {
+        embeds: [{
+            title: s(interaction).info.ACCOUNTS_HEADER,
+            fields: fields,
+            color: VAL_COLOR_1
+        }]
+    }
+}
+
 export const basicEmbed = (content) => {
     return {
         description: content,

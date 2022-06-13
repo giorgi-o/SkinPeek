@@ -1,9 +1,10 @@
 import fs from "fs";
-import {authUser, deleteUser, getUser} from "./auth.js";
-import {discordTag, fetch, formatBundle, isMaintenance, isToday, userRegion} from "../misc/util.js";
+import {authUser, deleteUserAuth, getUser} from "./auth.js";
+import {discordTag, fetch, formatBundle, getPuuid, isMaintenance, isToday, userRegion} from "../misc/util.js";
 import {addBundleData} from "./cache.js";
 import {addStore} from "../misc/stats.js";
 import config from "../misc/config.js";
+import {deleteUser} from "./accountSwitcher.js";
 
 const getShop = async (id) => {
     const authSuccess = await authUser(id);
@@ -23,7 +24,7 @@ const getShop = async (id) => {
 
     const json = JSON.parse(req.body);
     if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
-        deleteUser(id);
+        deleteUserAuth(user);
         return {success: false}
     } else if(isMaintenance(json)) return {success: false, maintenance: true};
 
@@ -37,13 +38,13 @@ const getShop = async (id) => {
     }
 
     // add to shop cache
-    addShopCache(id, json);
+    addShopCache(user.puuid, json);
 
     return {success: true, shop: json};
 }
 
 export const getOffers = async (id) => {
-    const shopCache = getShopCache(id);
+    const shopCache = getShopCache(getPuuid(id));
     if(shopCache) return {success: true, ...shopCache.offers};
 
     const resp = await getShop(id);
@@ -57,7 +58,7 @@ export const getOffers = async (id) => {
 }
 
 export const getBundles = async (id) => {
-    const shopCache = getShopCache(id, true);
+    const shopCache = getShopCache(getPuuid(id), true);
     if(shopCache) return {success: true, bundles: shopCache.bundles};
 
     const resp = await getShop(id);
@@ -72,7 +73,7 @@ export const getBundles = async (id) => {
 }
 
 export const getNightMarket = async (id) => {
-    const shopCache = getShopCache(id);
+    const shopCache = getShopCache(getPuuid(id));
     if(shopCache) return {success: true, ...shopCache.night_market};
 
     const resp = await getShop(id);
@@ -137,20 +138,20 @@ export const getBalance = async (id) => {
  * }
  */
 
-const getShopCache = (id, bundles=false) => {
+const getShopCache = (puuid, bundles=false) => {
     if(!config.useShopCache) return null;
     try {
-        const shopCache = JSON.parse(fs.readFileSync("data/shopCache/" + id + ".json", "utf8"));
+        const shopCache = JSON.parse(fs.readFileSync("data/shopCache/" + puuid + ".json", "utf8"));
         if(shopCache && isToday(shopCache.timestamp)) {
             if(bundles && new Date(shopCache.timestamp).getUTCHours() < 21 && new Date().getUTCHours() >= 21) return null; // bundles change at 21:00 UTC
-            console.log(`Fetched from shop cache for user ${discordTag(id)}`);
+            console.log(`Fetched from shop cache for user ${discordTag(puuid)}`);
             return shopCache;
         }
     } catch(e) {}
     return null;
 }
 
-const addShopCache = (id, shopJson) => {
+const addShopCache = (puuid, shopJson) => {
     if(!config.useShopCache) return;
 
     const now = Date.now();
@@ -173,8 +174,8 @@ const addShopCache = (id, shopJson) => {
     }
 
     if(!fs.existsSync("data/shopCache")) fs.mkdirSync("data/shopCache");
-    fs.writeFileSync("data/shopCache/" + id + ".json", JSON.stringify(shopCache, null, 2));
+    fs.writeFileSync("data/shopCache/" + puuid + ".json", JSON.stringify(shopCache, null, 2));
 
-    console.log(`Added shop cache for user ${discordTag(id)}`);
+    console.log(`Added shop cache for user ${discordTag(puuid)}`);
 }
 

@@ -1,4 +1,4 @@
-import { authUser, deleteUser, getUser } from "./auth.js";
+import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {fetch, isMaintenance, userRegion} from "../misc/util.js";
 import { getValorantVersion } from "./cache.js";
 
@@ -66,7 +66,7 @@ export const getBattlepassProgress = async (id, maxlevel) => {
 
     const json = JSON.parse(req.body);
     if (json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
-        deleteUser(id);
+        deleteUserAuth(user);
         return { success: false };
     } else if (isMaintenance(json))
         return { success: false, maintenance: true };
@@ -188,7 +188,7 @@ const getBattlepassPurchase = async (id) => {
 
     const json = JSON.parse(req.body);
     if (json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
-        deleteUser(id);
+        deleteUserAuth(user);
         return { success: false };
     } else if (isMaintenance(json))
         return { success: false, maintenance: true };

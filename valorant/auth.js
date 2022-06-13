@@ -2,6 +2,7 @@ import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpi
 import config from "../misc/config.js";
 import fs from "fs";
 import {client} from "../discord/bot.js";
+import {addUser, getUserJson, saveUser} from "./accountSwitcher.js";
 
 class User {
     constructor({id, puuid, auth, alerts=[], username, region, locale}) {
@@ -50,16 +51,11 @@ export const transferUserDataFromOldUsersJson = () => {
 
 export const getUser = (id) => {
     try {
-        const userData = JSON.parse(fs.readFileSync("data/users/" + id + ".json", "utf-8"));
+        const userData = getUserJson(id);
         return new User(userData);
     } catch(e) {
         return null;
     }
-}
-
-export const saveUser = (user) => {
-    if(!fs.existsSync("data/users")) fs.mkdirSync("data/users");
-    fs.writeFileSync("data/users/" + user.id + ".json", JSON.stringify(user, null, 2));
 }
 
 const userFilenameRegex = /\d+\.json/
@@ -137,10 +133,10 @@ export const redeemUsernamePassword = async (id, login, password) => {
 
     if(json2.type === 'response') {
         const user = await processAuthResponse(id, {login, password, cookies}, json2);
-        saveUser(user);
+        addUser(user);
         return {success: true};
     } else if(json2.type === 'multifactor') { // 2FA
-        const user = getUser(id) || new User({id});
+        const user = new User({id});
         user.auth = {
             ...user.auth,
             waiting2FA: Date.now(),
@@ -152,7 +148,7 @@ export const redeemUsernamePassword = async (id, login, password) => {
             user.auth.password = btoa(password);
         }
 
-        saveUser(user);
+        addUser(user);
         return {success: false, mfa: true, method: json2.multifactor.method, email: json2.multifactor.email};
     }
 
@@ -202,7 +198,7 @@ export const redeem2FACode = async (id, code) => {
 }
 
 const processAuthResponse = async (id, authData, resp) => {
-    const user = getUser(id) || new User({id});
+    const user = new User({id});
     const [rso, idt] = extractTokensFromUri(resp.response.parameters.uri);
     user.auth = {
         ...user.auth,
@@ -308,7 +304,7 @@ export const redeemCookies = async (id, cookies) => {
     user.auth.ent = await getEntitlements(user);
     user.region = await getRegion(user);
 
-    saveUser(user);
+    addUser(user);
 
     return true;
 }
@@ -322,17 +318,11 @@ export const refreshToken = async (id) => {
     if(user.auth.cookies) response.success = await redeemCookies(id, stringifyCookies(user.auth.cookies));
     if(!response.success && user.auth.login && user.auth.password) response = await redeemUsernamePassword(id, user.auth.login, atob(user.auth.password));
 
-    if(!response.success && !response.mfa && !response.rateLimit) deleteUser(id);
+    if(!response.success && !response.mfa && !response.rateLimit) deleteUserAuth(user);
     return response;
 }
 
-export const deleteUser = (id, deleteAlerts=false) => {
-    const user = getUser(id);
-    if(!user) return;
-
-    if(deleteAlerts) fs.unlinkSync("data/users/" + id + ".json");
-    else {
-        user.auth = null;
-        saveUser(user);
-    }
+export const deleteUserAuth = (user) => {
+    user.auth = null;
+    saveUser(user);
 }

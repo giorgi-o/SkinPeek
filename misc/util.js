@@ -6,6 +6,7 @@ import https from "https";
 import fs from "fs";
 import {DEFAULT_LANG, l} from "./languages.js";
 import {client} from "../discord/bot.js";
+import {getUser} from "../valorant/auth.js";
 
 const tlsCiphers = [
     'TLS_CHACHA20_POLY1305_SHA256',
@@ -168,6 +169,10 @@ export const formatBundle = async (rawBundle) => {
     bundle.basePrice = basePrice;
 
     return bundle;
+}
+
+export const getPuuid = (id) => {
+    return getUser(id).puuid;
 }
 
 // discord utils

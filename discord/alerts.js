@@ -1,11 +1,12 @@
 import {discordTag, fetchChannel, getChannelGuildId, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
-import {deleteUser, getUser, getUserList, saveUser} from "../valorant/auth.js";
+import {deleteUserAuth, getUser, getUserList} from "../valorant/auth.js";
 import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
 import {basicEmbed, VAL_COLOR_1} from "./embed.js";
 import {client} from "./bot.js";
 import config from "../misc/config.js";
 import {s} from "../misc/languages.js";
+import {saveUser} from "../valorant/accountSwitcher.js";
 
 
 /* Alert format: {
@@ -90,7 +91,7 @@ export const checkAlerts = async () => {
                             channelsSent.push(alert.channel_id);
                         }
                     }
-                    deleteUser(id);
+                    deleteUserAuth(getUser(id));
                     await wait(config.delayBetweenAlerts);
                     continue;
                 }

@@ -1,8 +1,26 @@
 import {Client, Intents, MessageActionRow, MessageFlags, MessageSelectMenu} from "discord.js";
 import cron from "node-cron";
 
-import {authFailureMessage, basicEmbed, renderBundle, renderBundles, renderNightMarket, renderBattlepass, renderOffers, secondaryEmbed, skinChosenEmbed, VAL_COLOR_1, botInfoEmbed, ownerMessageEmbed, alertTestResponse, alertsPageEmbed, statsForSkinEmbed, allStatsEmbed} from "./embed.js";
-import {authUser, deleteUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
+import {
+    authFailureMessage,
+    basicEmbed,
+    renderBundle,
+    renderBundles,
+    renderNightMarket,
+    renderBattlepass,
+    renderOffers,
+    secondaryEmbed,
+    skinChosenEmbed,
+    VAL_COLOR_1,
+    botInfoEmbed,
+    ownerMessageEmbed,
+    alertTestResponse,
+    alertsPageEmbed,
+    statsForSkinEmbed,
+    allStatsEmbed,
+    accountsListEmbed
+} from "./embed.js";
+import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
 import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
 import {addAlert, alertExists, alertsPerChannelPerGuild, checkAlerts, filteredAlertsForUser, removeAlert, testAlerts} from "./alerts.js";
@@ -16,6 +34,13 @@ import {canSendMessages, defer, emojiToString, externalEmojisAllowed, fetchChann
 import config, {saveConfig} from "../misc/config.js";
 import {sendConsoleOutput} from "../misc/logger.js";
 import {l, s} from "../misc/languages.js";
+import {
+    deleteUser,
+    deleteWholeUser,
+    getNumberOfAccounts,
+    readUserJson,
+    switchAccount
+} from "../valorant/accountSwitcher.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -146,7 +171,14 @@ const commands = [
     },
     {
         name: "forget",
-        description: "Forget and permanently delete your account from the bot."
+        description: "Forget and permanently delete your account from the bot.",
+        options: [{
+            type: "INTEGER",
+            name: "account",
+            description: "The account number you want to forget. Leave blank to forget all accounts.",
+            required: false,
+            minValue: 1
+        }]
     },
     {
         name: "battlepass",
@@ -169,6 +201,21 @@ const commands = [
             description: "The name of the skin you want to see the stats of",
             required: false
         }]
+    },
+    {
+        name: "account",
+        description: "Switch the Valorant account you are currently using",
+        options: [{
+            type: "INTEGER",
+            name: "account",
+            description: "The account number you want to switch to",
+            required: true,
+            minValue: 1
+        }]
+    },
+    {
+        name: "accounts",
+        description: "Show all of your Valorant accounts"
     },
     {
         name: "info",
@@ -653,13 +700,28 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    deleteUser(interaction.user.id, true);
-                    console.log(`${interaction.user.tag} deleted their account`);
+                    const accountNumber = interaction.options.get("account").value;
+                    if(accountNumber) {
+                        const accountCount = getNumberOfAccounts(interaction.user.id);
+                        if(accountNumber > accountCount) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
+                            ephemeral: true
+                        });
 
-                    await interaction.followUp({
-                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_DELETED)],
-                        ephemeral: true
-                    });
+                        const usernameOfDeleted = deleteUser(interaction.user.id, accountNumber);
+
+                        await interaction.followUp({
+                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: accountNumber, u: usernameOfDeleted}))],
+                        });
+                    } else {
+                        deleteWholeUser(interaction.user.id);
+                        console.log(`${interaction.user.tag} deleted their account`);
+
+                        await interaction.followUp({
+                            embeds: [basicEmbed(s(interaction).info.ACCOUNT_DELETED)],
+                            ephemeral: true
+                        });
+                    }
                     break;
                 }
                 case "battlepass": {
@@ -723,6 +785,39 @@ client.on("interactionCreate", async (interaction) => {
                     } else {
                         await interaction.followUp(await allStatsEmbed(interaction, getOverallStats()));
                     }
+
+                    break;
+                }
+                case "account": {
+                    const accountNumber = interaction.options.get("account").value;
+
+                    const accountCount = getNumberOfAccounts(interaction.user.id);
+                    if(accountCount === 0) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
+
+                    if(accountNumber > accountCount) return await interaction.reply({
+                        // embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
+                        ephemeral: true
+                    });
+
+                    const valorantUser = switchAccount(interaction.user.id, accountNumber);
+
+                    await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({n: accountNumber, u: valorantUser.username}))],
+                    });
+                    break;
+                }
+                case "accounts": {
+                    const userJson = readUserJson(interaction.user.id);
+                    if(!userJson) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
+
+                    await interaction.reply(accountsListEmbed(interaction, userJson));
 
                     break;
                 }
