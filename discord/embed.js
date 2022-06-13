@@ -402,17 +402,17 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
     ];
     if(ownerString) fields.push({
         name: s(interaction).info.INFO_OWNER,
-        value: ownerString,
+        value: ownerString || "Giorgio#0609",
         inline: true
     });
     if(interaction.client.shard) fields.push({
         name: "Running on shard",
-        value: interaction.client.shard.ids[0],
+        value: interaction.client.shard.ids.join(' ') || "No shard id...?",
         inline: true
     });
     if(status) fields.push({
         name: s(interaction).info.INFO_STATUS,
-        value: status,
+        value: status || "Up and running!",
         inline: true
     });
 
