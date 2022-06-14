@@ -700,7 +700,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const accountNumber = interaction.options.get("account").value;
+                    const accountNumber = interaction.options.get("account") && interaction.options.get("account").value;
                     if(accountNumber) {
                         const accountCount = getNumberOfAccounts(interaction.user.id);
                         if(accountNumber > accountCount) return await interaction.reply({

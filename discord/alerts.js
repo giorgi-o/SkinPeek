@@ -25,7 +25,8 @@ export const addAlert = (id, alert) => {
 }
 
 export const alertsForUser = (id) => {
-    return getUser(id).alerts;
+    const user = getUser(id);
+    if(user) return user.alerts;
 }
 
 export const alertExists = (id, uuid) => {
