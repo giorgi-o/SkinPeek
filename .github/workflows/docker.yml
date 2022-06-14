@@ -9,13 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Build image
-        run: docker build . -t ghcr.io/giorgi-o/skinpeek/skinpeek:latest -t ghcr.io/giorgi-o/skinpeek/skinpeek:"$GITHUB_SHA"
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
       - name: Login ghcr
         env:
           GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
         run:  docker login ghcr.io --username giorgi-o --password "$GHCR_TOKEN"
-      - name: Push image to ghcr
-        run: docker push ghcr.io/giorgi-o/skinpeek/skinpeek:latest
-      - name: Push specific tag
-        run: docker push ghcr.io/giorgi-o/skinpeek/skinpeek:"$GITHUB_SHA"
+      - name: Build and Push Image
+        run: |
+          docker buildx build \
+                  --tag ghcr.io/giorgi-o/skinpeek/skinpeek:latest \
+                  --tag ghcr.io/giorgi-o/skinpeek/skinpeek:"$GITHUB_SHA" \
+                  --platform linux/amd64,linux/arm64/v8 \
+                  --file ./Dockerfile \
+                  --output type=image,push=true .
