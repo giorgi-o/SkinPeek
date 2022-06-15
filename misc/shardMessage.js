@@ -2,6 +2,7 @@ import {sendAlert, sendCredentialsExpired} from "../discord/alerts.js";
 import {loadConfig} from "./config.js";
 import {destroyTasks, scheduleTasks} from "../discord/bot.js";
 import {addMessagesToLog} from "./logger.js";
+import {loadSkinsJSON} from "../valorant/cache.js";
 
 process.on('message', async (message) => {
     if(message.type === "alert") {
@@ -12,6 +13,8 @@ process.on('message', async (message) => {
         loadConfig();
         destroyTasks();
         scheduleTasks();
+    } else if(message.type === "skinsReload") {
+        loadSkinsJSON();
     } else if(message.type === "logMessages") {
         addMessagesToLog(message.messages);
     }

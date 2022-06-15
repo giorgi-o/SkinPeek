@@ -4,6 +4,7 @@ import config from "../misc/config.js";
 import Fuse from "fuse.js";
 import fs from "fs";
 import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
+import {client} from "../discord/bot.js";
 
 const formatVersion = 6;
 let gameVersion;
@@ -45,6 +46,7 @@ export const saveSkinsJSON = (filename="data/skins.json") => {
 
 export const fetchData = async (types=null, checkVersion=false) => {
     try {
+        if(client.shard && client.shard.ids[0] !== 0) return loadSkinsJSON();
 
         if(checkVersion || !gameVersion) gameVersion = (await getValorantVersion()).manifestId;
         await loadSkinsJSON();
@@ -63,6 +65,9 @@ export const fetchData = async (types=null, checkVersion=false) => {
         if(!prices || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) await getPrices(gameVersion); // refresh prices every 24h
 
         saveSkinsJSON();
+
+        // we fetched the skins, tell other shards to load them
+        if(client.shard) client.shard.send({type: "skinsReload"});
     } catch(e) {
         console.error("There was an error while trying to fetch skin data!");
         console.error(e);

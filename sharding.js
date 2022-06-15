@@ -14,7 +14,7 @@ manager.on('shardCreate', shard => {
 
 const sendToOtherShards = (shardId, message) => {
     manager.shards.forEach(shard => {
-        if(shard.id !== shardId) shard.send(message);
+        if(shard.ready && shard.id !== shardId) shard.send(message);
     });
 }
 
