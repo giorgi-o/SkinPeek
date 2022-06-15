@@ -43,9 +43,14 @@ export const fetch = (url, options={}) => {
     return new Promise((resolve, reject) => {
         const req = https.request(url, {
             method: options.method || "GET",
-            headers: options.headers || {},
+            headers: {
+                cookie: "dummy=cookie", // set dummy cookie, helps with cloudflare 1020
+                "Accept-Language": "en-US,en;q=0.5", // same as above
+                ...options.headers
+            },
             ciphers: tlsCiphers.join(':'),
-            sigalgs: tlsSigAlgs.join(':')
+            sigalgs: tlsSigAlgs.join(':'),
+            minVersion: "TLSv1.3"
         }, resp => {
             const res = {
                 statusCode: resp.statusCode,
