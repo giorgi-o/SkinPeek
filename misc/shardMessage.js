@@ -5,6 +5,7 @@ import {addMessagesToLog} from "./logger.js";
 import {loadSkinsJSON} from "../valorant/cache.js";
 
 process.on('message', async (message) => {
+    console.log(`Received shard message of type ${message.type}`);
     if(message.type === "alert") {
         await sendAlert(message.id, message.alerts, message.expires, false);
     } else if(message.type === "alertCredentialsExpired") {
