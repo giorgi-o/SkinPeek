@@ -281,6 +281,7 @@ export const redeemCookies = async (id, cookies) => {
 
     const req = await fetch("https://auth.riotgames.com/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&scope=account%20openid&nonce=1", {
         headers: {
+            'user-agent': userAgent,
             cookie: cookies
         }
     });
