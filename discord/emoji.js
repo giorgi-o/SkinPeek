@@ -10,6 +10,9 @@ const RadEmojiFilename = "assets/rad.png"; // https://media.valorant-api.com/cur
 // the timestamp of the last time the emoji cache was updated for each guild
 const lastEmojiFetch = {};
 
+// a cache for emoji objects (note: due to sharding, might just be JSON representations of the emoji)
+const emojiCache = {};
+
 export const VPEmoji = async (channel, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, VPEmojiName, VPEmojiFilename, externalEmojisAllowed);
 export const RadEmoji = async (channel, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, RadEmojiName, RadEmojiFilename, externalEmojisAllowed);
 
@@ -18,11 +21,13 @@ export const rarityEmoji = async (channel, name, icon, externalEmojisAllowed=fal
 const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllowed) => {
     if(!name || !filenameOrUrl) return;
 
+    if(emojiCache[name]) return emojiCache[name];
+
     const guild = channel.guild;
 
     // see if emoji exists already
     const emoji = emojiInGuild(guild, name);
-    if(emoji && emoji.available) return emoji;
+    if(emoji && emoji.available) return addEmojiToCache(emoji);
 
     // check in other guilds
     if(externalEmojisAllowed) {
@@ -33,19 +38,25 @@ const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllo
                 else {
                     await updateEmojiCache(emojiGuild);
                     const emoji = emojiInGuild(emojiGuild, name);
-                    if(emoji && emoji.available) return emoji;
+                    if(emoji && emoji.available) return addEmojiToCache(emoji);
                 }
             } catch(e) {}
         }
 
         for(const otherGuild of channel.client.guilds.cache.values()) {
             const emoji = emojiInGuild(otherGuild, name);
-            if(emoji && emoji.available) return emoji;
+            if(emoji && emoji.available) return addEmojiToCache(emoji);
+        }
+
+        if(channel.client.shard) {
+            const results = await channel.client.shard.broadcastEval(findEmoji, { context: { name } });
+            const emoji = results.find(e => e);
+            if(emoji) return addEmojiToCache(emoji);
         }
     }
 
     // couldn't find usable emoji, create it
-    if(guild) return await createEmoji(guild, name, filenameOrUrl);
+    if(guild) return addEmojiToCache(await createEmoji(guild, name, filenameOrUrl));
 }
 
 const emojiInGuild = (guild, name) => {
@@ -84,6 +95,15 @@ const updateEmojiCache = async (guild) => {
 
     lastEmojiFetch[guild.id] = Date.now();
     console.log(`Updated emoji cache for ${guild.name}`);
+}
+
+const addEmojiToCache = (emoji) => {
+    emojiCache[emoji.name] = emoji;
+    return emoji;
+}
+
+const findEmoji = (c, { name }) => {
+    return c.emojis.cache.get(name) || c.emojis.cache.find(e => e.name.toLowerCase() === name.toLowerCase());
 }
 
 const maxEmojis = (guild) => {

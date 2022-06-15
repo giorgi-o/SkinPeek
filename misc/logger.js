@@ -2,19 +2,29 @@ import config from "./config.js";
 import {escapeMarkdown} from "./util.js";
 import {client} from "../discord/bot.js";
 
+const messagesToLog = [];
+
 const oldLog = console.log;
 const oldError = console.error;
 
-const messagesToLog = [];
+export const loadLogger = () => {
+    if(!config.logToChannel) return;
 
-console.log = (...args) => {
-    oldLog(...args);
-    if(config.logToChannel) messagesToLog.push(escapeMarkdown(args.join(" ")));
+    const shardString = client.shard ? `[${client.shard.ids[0]}] ` : "";
+
+    console.log = (...args) => {
+        oldLog(...args);
+        messagesToLog.push(escapeMarkdown(args.join(" ")));
+    }
+
+    console.error = (...args) => {
+        oldError(...args);
+        messagesToLog.push("> " + shardString + escapeMarkdown(args.map(e => (e instanceof Error ? e.stack : e.toString()).split('\n').join('\n> ' + shardString)).join(" ")));
+    }
 }
 
-console.error = (...args) => {
-    oldError(...args);
-    if(config.logToChannel) messagesToLog.push("> " + escapeMarkdown(args.map(e => (e instanceof Error ? e.stack : e.toString()).split('\n').join('\n> ')).join(" ")));
+export const addMessagesToLog = (messages) => {
+    messagesToLog.push(...messages);
 }
 
 export const sendConsoleOutput = () => {
@@ -22,24 +32,21 @@ export const sendConsoleOutput = () => {
         if(!client || !messagesToLog.length) return;
 
         const channel = client.channels.cache.get(config.logToChannel);
-        if(!channel) return;
 
-        while(messagesToLog.length) {
-            let s = "";
-            while(messagesToLog.length && s.length + messagesToLog[0].length < 2000)
-                s += messagesToLog.shift() + "\n";
+        if(!channel && client.shard) {
+            client.shard.send({
+                type: "logMessages",
+                messages: messagesToLog
+            })
+        }
+        else if(channel) {
+            while(messagesToLog.length) {
+                let s = "";
+                while(messagesToLog.length && s.length + messagesToLog[0].length < 2000)
+                    s += messagesToLog.shift() + "\n";
 
-            if(client.shard) {
-                const shardId = client.shard.ids[0];
-                const lines = s.split("\n").filter(line => line);
-                s = "";
-                for(const line of lines) {
-                    if(line.startsWith("> ")) s += `\n> [${shardId}] ${line.substring(2)}`;
-                    else s += `\n[${shardId}] ${line}`;
-                }
+                channel.send(s);
             }
-
-            channel.send(s);
         }
 
         messagesToLog.length = 0;

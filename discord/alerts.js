@@ -72,13 +72,15 @@ export const removeAlert = (id, uuid) => {
 }
 
 export const checkAlerts = async () => {
+    if(client.shard && !client.shard.ids.includes(0)) return; // only run on the first shard
+
     console.log("Checking new shop skins for alerts...");
 
     try {
         for(const id of getUserList()) {
             try {
                 const userAlerts = alertsForUser(id);
-                if(!userAlerts.length) continue;
+                if(!userAlerts || !userAlerts.length) continue;
 
                 const offers = await getOffers(id);
                 if(!offers.success) {
@@ -113,7 +115,7 @@ export const checkAlerts = async () => {
     }
 }
 
-const sendAlert = async (id, alerts, expires) => {
+export const sendAlert = async (id, alerts, expires, tryOnOtherShard=true) => {
     console.log(`Sending alerts...`);
 
     for(const alert of alerts) {
@@ -121,7 +123,15 @@ const sendAlert = async (id, alerts, expires) => {
         if(!valorantUser) return;
 
         const channel = await fetchChannel(alert.channel_id);
-        if(!channel) continue;
+        if(!channel) {
+            if(client.shard && tryOnOtherShard) {
+                client.shard.send({
+                    type: "alert",
+                    id, alert, expires
+                });
+            }
+            continue;
+        }
 
         const skin = await getSkin(alert.uuid);
         await channel.send({
@@ -147,9 +157,16 @@ const sendAlert = async (id, alerts, expires) => {
     }
 }
 
-const sendCredentialsExpired = async (id, alert) => {
+export const sendCredentialsExpired = async (id, alert, tryOnOtherShard=true) => {
     const channel = await fetchChannel(alert.channel_id);
     if(!channel) {
+        if(client.shard && tryOnOtherShard) {
+            client.shard.send({
+                type: "alertCredentialsExpired",
+                id, alert
+            });
+        }
+
         const user = await client.users.fetch(id).catch(() => {});
         if(user) console.error(`Please tell ${user.tag} that their credentials have expired, and that they should /login again.`);
         return;

@@ -58,7 +58,7 @@ client.on("ready", async () => {
     await client.user.setActivity("your store!", {type: "WATCHING"});
 });
 
-const scheduleTasks = () => {
+export const scheduleTasks = () => {
     console.log("Scheduling tasks...");
 
     // check alerts every day at 00:00:10 GMT
@@ -77,7 +77,7 @@ const scheduleTasks = () => {
     if(config.logToChannel && config.logFrequency) cronTasks.push(cron.schedule(config.logFrequency, sendConsoleOutput));
 }
 
-const destroyTasks = () => {
+export const destroyTasks = () => {
     console.log("Destroying scheduled tasks...");
     for(const task of cronTasks)
         task.stop();
@@ -276,6 +276,8 @@ client.on("messageCreate", async (message) => {
                 destroyTasks();
                 saveConfig();
                 scheduleTasks();
+
+                if(client.shard) client.shard.send({type: "configReload"});
 
                 let s = "Successfully reloaded the config!";
                 if(config.token !== oldToken)
