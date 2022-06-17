@@ -1,4 +1,4 @@
-import {sendAlert, sendCredentialsExpired} from "../discord/alerts.js";
+import {checkAlerts, sendAlert, sendCredentialsExpired} from "../discord/alerts.js";
 import {loadConfig} from "./config.js";
 import {destroyTasks, scheduleTasks} from "../discord/bot.js";
 import {addMessagesToLog} from "./logger.js";
@@ -10,6 +10,8 @@ process.on('message', async (message) => {
         await sendAlert(message.id, message.alerts, message.expires, false);
     } else if(message.type === "alertCredentialsExpired") {
         await sendCredentialsExpired(message.id, message.alert, false);
+    } else if(message.type === "checkAlerts") {
+        await checkAlerts();
     } else if(message.type === "configReload") {
         loadConfig();
         destroyTasks();

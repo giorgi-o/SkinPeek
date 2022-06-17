@@ -355,8 +355,14 @@ client.on("messageCreate", async (message) => {
             saveConfig();
             await message.reply("Set the status to `" + config.status + "`!");
         } else if(content === "!forcealerts") {
-            await checkAlerts();
-            await message.reply("Checked alerts!");
+            if(!client.shard || client.shard.ids.includes(0)) {
+                await checkAlerts();
+                await message.reply("Checked alerts!");
+            }
+            else {
+                await client.shard.send({type: "checkAlerts"});
+                await message.reply("Told shard 0 to start checking alerts!");
+            }
         }
     } catch(e) {
         console.error("Error while processing message!");
