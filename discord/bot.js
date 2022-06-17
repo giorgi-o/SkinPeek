@@ -314,15 +314,16 @@ client.on("messageCreate", async (message) => {
             const messageContent = content.substring(9);
             const messageEmbed = ownerMessageEmbed(messageContent, message.author);
 
-            await message.reply(`Sending message to ${client.guilds.cache.size} guilds (if they have alerts set up)`);
+            const guilds = await alertsPerChannelPerGuild();
 
-            const alerts = await alertsPerChannelPerGuild();
-            for(const guildId in alerts) {
+            await message.reply(`Sending message to ${Object.keys(guilds).length} guilds with alerts setup...`);
+
+            for(const guildId in guilds) {
                 const guild = client.guilds.cache.get(guildId);
                 if(!guild) continue;
 
                 try {
-                    const alertsPerChannel = alerts[guildId];
+                    const alertsPerChannel = guilds[guildId];
                     let channelWithMostAlerts = [null, 0];
                     for(const channelId in alertsPerChannel) {
                         if(alertsPerChannel[channelId] > channelWithMostAlerts[1]) {

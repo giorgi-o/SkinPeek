@@ -50,14 +50,14 @@ export const filteredAlertsForUser = async (interaction) => {
 
 export const alertsPerChannelPerGuild = async () => {
     const guilds = {};
-    for(const user of getUserList()) {
-        const alerts = alertsForUser(user.id);
+    for(const id of getUserList()) {
+        const alerts = alertsForUser(id);
         for(const alert of alerts) {
-            const channel = await getChannelGuildId(alert.channel_id);
+            const guildId = await getChannelGuildId(alert.channel_id);
 
-            if(!(channel.guildId in guilds)) guilds[channel.guildId] = {};
-            if(!(channel.id in guilds[channel.guildId])) guilds[channel.guildId][channel.id] = 1;
-            else guilds[channel.guildId][channel.id]++;
+            if(!(guildId in guilds)) guilds[guildId] = {};
+            if(!(alert.channel_id in guilds[guildId])) guilds[guildId][alert.channel_id] = 1;
+            else guilds[guildId][alert.channel_id]++;
         }
     }
     return guilds;
