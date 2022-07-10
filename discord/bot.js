@@ -41,6 +41,7 @@ import {
     readUserJson,
     switchAccount
 } from "../valorant/accountSwitcher.js";
+import {sendShardMessage} from "../misc/shardMessage.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -277,7 +278,7 @@ client.on("messageCreate", async (message) => {
                 saveConfig();
                 scheduleTasks();
 
-                if(client.shard) client.shard.send({type: "configReload"});
+                if(client.shard) sendShardMessage({type: "configReload"});
 
                 let s = "Successfully reloaded the config!";
                 if(config.token !== oldToken)
@@ -360,7 +361,7 @@ client.on("messageCreate", async (message) => {
                 await message.reply("Checked alerts!");
             }
             else {
-                await client.shard.send({type: "checkAlerts"});
+                await sendShardMessage({type: "checkAlerts"});
                 await message.reply("Told shard 0 to start checking alerts!");
             }
         }

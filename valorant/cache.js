@@ -5,6 +5,7 @@ import Fuse from "fuse.js";
 import fs from "fs";
 import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
 import {client} from "../discord/bot.js";
+import {sendShardMessage} from "../misc/shardMessage.js";
 
 const formatVersion = 6;
 let gameVersion;
@@ -53,21 +54,26 @@ export const fetchData = async (types=null, checkVersion=false) => {
 
         if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles];
 
-        if(types.includes(skins) && (!skins || skins.version !== gameVersion)) await getSkinList(gameVersion);
-        if(types.includes(prices) && (!prices || prices.version !== gameVersion)) await getPrices(gameVersion);
-        if(types.includes(bundles) && (!bundles || bundles.version !== gameVersion)) await getBundleList(gameVersion);
-        if(types.includes(rarities) && (!rarities || rarities.version !== gameVersion)) await getRarities(gameVersion);
-        if(types.includes(buddies) && (!buddies || buddies.version !== gameVersion)) await getBuddies(gameVersion);
-        if(types.includes(cards) && (!cards || cards.version !== gameVersion)) await getCards(gameVersion);
-        if(types.includes(sprays) && (!sprays || sprays.version !== gameVersion)) await getSprays(gameVersion);
-        if(types.includes(titles) && (!titles || titles.version !== gameVersion)) await getTitles(gameVersion);
+        const promises = [];
 
-        if(!prices || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) await getPrices(gameVersion); // refresh prices every 24h
+        if(types.includes(skins) && (!skins || skins.version !== gameVersion)) promises.push(getSkinList(gameVersion));
+        if(types.includes(prices) && (!prices || prices.version !== gameVersion)) promises.push(getPrices(gameVersion));
+        if(types.includes(bundles) && (!bundles || bundles.version !== gameVersion)) promises.push(getBundleList(gameVersion));
+        if(types.includes(rarities) && (!rarities || rarities.version !== gameVersion)) promises.push(getRarities(gameVersion));
+        if(types.includes(buddies) && (!buddies || buddies.version !== gameVersion)) promises.push(getBuddies(gameVersion));
+        if(types.includes(cards) && (!cards || cards.version !== gameVersion)) promises.push(getCards(gameVersion));
+        if(types.includes(sprays) && (!sprays || sprays.version !== gameVersion)) promises.push(getSprays(gameVersion));
+        if(types.includes(titles) && (!titles || titles.version !== gameVersion)) promises.push(getTitles(gameVersion));
+
+        if(!prices || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) promises.push(getPrices(gameVersion)); // refresh prices every 24h
+
+        if(promises.length === 0) return;
+        await Promise.all(promises);
 
         saveSkinsJSON();
 
         // we fetched the skins, tell other shards to load them
-        if(client.shard) client.shard.send({type: "skinsReload"});
+        if(client.shard) sendShardMessage({type: "skinsReload"});
     } catch(e) {
         console.error("There was an error while trying to fetch skin data!");
         console.error(e);

@@ -7,6 +7,7 @@ import {client} from "./bot.js";
 import config from "../misc/config.js";
 import {s} from "../misc/languages.js";
 import {saveUser} from "../valorant/accountSwitcher.js";
+import {sendShardMessage} from "../misc/shardMessage.js";
 
 
 /* Alert format: {
@@ -125,7 +126,7 @@ export const sendAlert = async (id, alerts, expires, tryOnOtherShard=true) => {
         const channel = await fetchChannel(alert.channel_id);
         if(!channel) {
             if(client.shard && tryOnOtherShard) {
-                client.shard.send({
+                sendShardMessage({
                     type: "alert",
                     id, alert, expires
                 });
@@ -161,7 +162,7 @@ export const sendCredentialsExpired = async (id, alert, tryOnOtherShard=true) =>
     const channel = await fetchChannel(alert.channel_id);
     if(!channel) {
         if(client.shard && tryOnOtherShard) {
-            client.shard.send({
+            sendShardMessage({
                 type: "alertCredentialsExpired",
                 id, alert
             });
