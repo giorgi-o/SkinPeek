@@ -50,6 +50,8 @@ By default, the bot doesn't store your username/password, it only uses them to g
 You can log in using [your auth.riotgames.com cookies](https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies) using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
 Obviously, only log in if you trust whoever is hosting the bot, as they can theoretically do anything with your account.
 
+If you're bored, check out [this writeup](https://gist.github.com/giorgi-o/e0fc2f6160a5fd43f05be8567ad6fdd7) on how Riot treats third-party projects like this one.
+
 ### Docker
 
 For advanced users who want to deploy the bot using [Docker](https://www.docker.com/):

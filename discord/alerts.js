@@ -88,37 +88,46 @@ export const checkAlerts = async () => {
     try {
         for(const id of getUserList()) {
             try {
+                let credsExpiredAlerts = false;
+
                 const userJson = readUserJson(id);
                 if(!userJson) continue;
 
                 const accountCount = userJson.accounts.length;
                 for(let i = 1; i <= accountCount; i++) {
 
-                    await wait(config.delayBetweenAlerts); // to prevent being ratelimited
-
                     const userAlerts = alertsForUser(id, i);
                     if(!userAlerts || !userAlerts.length) continue;
+
+                    await wait(config.delayBetweenAlerts); // to prevent being ratelimited
+
+                    const valorantUser = getUser(id, i);
+                    const discordUser = client.users.cache.get(id);
+                    const discordUsername = discordUser ? discordUser.username : id;
+                    console.log(`Checking user ${discordUsername}'s ${valorantUser.username} account (${i}/${accountCount}) for alerts...`);
 
                     const offers = await getOffers(id, i);
                     if(!offers.success) {
                         if(offers.maintenance) return; // retry in a few hours?
 
-                        // user login is invalid
-                        const channelsSent = [];
-                        for(const alert of userAlerts) {
-                            if(!channelsSent.includes(alert.channel_id)) {
-                                await sendCredentialsExpired(id, alert);
-                                channelsSent.push(alert.channel_id);
-                            }
-                        }
-
+                        if(!credsExpiredAlerts) credsExpiredAlerts = userAlerts;
                         deleteUserAuth(getUser(id, i));
-                        await wait(config.delayBetweenAlerts);
                         continue;
                     }
 
                     const positiveAlerts = userAlerts.filter(alert => offers.offers.includes(alert.uuid));
                     if(positiveAlerts.length) await sendAlert(id, i, positiveAlerts, offers.expires);
+                }
+
+                if(credsExpiredAlerts) {
+                    // user login is invalid
+                    const channelsSent = [];
+                    for(const alert of credsExpiredAlerts) {
+                        if(!channelsSent.includes(alert.channel_id)) {
+                            await sendCredentialsExpired(id, alert);
+                            channelsSent.push(alert.channel_id);
+                        }
+                    }
                 }
             } catch(e) {
                 console.error("There was an error while trying to fetch and send alerts for user " + discordTag(id));
