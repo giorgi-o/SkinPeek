@@ -59,7 +59,7 @@
       "WALLET_HEADER": "**{u}**'s Portemonnaie:",
       "VPOINTS": "VALORANT Points",
       "RADIANITE": "Radianite",
-      "ALERT_HAPPENED": ":tada: <@{u}> Die/Das **{s}** ist in deinem täglichen Shop!\nEs wird <t:{t}:R> verschwunden sein.",
+      "ALERT_HAPPENED": ":tada: <@{i}> Die/Das **{s}** ist in deinem täglichen Shop!\nEs wird <t:{t}:R> verschwunden sein.",
       "ALERT_CHOICE": "Für welchen Skin möchtest du eine Benachrichtigung einrichten?",
       "ALERT_CHOICE_PLACEHOLDER": "Wähle Skin:",
       "ALERT_SET": "Erfolgreich Benachrichtigung für **{s}** gesetzt!",

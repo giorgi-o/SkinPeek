@@ -39,7 +39,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "delayBetweenAlerts", 5 * 1000);
     applyConfig(loadedConfig, "alertsPerPage", 10);
     applyConfig(loadedConfig, "emojiCacheExpiration", 10 * 1000);
-    applyConfig(loadedConfig, "useShopCache", false);
+    applyConfig(loadedConfig, "useShopCache", true);
     applyConfig(loadedConfig, "useLoginQueue", false);
     applyConfig(loadedConfig, "loginQueue", "*/3 * * * * *");
     applyConfig(loadedConfig, "loginRetryTimeout", 10 * 60 * 1000);
@@ -49,6 +49,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "trackStoreStats", false);
     applyConfig(loadedConfig, "statsExpirationDays", 14);
     applyConfig(loadedConfig, "statsPerPage", 8);
+    applyConfig(loadedConfig, "shardReadyTimeout", 60 * 1000);
     applyConfig(loadedConfig, "ownerId", "");
     applyConfig(loadedConfig, "ownerName", "");
     applyConfig(loadedConfig, "status", "Up and running!");

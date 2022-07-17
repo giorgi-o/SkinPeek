@@ -59,7 +59,7 @@
       "WALLET_HEADER": "**{u}** の残高:",
       "VPOINTS": "ヴァロラントポイント",
       "RADIANITE": "レディアナイトポイント",
-      "ALERT_HAPPENED": "<@{u}> :tada: **{s}**がショップで見つかりました！\n今日のショップは<t:{t}:R>に終了します。",
+      "ALERT_HAPPENED": "<@{i}> :tada: **{s}**がショップで見つかりました！\n今日のショップは<t:{t}:R>に終了します。",
       "ALERT_CHOICE": "どのスキンにリマインダーを設定しますか？",
       "ALERT_CHOICE_PLACEHOLDER": "スキンを選択してください:",
       "ALERT_SET": "**{s}** のアラートを正常に設定しました！",

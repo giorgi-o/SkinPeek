@@ -59,7 +59,7 @@
     "WALLET_HEADER": "Ví của **{u}**",
     "VPOINTS": "Điểm VALORANT",
     "RADIANITE": "Radianite",
-    "ALERT_HAPPENED": ":tada: <@{u}> **{s}** đang ở trong shop của bạn!\nNó sẽ biến mất trong <t:{t}:R>.",
+    "ALERT_HAPPENED": ":tada: <@{i}> **{s}** đang ở trong shop của **{u}**!\nNó sẽ biến mất trong <t:{t}:R>.",
     "ALERT_CHOICE": "Bạn muốn đặt thông báo cho skin nào?",
     "ALERT_CHOICE_PLACEHOLDER": "Chọn skin:",
     "ALERT_SET": "Thành công đặt thông báo cho **{s}**!",

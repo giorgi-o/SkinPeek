@@ -61,7 +61,7 @@
     "WALLET_HEADER": "**{u}**'s Wallet:",
     "VPOINTS": "VALORANT Points",
     "RADIANITE": "Radianite",
-    "ALERT_HAPPENED": ":tada: <@{u}> The **{s}** is in your daily shop!\nIt will be gone <t:{t}:R>.",
+    "ALERT_HAPPENED": ":tada: <@{i}> The **{s}** is in **{u}**'s daily shop!\nIt will be gone <t:{t}:R>.",
     "ALERT_CHOICE": "Which skin would you like to set a reminder for?",
     "ALERT_CHOICE_PLACEHOLDER": "Select skin:",
     "ALERT_SET": "Successfully set an alert for the **{s}**!",

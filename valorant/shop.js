@@ -6,11 +6,11 @@ import {addStore} from "../misc/stats.js";
 import config from "../misc/config.js";
 import {deleteUser} from "./accountSwitcher.js";
 
-const getShop = async (id) => {
-    const authSuccess = await authUser(id);
+const getShop = async (id, account=null) => {
+    const authSuccess = await authUser(id, account);
     if(!authSuccess.success) return authSuccess;
 
-    const user = getUser(id);
+    const user = getUser(id, account);
     console.log(`Fetching shop for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetStorefrontV2.md
@@ -43,11 +43,11 @@ const getShop = async (id) => {
     return {success: true, shop: json};
 }
 
-export const getOffers = async (id) => {
-    const shopCache = getShopCache(getPuuid(id));
+export const getOffers = async (id, account=null) => {
+    const shopCache = getShopCache(getPuuid(id, account));
     if(shopCache) return {success: true, ...shopCache.offers};
 
-    const resp = await getShop(id);
+    const resp = await getShop(id, account);
     if(!resp.success) return resp;
 
     return {
@@ -57,11 +57,11 @@ export const getOffers = async (id) => {
     };
 }
 
-export const getBundles = async (id) => {
-    const shopCache = getShopCache(getPuuid(id), true);
+export const getBundles = async (id, account=null) => {
+    const shopCache = getShopCache(getPuuid(id, account), true);
     if(shopCache) return {success: true, bundles: shopCache.bundles};
 
-    const resp = await getShop(id);
+    const resp = await getShop(id, account);
     if(!resp.success) return resp;
 
     const formatted = await Promise.all(resp.shop.FeaturedBundle.Bundles.map(rawBundle => formatBundle(rawBundle)));
@@ -72,11 +72,11 @@ export const getBundles = async (id) => {
     return {success: true, bundles: formatted};
 }
 
-export const getNightMarket = async (id) => {
-    const shopCache = getShopCache(getPuuid(id));
+export const getNightMarket = async (id, account=null) => {
+    const shopCache = getShopCache(getPuuid(id, account));
     if(shopCache) return {success: true, ...shopCache.night_market};
 
-    const resp = await getShop(id);
+    const resp = await getShop(id, account);
     if(!resp.success) return resp;
 
     if(!resp.shop.BonusStore) return {
@@ -91,11 +91,11 @@ export const getNightMarket = async (id) => {
     }
 }
 
-export const getBalance = async (id) => {
-    const authSuccess = await authUser(id);
+export const getBalance = async (id, account=null) => {
+    const authSuccess = await authUser(id, account);
     if(!authSuccess.success) return authSuccess;
 
-    const user = getUser(id);
+    const user = getUser(id, account);
     console.log(`Fetching balance for ${user.username}...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetWallet.md
@@ -109,7 +109,7 @@ export const getBalance = async (id) => {
 
     const json = JSON.parse(req.body);
     if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
-        deleteUser(id);
+        deleteUser(id, account);
         return {success: false};
     } else if(isMaintenance(json)) return {success: false, maintenance: true};
 

@@ -49,9 +49,9 @@ export const transferUserDataFromOldUsersJson = () => {
     fs.renameSync("data/users.json", "data/users.json.old");
 }
 
-export const getUser = (id) => {
+export const getUser = (id, account=null) => {
     try {
-        const userData = getUserJson(id);
+        const userData = getUserJson(id, account);
         return new User(userData);
     } catch(e) {
         return null;
@@ -68,15 +68,15 @@ export const setUserLocale = (user, locale) => {
     saveUser(user);
 }
 
-export const authUser = async (id) => {
+export const authUser = async (id, account=null) => {
     // doesn't check if token is valid, only checks it hasn't expired
-    const user = getUser(id);
+    const user = getUser(id, account);
     if(!user || !user.auth || !user.auth.rso) return {success: false};
 
     const rsoExpiry = tokenExpiry(user.auth.rso);
     if(rsoExpiry - Date.now() > 10_000) return {success: true};
 
-    return await refreshToken(id);
+    return await refreshToken(id, account);
 }
 
 const userAgent = "RiotClient/51.0.0.4429735.4381201 rso-auth (Windows;10;;Professional, x64)";
@@ -276,8 +276,8 @@ const getRegion = async (user) => {
     return json.affinities.live;
 }
 
-export const redeemCookies = async (id, cookies) => {
-    const user = getUser(id) || new User({id});
+export const redeemCookies = async (id, cookies, account=null) => {
+    const user = getUser(id, account) || new User({id});
 
     const req = await fetch("https://auth.riotgames.com/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&scope=account%20openid&nonce=1", {
         headers: {
@@ -310,13 +310,13 @@ export const redeemCookies = async (id, cookies) => {
     return true;
 }
 
-export const refreshToken = async (id) => {
+export const refreshToken = async (id, account=null) => {
     let response = {success: false}
 
-    const user = getUser(id);
+    const user = getUser(id, account);
     if(!user) return response;
 
-    if(user.auth.cookies) response.success = await redeemCookies(id, stringifyCookies(user.auth.cookies));
+    if(user.auth.cookies) response.success = await redeemCookies(id, stringifyCookies(user.auth.cookies), account);
     if(!response.success && user.auth.login && user.auth.password) response = await redeemUsernamePassword(id, user.auth.login, atob(user.auth.password));
 
     if(!response.success && !response.mfa && !response.rateLimit) deleteUserAuth(user);

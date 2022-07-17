@@ -59,7 +59,7 @@
       "WALLET_HEADER": "**{u}**'s Cartera:",
       "VPOINTS": "VALORANT Puntos",
       "RADIANITE": "Radianite",
-      "ALERT_HAPPENED": ":tada: <@{u}> ¡El **{s}** está en tu tienda diaria!\nse habrá ido <t:{t}:R>.",
+      "ALERT_HAPPENED": ":tada: <@{i}> ¡El **{s}** está en tu tienda diaria!\nse habrá ido <t:{t}:R>.",
       "ALERT_CHOICE": "¿Para qué aspecto te gustaría establecer un recordatorio?",
       "ALERT_CHOICE_PLACEHOLDER": "Aspecto seleccionada:",
       "ALERT_SET": "establecí con éxito una alerta para el **{s}**!",

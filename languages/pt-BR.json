@@ -60,7 +60,7 @@
     "WALLET_HEADER": "Carteira do **{u}**:",
     "VPOINTS": "VALORANT Points",
     "RADIANITE": "Radianite",
-    "ALERT_HAPPENED": ":tada: <@{u}> A **{s}** está na sua loja!\nSumirá <t:{t}:R>.",
+    "ALERT_HAPPENED": ":tada: <@{i}> A **{s}** está na sua loja!\nSumirá <t:{t}:R>.",
     "ALERT_CHOICE": "Qual skin você gostaria de ser alertado?",
     "ALERT_CHOICE_PLACEHOLDER": "Selecione a skin:",
     "ALERT_SET": "Alerta para **{s}** adicionado com sucesso!",
@@ -109,4 +109,3 @@
     "WEEKLY_XP_ROW": "XP Semanal"
   }
 }
-  

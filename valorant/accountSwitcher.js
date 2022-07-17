@@ -15,7 +15,7 @@ export const readUserJson = (id) => {
     }
 }
 
-export const getUserJson = (id) => {
+export const getUserJson = (id, account=null) => {
     const user = readUserJson(id);
     if(!user) return null;
 
@@ -25,10 +25,10 @@ export const getUserJson = (id) => {
             currentAccount: 1
         }
         saveUserJson(id, userJson);
-        return userJson;
+        return userJson.accounts[account || 1];
     }
 
-    return user.accounts[user.currentAccount - 1];
+    return user.accounts[(account || user.currentAccount) - 1];
 }
 
 const saveUserJson = (id, json) => {

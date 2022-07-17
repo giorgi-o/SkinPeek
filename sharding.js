@@ -7,4 +7,6 @@ const manager = new ShardingManager('./SkinPeek.js', {
     token: config.token
 });
 
-manager.spawn();
+manager.spawn({
+    timeout: config.shardReadyTimeout
+});

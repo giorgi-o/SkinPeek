@@ -45,6 +45,7 @@ import {sendShardMessage} from "../misc/shardMessage.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
+    //shards: "auto" // uncomment this to use internal sharding instead of sharding.js
 });
 const cronTasks = [];
 

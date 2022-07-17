@@ -45,7 +45,7 @@ export const sendShardMessage = async (message) => {
 const receiveShardMessage = async (message) => {
     oldLog(`Received shard message ${JSON.stringify(message).substring(0, 100)}`);
     if(message.type === "alert") {
-        await sendAlert(message.id, message.alerts, message.expires, false);
+        await sendAlert(message.id, message.account, message.alerts, message.expires, false);
     } else if(message.type === "alertCredentialsExpired") {
         await sendCredentialsExpired(message.id, message.alert, false);
     } else if(message.type === "checkAlerts") {

@@ -60,7 +60,7 @@
         "WALLET_HEADER": "**{u}**'s พอยท์ของคุณ:",
         "VPOINTS": "VALORANT Points",
         "RADIANITE": "Radianite",
-        "ALERT_HAPPENED": ":tada: <@{u}> **{s}** อยู่ในร้านค้าของคุณ!\nจะหมดเวลาในอีก <t:{t}:R>.",
+        "ALERT_HAPPENED": ":tada: <@{i}> **{s}** อยู่ในร้านค้าของคุณ!\nจะหมดเวลาในอีก <t:{t}:R>.",
         "ALERT_CHOICE": "สกินไหนที่คุณต้องการตั้งเตือนการแจ้งเตือน?",
         "ALERT_CHOICE_PLACEHOLDER": "เลือกสกิน:",
         "ALERT_SET": "เพิ่มแจ้งเตือนสำเร็จ **{s}**!",
