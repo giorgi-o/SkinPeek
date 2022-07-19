@@ -36,7 +36,7 @@ const saveUserJson = (id, json) => {
     fs.writeFileSync("data/users/" + id + ".json", JSON.stringify(json, null, 2));
 }
 
-export const saveUser = (user) => {
+export const saveUser = (user, account=null) => {
     if(!fs.existsSync("data/users")) fs.mkdirSync("data/users");
 
     const userJson = readUserJson(user.id);
@@ -47,7 +47,7 @@ export const saveUser = (user) => {
         }
         saveUserJson(user.id, objectToWrite);
     } else {
-        userJson.accounts[userJson.currentAccount - 1] = user;
+        userJson.accounts[(account || userJson.currentAccount) - 1] = user;
         saveUserJson(user.id, userJson);
     }
 }

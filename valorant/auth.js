@@ -2,7 +2,7 @@ import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpi
 import config from "../misc/config.js";
 import fs from "fs";
 import {client} from "../discord/bot.js";
-import {addUser, getUserJson, saveUser} from "./accountSwitcher.js";
+import {addUser, deleteUser, getUserJson, saveUser} from "./accountSwitcher.js";
 
 class User {
     constructor({id, puuid, auth, alerts=[], username, region, locale}) {
@@ -175,6 +175,8 @@ export const redeem2FACode = async (id, code) => {
 
     if(req.statusCode === 429) return {success: false, rateLimit: true};
 
+    deleteUser(id);
+
     user.auth = {
         ...user.auth,
         cookies: {
@@ -189,16 +191,16 @@ export const redeem2FACode = async (id, code) => {
         return {success: false};
     }
 
-    user = await processAuthResponse(id, {login: user.auth.login, password: atob(user.auth.password), cookies: user.auth.cookies}, json);
+    user = await processAuthResponse(id, {login: user.auth.login, password: atob(user.auth.password), cookies: user.auth.cookies}, json, user);
 
     delete user.auth.waiting2FA;
-    saveUser(user);
+    addUser(user);
 
     return {success: true};
 }
 
-const processAuthResponse = async (id, authData, resp) => {
-    const user = new User({id});
+const processAuthResponse = async (id, authData, resp, user=null) => {
+    if(!user) user = new User({id});
     const [rso, idt] = extractTokensFromUri(resp.response.parameters.uri);
     user.auth = {
         ...user.auth,
@@ -276,8 +278,8 @@ const getRegion = async (user) => {
     return json.affinities.live;
 }
 
-export const redeemCookies = async (id, cookies, account=null) => {
-    const user = getUser(id, account) || new User({id});
+export const redeemCookies = async (id, cookies) => {
+    const user = new User({id});
 
     const req = await fetch("https://auth.riotgames.com/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&scope=account%20openid&nonce=1", {
         headers: {
@@ -316,7 +318,7 @@ export const refreshToken = async (id, account=null) => {
     const user = getUser(id, account);
     if(!user) return response;
 
-    if(user.auth.cookies) response.success = await redeemCookies(id, stringifyCookies(user.auth.cookies), account);
+    if(user.auth.cookies) response.success = await redeemCookies(id, stringifyCookies(user.auth.cookies));
     if(!response.success && user.auth.login && user.auth.password) response = await redeemUsernamePassword(id, user.auth.login, atob(user.auth.password));
 
     if(!response.success && !response.mfa && !response.rateLimit) deleteUserAuth(user);
