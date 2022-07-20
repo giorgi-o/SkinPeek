@@ -40,6 +40,12 @@ const getShop = async (id, account=null) => {
     // add to shop cache
     addShopCache(user.puuid, json);
 
+    // save bundle data & prices
+    Promise.all(json.FeaturedBundle.Bundles.map(rawBundle => formatBundle(rawBundle))).then(async bundles => {
+        for(const bundle of bundles)
+            await addBundleData(bundle);
+    });
+
     return {success: true, shop: json};
 }
 
@@ -65,9 +71,6 @@ export const getBundles = async (id, account=null) => {
     if(!resp.success) return resp;
 
     const formatted = await Promise.all(resp.shop.FeaturedBundle.Bundles.map(rawBundle => formatBundle(rawBundle)));
-
-    for(const bundle of formatted)
-        await addBundleData(bundle);
 
     return {success: true, bundles: formatted};
 }

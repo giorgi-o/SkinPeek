@@ -42,6 +42,7 @@ const tlsSigAlgs = [
 
 // all my homies hate node-fetch
 export const fetch = (url, options={}) => {
+    // console.log("Fetching url " + url);
     return new Promise((resolve, reject) => {
         const req = https.request(url, {
             method: options.method || "GET",
