@@ -1,30 +1,6 @@
 import {Client, Intents, MessageActionRow, MessageFlags, MessageSelectMenu} from "discord.js";
-import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
-import {
-    addAlert,
-    alertExists, alertsForGuild,
-    checkAlerts, filteredAlertsForUser, removeAlert,
-    removeAlertsInChannel,
-    setClient, testAlerts
-} from "./alerts.js";
 import cron from "node-cron";
-import {
-    authUser,
-    cleanupAccounts, deleteUser,
-    getUser, getUserList,
-} from "../valorant/auth.js";
-import {
-    canSendMessages,
-    defer,
-    emojiToString,
-    externalEmojisAllowed,
-    removeAlertActionRow,
-    skinNameAndEmoji, wait
-} from "../misc/util.js";
-import {RadEmoji, VPEmoji} from "./emoji.js";
-import {getBalance} from "../valorant/shop.js";
-import { getBattlepassProgress } from "../valorant/battlepass.js";
-import config, {saveConfig} from "../misc/config.js";
+
 import {
     authFailureMessage,
     basicEmbed,
@@ -41,28 +17,35 @@ import {
     alertTestResponse,
     alertsPageEmbed,
     statsForSkinEmbed,
-    allStatsEmbed
+    allStatsEmbed,
+    accountsListEmbed
 } from "./embed.js";
-import {
-    getAuthQueueItemStatus,
-    processAuthQueue,
-    queueCookiesLogin,
-} from "../valorant/authQueue.js";
-import {l, s} from "../misc/languages.js";
+import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
+import {getBalance} from "../valorant/shop.js";
+import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
+import {addAlert, alertExists, alertsPerChannelPerGuild, checkAlerts, filteredAlertsForUser, removeAlert, testAlerts} from "./alerts.js";
+import {RadEmoji, VPEmoji} from "./emoji.js";
+import {getShopQueueItemStatus, processShopQueue, queueBundles, queueItemShop, queueNightMarket} from "../valorant/shopQueue.js";
+import {getAuthQueueItemStatus, processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
+import { getBattlepassProgress } from "../valorant/battlepass.js";
 import {getOverallStats, getStatsFor} from "../misc/stats.js";
+import {canSendMessages, defer, emojiToString, externalEmojisAllowed, fetchChannel, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
+import config, {saveConfig} from "../misc/config.js";
+import {sendConsoleOutput} from "../misc/logger.js";
+import {l, s} from "../misc/languages.js";
 import {
-    getShopQueueItemStatus,
-    processShopQueue,
-    queueBundles,
-    queueItemShop,
-    queueNightMarket
-} from "../valorant/shopQueue.js";
-import {sendConsoleOutput, setClient as setLoggerClient} from "../misc/logger.js";
+    deleteUser,
+    deleteWholeUser,
+    getNumberOfAccounts,
+    readUserJson,
+    switchAccount
+} from "../valorant/accountSwitcher.js";
+import {sendShardMessage} from "../misc/shardMessage.js";
 
-const client = new Client({
+export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
-    shards: "auto"
+    //shards: "auto" // uncomment this to use internal sharding instead of sharding.js
 });
 const cronTasks = [];
 
@@ -72,15 +55,12 @@ client.on("ready", async () => {
     console.log("Loading skins...");
     fetchData().then(() => console.log("Skins loaded!"));
 
-    setClient(client);
-    setLoggerClient(client);
-
     scheduleTasks();
 
     await client.user.setActivity("your store!", {type: "WATCHING"});
 });
 
-const scheduleTasks = () => {
+export const scheduleTasks = () => {
     console.log("Scheduling tasks...");
 
     // check alerts every day at 00:00:10 GMT
@@ -88,9 +68,6 @@ const scheduleTasks = () => {
 
     // check for new valorant version every 15mins
     if(config.checkGameVersion) cronTasks.push(cron.schedule(config.checkGameVersion, () => fetchData(null, true)));
-
-    // cleanup accounts every hour
-    if(config.cleanupAccounts) cronTasks.push(cron.schedule(config.cleanupAccounts, cleanupAccounts));
 
     // if login queue is enabled, process an item every 3 seconds
     if(config.useLoginQueue && config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processAuthQueue));
@@ -102,7 +79,7 @@ const scheduleTasks = () => {
     if(config.logToChannel && config.logFrequency) cronTasks.push(cron.schedule(config.logFrequency, sendConsoleOutput));
 }
 
-const destroyTasks = () => {
+export const destroyTasks = () => {
     console.log("Destroying scheduled tasks...");
     for(const task of cronTasks)
         task.stop();
@@ -196,7 +173,14 @@ const commands = [
     },
     {
         name: "forget",
-        description: "Forget and permanently delete your account from the bot."
+        description: "Forget and permanently delete your account from the bot.",
+        options: [{
+            type: "INTEGER",
+            name: "account",
+            description: "The account number you want to forget. Leave blank to forget all accounts.",
+            required: false,
+            minValue: 1
+        }]
     },
     {
         name: "battlepass",
@@ -219,6 +203,21 @@ const commands = [
             description: "The name of the skin you want to see the stats of",
             required: false
         }]
+    },
+    {
+        name: "account",
+        description: "Switch the Valorant account you are currently using",
+        options: [{
+            type: "INTEGER",
+            name: "account",
+            description: "The account number you want to switch to",
+            required: true,
+            minValue: 1
+        }]
+    },
+    {
+        name: "accounts",
+        description: "Show all of your Valorant accounts"
     },
     {
         name: "info",
@@ -280,6 +279,8 @@ client.on("messageCreate", async (message) => {
                 saveConfig();
                 scheduleTasks();
 
+                if(client.shard) sendShardMessage({type: "configReload"});
+
                 let s = "Successfully reloaded the config!";
                 if(config.token !== oldToken)
                     s += "\nI noticed you changed the token. You'll have to restart the bot for that to happen."
@@ -311,24 +312,20 @@ client.on("messageCreate", async (message) => {
                 if(configType === 'undefined') s += "\n**Note:** That config option wasn't there before! Are you sure that's not a typo?"
                 await message.reply(s);
             }
-        } else if(content.startsWith("!message")) {
+        } else if(content.startsWith("!message ")) {
             const messageContent = content.substring(9);
             const messageEmbed = ownerMessageEmbed(messageContent, message.author);
 
-            await message.reply(`Sending message to ${client.guilds.cache.size} guilds (if they have alerts set up)`);
+            const guilds = await alertsPerChannelPerGuild();
 
-            for(const guild of client.guilds.cache.values()) {
+            await message.reply(`Sending message to ${Object.keys(guilds).length} guilds with alerts setup...`);
+
+            for(const guildId in guilds) {
+                const guild = client.guilds.cache.get(guildId);
+                if(!guild) continue;
+
                 try {
-                    const alerts = await alertsForGuild(guild.id);
-                    console.log(`Found ${alerts.length} alerts for guild ${guild.name}`);
-                    if(!alerts.length) continue;
-
-                    const alertsPerChannel = {};
-                    for(const alert of alerts) {
-                        if(alertsPerChannel[alert.channel_id]) alertsPerChannel[alert.channel_id]++;
-                        else alertsPerChannel[alert.channel_id] = 1;
-                    }
-
+                    const alertsPerChannel = guilds[guildId];
                     let channelWithMostAlerts = [null, 0];
                     for(const channelId in alertsPerChannel) {
                         if(alertsPerChannel[channelId] > channelWithMostAlerts[1]) {
@@ -337,9 +334,11 @@ client.on("messageCreate", async (message) => {
                     }
                     if(channelWithMostAlerts[0] === null) continue;
 
-                    const channel = await guild.channels.fetch(channelWithMostAlerts[0]);
+                    const channel = await fetchChannel(channelWithMostAlerts[0]);
+                    if(!channel) continue;
+
                     console.log(`Channel with most alerts: #${channel.name} (${channelWithMostAlerts[1]} alerts)`);
-                    if(channel) await channel.send({
+                    await channel.send({
                         embeds: [messageEmbed]
                     });
                 } catch(e) {
@@ -358,8 +357,14 @@ client.on("messageCreate", async (message) => {
             saveConfig();
             await message.reply("Set the status to `" + config.status + "`!");
         } else if(content === "!forcealerts") {
-            await checkAlerts();
-            await message.reply("Checked alerts!");
+            if(!client.shard || client.shard.ids.includes(0)) {
+                await checkAlerts();
+                await message.reply("Checked alerts!");
+            }
+            else {
+                await sendShardMessage({type: "checkAlerts"});
+                await message.reply("Told shard 0 to start checking alerts!");
+            }
         }
     } catch(e) {
         console.error("Error while processing message!");
@@ -385,7 +390,7 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     // fetch the channel if not in cache
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
 
                     // start uploading emoji now
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
@@ -412,7 +417,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
                     let bundles = await queueBundles(interaction.user.id);
@@ -435,7 +440,7 @@ client.on("interactionCreate", async (interaction) => {
                     const searchQuery = interaction.options.get("bundle").value.replace(/collection/i, "").replace(/bundle/i, "");
                     const searchResults = await searchBundle(searchQuery, interaction.locale);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
 
                     // if the name matches exactly, and there is only one with that name
@@ -491,7 +496,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
                     let market = await queueNightMarket(interaction.user.id);
@@ -516,7 +521,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const VPEmojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
                     const RadEmojiPromise = RadEmoji(channel, externalEmojisAllowed(channel));
 
@@ -547,7 +552,7 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     if(!canSendMessages(channel)) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.ALERT_NO_PERMS)]
                     });
@@ -561,14 +566,7 @@ client.on("interactionCreate", async (interaction) => {
                     const filteredResults = [];
                     for(const result of searchResults) {
                         const otherAlert = alertExists(interaction.user.id, result.uuid);
-                        if(otherAlert) { // user already has an alert for this skin
-                            // maybe it's in a now deleted channel?
-                            const otherChannel = await client.channels.fetch(otherAlert.channel_id).catch(() => {});
-                            if(!otherChannel) {
-                                removeAlertsInChannel(otherAlert.channel_id);
-                                filteredResults.push(result);
-                            }
-                        } else filteredResults.push(result);
+                        if(!otherAlert) filteredResults.push(result);
                     }
 
                     if(filteredResults.length === 0) {
@@ -588,8 +586,7 @@ client.on("interactionCreate", async (interaction) => {
                         l(filteredResults[0].names).toLowerCase() === searchQuery.toLowerCase()) {
                         const skin = filteredResults[0];
 
-                        addAlert({
-                            id: interaction.user.id,
+                        addAlert(interaction.user.id, {
                             uuid: skin.uuid,
                             channel_id: interaction.channelId
                         });
@@ -627,7 +624,7 @@ client.on("interactionCreate", async (interaction) => {
                     const auth = await authUser(interaction.user.id);
                     if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emojiString = emojiToString(await VPEmoji(channel, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
 
                     await interaction.followUp(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), 0, emojiString));
@@ -662,7 +659,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "2fa": {
-                    if(!valorantUser || !valorantUser.waiting2FA) return await interaction.reply({
+                    if(!valorantUser || !valorantUser.auth || !valorantUser.auth.waiting2FA) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.UNEXPECTED_2FA)],
                         ephemeral: true
                     });
@@ -693,7 +690,7 @@ client.on("interactionCreate", async (interaction) => {
                     if(success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
                         embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
-                        user.locale = interaction.locale;
+                        setUserLocale(user, interaction.locale);
                     } else {
                         console.log(`${interaction.user.tag} cookies login failed`);
                         embed = basicEmbed(s(interaction).error.INVALID_COOKIES);
@@ -714,13 +711,28 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    deleteUser(interaction.user.id, true);
-                    console.log(`${interaction.user.tag} deleted their account`);
+                    const accountNumber = interaction.options.get("account") && interaction.options.get("account").value;
+                    if(accountNumber) {
+                        const accountCount = getNumberOfAccounts(interaction.user.id);
+                        if(accountNumber > accountCount) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
+                            ephemeral: true
+                        });
 
-                    await interaction.followUp({
-                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_DELETED)],
-                        ephemeral: true
-                    });
+                        const usernameOfDeleted = deleteUser(interaction.user.id, accountNumber);
+
+                        await interaction.followUp({
+                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: accountNumber, u: usernameOfDeleted}))],
+                        });
+                    } else {
+                        deleteWholeUser(interaction.user.id);
+                        console.log(`${interaction.user.tag} deleted their account`);
+
+                        await interaction.followUp({
+                            embeds: [basicEmbed(s(interaction).info.ACCOUNT_DELETED)],
+                            ephemeral: true
+                        });
+                    }
                     break;
                 }
                 case "battlepass": {
@@ -787,12 +799,54 @@ client.on("interactionCreate", async (interaction) => {
 
                     break;
                 }
-                case "info": {
-                    const guildCount = client.guilds.cache.size;
+                case "account": {
+                    const accountNumber = interaction.options.get("account").value;
 
-                    let userCount = 0;
-                    for(const guild of client.guilds.cache.values())
-                        userCount += guild.memberCount;
+                    const accountCount = getNumberOfAccounts(interaction.user.id);
+                    if(accountCount === 0) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
+
+                    if(accountNumber > accountCount) return await interaction.reply({
+                        // embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
+                        ephemeral: true
+                    });
+
+                    const valorantUser = switchAccount(interaction.user.id, accountNumber);
+
+                    await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({n: accountNumber, u: valorantUser.username}))],
+                    });
+                    break;
+                }
+                case "accounts": {
+                    const userJson = readUserJson(interaction.user.id);
+                    if(!userJson) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
+
+                    await interaction.reply(accountsListEmbed(interaction, userJson));
+
+                    break;
+                }
+                case "info": {
+                    let guildCount, userCount;
+                    if(client.shard) {
+                        const guildCounts = await client.shard.fetchClientValues('guilds.cache.size');
+                        guildCount = guildCounts.reduce((acc, guildCount) => acc + guildCount, 0);
+
+                        const userCounts = await client.shard.broadcastEval(c => c.guilds.cache.reduce((acc, guild) => acc + guild.memberCount, 0));
+                        userCount = userCounts.reduce((acc, guildCount) => acc + guildCount, 0);
+                    } else {
+                        guildCount = client.guilds.cache.size;
+
+                        userCount = 0;
+                        for(const guild of client.guilds.cache.values())
+                            userCount += guild.memberCount;
+                    }
 
                     const registeredUserCount = getUserList().length;
 
@@ -830,7 +884,7 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    addAlert({
+                    addAlert(interaction.user.id, {
                         id: interaction.user.id,
                         uuid: chosenSkin,
                         channel_id: interaction.channelId
@@ -873,7 +927,7 @@ client.on("interactionCreate", async (interaction) => {
                     const chosenBundle = interaction.values[0].substring(7);
                     const bundle = await getBundle(chosenBundle);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
                     const message = await renderBundle(bundle, interaction, emoji);
 
@@ -903,7 +957,7 @@ client.on("interactionCreate", async (interaction) => {
                 if(success) {
                     const skin = await getSkin(uuid);
 
-                    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     await interaction.reply({
                         embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({s: await skinNameAndEmoji(skin, channel, interaction.locale)}))],
                         ephemeral: true
@@ -964,10 +1018,6 @@ client.on("interactionCreate", async (interaction) => {
             await handleError(e, interaction);
         }
     }
-});
-
-client.on("channelDelete", channel => {
-    removeAlertsInChannel(channel.id);
 });
 
 const handleError = async (e, interaction) => {

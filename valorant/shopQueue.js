@@ -81,6 +81,8 @@ export const processShopQueue = async () => {
                 break;
         }
     } catch(e) {
+        console.error(`Error processing shop queue item "${item.operation}" for ${item.id} (c=${item.c})`);
+        console.error(e);
         result = {success: false, error: e};
     }
 

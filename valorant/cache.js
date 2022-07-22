@@ -4,6 +4,8 @@ import config from "../misc/config.js";
 import Fuse from "fuse.js";
 import fs from "fs";
 import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
+import {client} from "../discord/bot.js";
+import {sendShardMessage} from "../misc/shardMessage.js";
 
 const formatVersion = 6;
 let gameVersion;
@@ -45,24 +47,33 @@ export const saveSkinsJSON = (filename="data/skins.json") => {
 
 export const fetchData = async (types=null, checkVersion=false) => {
     try {
+        if(client.shard && client.shard.ids[0] !== 0) return loadSkinsJSON();
 
         if(checkVersion || !gameVersion) gameVersion = (await getValorantVersion()).manifestId;
         await loadSkinsJSON();
 
         if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles];
 
-        if(types.includes(skins) && (!skins || skins.version !== gameVersion)) await getSkinList(gameVersion);
-        if(types.includes(prices) && (!prices || prices.version !== gameVersion)) await getPrices(gameVersion);
-        if(types.includes(bundles) && (!bundles || bundles.version !== gameVersion)) await getBundleList(gameVersion);
-        if(types.includes(rarities) && (!rarities || rarities.version !== gameVersion)) await getRarities(gameVersion);
-        if(types.includes(buddies) && (!buddies || buddies.version !== gameVersion)) await getBuddies(gameVersion);
-        if(types.includes(cards) && (!cards || cards.version !== gameVersion)) await getCards(gameVersion);
-        if(types.includes(sprays) && (!sprays || sprays.version !== gameVersion)) await getSprays(gameVersion);
-        if(types.includes(titles) && (!titles || titles.version !== gameVersion)) await getTitles(gameVersion);
+        const promises = [];
 
-        if(!prices || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) await getPrices(gameVersion); // refresh prices every 24h
+        if(types.includes(skins) && (!skins || skins.version !== gameVersion)) promises.push(getSkinList(gameVersion));
+        if(types.includes(prices) && (!prices || prices.version !== gameVersion)) promises.push(getPrices(gameVersion));
+        if(types.includes(bundles) && (!bundles || bundles.version !== gameVersion)) promises.push(getBundleList(gameVersion));
+        if(types.includes(rarities) && (!rarities || rarities.version !== gameVersion)) promises.push(getRarities(gameVersion));
+        if(types.includes(buddies) && (!buddies || buddies.version !== gameVersion)) promises.push(getBuddies(gameVersion));
+        if(types.includes(cards) && (!cards || cards.version !== gameVersion)) promises.push(getCards(gameVersion));
+        if(types.includes(sprays) && (!sprays || sprays.version !== gameVersion)) promises.push(getSprays(gameVersion));
+        if(types.includes(titles) && (!titles || titles.version !== gameVersion)) promises.push(getTitles(gameVersion));
+
+        if(!prices || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) promises.push(getPrices(gameVersion)); // refresh prices every 24h
+
+        if(promises.length === 0) return;
+        await Promise.all(promises);
 
         saveSkinsJSON();
+
+        // we fetched the skins, tell other shards to load them
+        if(client.shard) sendShardMessage({type: "skinsReload"});
     } catch(e) {
         console.error("There was an error while trying to fetch skin data!");
         console.error(e);
@@ -106,27 +117,30 @@ const getPrices = async (gameVersion, id=null) => {
 
     // if no ID is passed, try with all users
     if(id === null) {
-        for(const id of getUserList().sort( // start with the users using cookies to avoid triggering 2FA
-            (a, b) => !!getUser(a).cookies - !!getUser(b).cookies)) {
+        for(const id of getUserList()) {
+            const user = getUser(id);
+            if(!user || !user.auth) continue;
+
             const success = await getPrices(gameVersion, id);
             if(success) return true;
         }
         return false;
     }
 
-    const user = getUser(id);
+    let user = getUser(id);
     if(!user) return false;
 
     const authSuccess = await authUser(id);
-    if(!authSuccess.success || !user.rso || !user.ent || !user.region) return false;
+    if(!authSuccess.success || !user.auth.rso || !user.auth.ent || !user.region) return false;
 
+    user = getUser(id);
     console.log(`Fetching skin prices using ${user.username}'s access token...`);
 
     // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetOffers.md
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/offers/`, {
         headers: {
-            "Authorization": "Bearer " + user.rso,
-            "X-Riot-Entitlements-JWT": user.ent
+            "Authorization": "Bearer " + user.auth.rso,
+            "X-Riot-Entitlements-JWT": user.auth.ent
         }
     });
     console.assert(req.statusCode === 200, `Valorant skins prices code is ${req.statusCode}!`, req);
@@ -237,8 +251,9 @@ export const formatSearchableBundleList = () => {
 
 export const addBundleData = async (bundleData) => {
     await fetchData([bundles]);
-    if(bundles[bundleData.uuid]) {
-        const bundle = bundles[bundleData.uuid];
+
+    const bundle = bundles[bundleData.uuid];
+    if(bundle) {
         bundle.items = bundleData.items.map(item => {
             return {
                 uuid: item.uuid,

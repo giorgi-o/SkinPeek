@@ -5,6 +5,8 @@ import {getItem, getRarity} from "../valorant/cache.js";
 import https from "https";
 import fs from "fs";
 import {DEFAULT_LANG, l} from "./languages.js";
+import {client} from "../discord/bot.js";
+import {getUser} from "../valorant/auth.js";
 
 const tlsCiphers = [
     'TLS_CHACHA20_POLY1305_SHA256',
@@ -40,6 +42,7 @@ const tlsSigAlgs = [
 
 // all my homies hate node-fetch
 export const fetch = (url, options={}) => {
+    // console.log("Fetching url " + url);
     return new Promise((resolve, reject) => {
         const req = https.request(url, {
             method: options.method || "GET",
@@ -174,6 +177,10 @@ export const formatBundle = async (rawBundle) => {
     return bundle;
 }
 
+export const getPuuid = (id, account=null) => {
+    return getUser(id, account).puuid;
+}
+
 // discord utils
 
 export const defer = async (interaction, ephemeral=false) => {
@@ -200,7 +207,6 @@ export const removeAlertActionRow = (id, uuid, buttonText) => new MessageActionR
 
 export const retryAuthButton = (id, operationId, buttonText) => new MessageButton().setCustomId(`retry_auth/${operationId}`).setStyle("PRIMARY").setLabel(buttonText).setEmoji("🔄");
 
-// apparently the external emojis in an embed only work if @everyone can use external emojis... probably a bug
 export const externalEmojisAllowed = (channel) => !channel.guild || channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
 export const canCreateEmojis = (guild) => guild && guild.me && guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS);
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
@@ -211,8 +217,43 @@ export const canSendMessages = (channel) => {
     return permissions.has(Permissions.FLAGS.VIEW_CHANNEL) && permissions.has(Permissions.FLAGS.SEND_MESSAGES) && permissions.has(Permissions.FLAGS.EMBED_LINKS);
 }
 
+export const fetchChannel = async (channelId) => {
+    try {
+        return await client.channels.fetch(channelId);
+    } catch(e) {
+        return null;
+    }
+}
+
+export const getChannelGuildId = async (channelId) => {
+    if(client.shard) {
+        const f = client => {
+            const channel = client.channels.get(channelId);
+            if(channel) return channel.guildId;
+        };
+        const results = await client.shard.broadcastEval(f);
+        return results.find(result => result);
+    } else {
+        const channel = client.channels.cache.get(channelId);
+        return channel && channel.guildId;
+    }
+}
+
 export const canEditInteraction = (interaction) => Date.now() - interaction.createdTimestamp < 14.8 * 60 * 1000;
+
+export const discordTag = id => {
+    const user = client.users.cache.get(id);
+    return user ? `${user.username}#${user.discriminator}` : id;
+}
 
 export const escapeMarkdown = Util.escapeMarkdown;
 
+// misc utils
+
 export const wait = ms => new Promise(r => setTimeout(r, ms));
+
+export const isToday = (timestamp) => isSameDay(timestamp, Date.now());
+export const isSameDay = (t1, t2) => {
+    t1 = new Date(t1); t2 = new Date(t2);
+    return t1.getUTCFullYear() === t2.getUTCFullYear() && t1.getUTCMonth() === t2.getUTCMonth() && t1.getUTCDate() === t2.getUTCDate();
+}

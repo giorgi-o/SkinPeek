@@ -59,7 +59,7 @@
       "WALLET_HEADER": "**{u}**'s Wallet:",
       "VPOINTS": "Puncte VALORANT ",
       "RADIANITE": "Radianite",
-      "ALERT_HAPPENED": ":tada: <@{u}>  **{s}** este in magazinul vostru daily!\nIt will be gone <t:{t}:R>.",
+      "ALERT_HAPPENED": ":tada: <@{i}>  **{s}** este in magazinul vostru daily!\nIt will be gone <t:{t}:R>.",
       "ALERT_CHOICE": "Pentru ce skin ati vrea sa setati un reminder?",
       "ALERT_CHOICE_PLACEHOLDER": "Selectati un skin:",
       "ALERT_SET": "Cu succes a fost setat o alerta pentru **{s}**!",

@@ -60,7 +60,7 @@
     "WALLET_HEADER": "Le porte-feuille de **{u}**:",
     "VPOINTS": "Points VALORANT",
     "RADIANITE": "Radianite",
-    "ALERT_HAPPENED": ":tada: <@{u}> La **{s}** est dans ta boutique!\nElle y sera jusqu'à <t:{t}:R>.",
+    "ALERT_HAPPENED": ":tada: <@{i}> La **{s}** est dans la boutique de **{u}**!\nElle y sera jusqu'à <t:{t}:R>.",
     "ALERT_CHOICE": "Pour quel skin veux-tu mettre une alerte?",
     "ALERT_CHOICE_PLACEHOLDER": "Choisir un skin:",
     "ALERT_SET": "Tu as désormais une alerte pour la **{s}**!",

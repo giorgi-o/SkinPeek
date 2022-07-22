@@ -32,6 +32,7 @@
     "GHOST_ALERT": "That alert doesn't exist anymore!",
     "ALERT_NO_PERMS": "**I don't have the necessary permissions to send alerts in this channel!** Do I have the right role?\nMake sure I can `View Channel`, `Send Messages`, `Embed Links` and `Use External Emojis` in this channel, then try `/testalerts`.",
     "NO_NMARKET": "**There is no Night Market currently!**",
+    "ACCOUNT_NUMBER_TOO_HIGH": "**You only have {n} accounts!**",
     "GENERIC_ERROR": ":no_entry_sign: **There was an error trying to do that!** I blame Riot.\n`{e}`"
   },
   "info":{
@@ -60,7 +61,7 @@
     "WALLET_HEADER": "**{u}**'s Wallet:",
     "VPOINTS": "VALORANT Points",
     "RADIANITE": "Radianite",
-    "ALERT_HAPPENED": ":tada: <@{u}> The **{s}** is in your daily shop!\nIt will be gone <t:{t}:R>.",
+    "ALERT_HAPPENED": ":tada: <@{i}> The **{s}** is in **{u}**'s daily shop!\nIt will be gone <t:{t}:R>.",
     "ALERT_CHOICE": "Which skin would you like to set a reminder for?",
     "ALERT_CHOICE_PLACEHOLDER": "Select skin:",
     "ALERT_SET": "Successfully set an alert for the **{s}**!",
@@ -82,9 +83,13 @@
     "MFA_GENERIC": "**You have 2FA enabled!** use `/2fa` to enter your code.",
     "AUTH_ERROR_RETRY": "Retry",
     "ACCOUNT_DELETED": "Your account has been deleted from the database!",
+    "SPECIFIC_ACCOUNT_DELETED": "The account **{n}. {u}** has been deleted from the database!",
     "STATS_HEADER": "Skin stats based on **{c}** different shops *(page **{p}** of **{t}**)*",
     "STATS_DESCRIPTION": "{c}[**{r}**/{t}] In **{p}%** of shops",
     "STATS_CHOICE": "Which skin would you like to see the stats of?",
+    "ACCOUNT_SWITCHED": "Switched to account number **{n}. {u}**",
+    "ACCOUNTS_HEADER": "All your accounts with the bot:",
+    "ACCOUNT_CURRENTLY_SELECTED": "(Currently selected)",
     "UNHANDLED_COMMAND": "Yer a wizard harry!"
   },
   "battlepass": {

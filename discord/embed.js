@@ -3,12 +3,17 @@ import {
     emojiToString,
     skinNameAndEmoji,
     escapeMarkdown,
-    itemTypes, removeAlertActionRow, removeAlertButton
+    itemTypes,
+    removeAlertActionRow,
+    removeAlertButton,
+    fetchChannel
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
+import {getUser} from "../valorant/auth.js";
+import {saveUser} from "../valorant/accountSwitcher.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -44,7 +49,14 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
         console.log(`${interaction.user.tag} got rate-limited`);
         embed = basicEmbed(s(interaction).error.RATE_LIMIT);
     }
-    else embed = basicEmbed(message);
+    else {
+        embed = basicEmbed(message);
+
+        // two-strike system
+        const user = getUser(interaction.user.id);
+        user.authFailures++;
+        saveUser(user);
+    }
 
     return {
         embeds: [embed],
@@ -53,7 +65,7 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
 }
 
 export const skinChosenEmbed = async (interaction, skin) => {
-    const channel = interaction.channel || await client.channels.fetch(interaction.channelId);
+    const channel = interaction.channel || await fetchChannel(interaction.channelId);
     let description = s(interaction).info.ALERT_SET.f({s: await skinNameAndEmoji(skin, channel, interaction.locale)});
     if(config.fetchSkinPrices && !skin.price) description += s(interaction).info.ALERT_BP_SKIN;
     return {
@@ -114,7 +126,7 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         const slantedDescription = bundle.descriptions ? "*" + l(bundle.descriptions, interaction) + "*\n" : "";
         const embed = {
             title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
-            description: `${subName}${slantedDescription}${emojiString} **${bundle.price}** - ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
+            description: `${subName}${slantedDescription}${emojiString} **${bundle.price || s(interaction).info.FREE}** - ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: bundle.icon
@@ -180,13 +192,12 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
     }];
 
     const emojiString = emojiToString(emoji) || s(interaction).info.PRICE;
-    const VP_UUID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741";
 
     for(const offer of market.offers) {
-        const skin = await getSkin(offer.Offer.OfferID);
+        const skin = await getSkin(offer.uuid);
 
         const embed = await skinEmbed(skin.uuid, skin.price, interaction, emojiString);
-        embed.description = `${emojiString} **${offer.DiscountCosts[VP_UUID]}**\n${emojiString} ~~${offer.Offer.Cost[VP_UUID]}~~ (-${offer.DiscountPercent}%)`;
+        embed.description = `${emojiString} **${offer.nmPrice}**\n${emojiString} ~~${offer.realPrice}~~ (-${offer.percent}%)`;
 
         embeds.push(embed);
     }
@@ -407,17 +418,17 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
     ];
     if(ownerString) fields.push({
         name: s(interaction).info.INFO_OWNER,
-        value: ownerString,
+        value: ownerString || "Giorgio#0609",
         inline: true
     });
     if(interaction.client.shard) fields.push({
         name: "Running on shard",
-        value: interaction.client.shard.ids.join(),
+        value: interaction.client.shard.ids.join(' ') || "No shard id...?",
         inline: true
     });
     if(status) fields.push({
         name: s(interaction).info.INFO_STATUS,
-        value: status,
+        value: status || "Up and running!",
         inline: true
     });
 
@@ -427,7 +438,7 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
         embeds: [{
             title: s(interaction).info.INFO_HEADER,
             description: s(interaction).info.INFO_RUNNING.f({t1: readyTimestamp, t2: readyTimestamp}),
-            color: VAL_COLOR_3,
+            color: VAL_COLOR_1,
             fields: fields
         }]
     }
@@ -465,7 +476,7 @@ const alertFieldDescription = async (interaction, channel_id, emojiString, price
         if(config.fetchSkinPrices) return s(interaction).info.SKIN_NOT_FOR_SALE;
         return s(interaction).info.SKIN_PRICES_HIDDEN;
     } else {
-        const channel = await interaction.client.channels.fetch(channel_id);
+        const channel = await fetchChannel(channel_id);
         if(channel && !channel.guild) return s(interaction).info.ALERT_IN_DM_CHANNEL;
         return s(interaction).info.ALERT_IN_CHANNEL.f({c: channel_id})
     }
@@ -594,6 +605,25 @@ export const statsForSkinEmbed = async (skin, stats, interaction) => {
         thumbnail: {
             url: skin.icon
         }
+    }
+}
+
+export const accountsListEmbed = (interaction, userJson) => {
+    const fields = [];
+    for(const [i, account] of Object.entries(userJson.accounts)) {
+        fields.push({
+            name: `${parseInt(i) + 1}. ${userJson.currentAccount === parseInt(i) + 1 ? s(interaction).info.ACCOUNT_CURRENTLY_SELECTED : ''}`,
+            value: account.username || "[No username]",
+            inline: true
+        });
+    }
+
+    return {
+        embeds: [{
+            title: s(interaction).info.ACCOUNTS_HEADER,
+            fields: fields,
+            color: VAL_COLOR_1
+        }]
     }
 }
 
