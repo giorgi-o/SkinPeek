@@ -87,11 +87,7 @@ export const getNightMarket = async (id, account=null) => {
         offers: false
     }
 
-    return {
-        success: true,
-        offers: resp.shop.BonusStore.BonusStoreOffers,
-        expires: Math.floor(Date.now() / 1000) + resp.shop.BonusStore.BonusStoreRemainingDurationInSeconds
-    }
+    return {success: true, ...getShopCache(getPuuid(id, account)).night_market};
 }
 
 export const getBalance = async (id, account=null) => {
@@ -170,7 +166,12 @@ const addShopCache = (puuid, shopJson) => {
             }
         }),
         night_market: shopJson.BonusStore ? {
-            uuids: shopJson.BonusStore.BonusStoreOffers.map(offer => offer.Offer.OfferID),
+            offers: shopJson.BonusStore.BonusStoreOffers.map(offer => {return {
+                uuid: offer.Offer.OfferID,
+                realPrice: offer.Offer.Cost["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"],
+                nmPrice: offer.DiscountCosts["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"],
+                percent: offer.DiscountPercent
+            }}),
             expires: Math.floor(now / 1000) + shopJson.BonusStore.BonusStoreRemainingDurationInSeconds
         } : null,
         timestamp: now

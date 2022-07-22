@@ -21,8 +21,6 @@ export const rarityEmoji = async (channel, name, icon, externalEmojisAllowed=fal
 const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllowed) => {
     if(!name || !filenameOrUrl) return;
 
-    if(emojiCache[name]) return emojiCache[name];
-
     const guild = channel.guild;
 
     // see if emoji exists already
@@ -42,6 +40,9 @@ const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllo
                 }
             } catch(e) {}
         }
+
+        const cachedEmoji = emojiCache[name];
+        if(cachedEmoji) return cachedEmoji;
 
         for(const otherGuild of channel.client.guilds.cache.values()) {
             const emoji = emojiInGuild(otherGuild, name);
@@ -98,7 +99,7 @@ const updateEmojiCache = async (guild) => {
 }
 
 const addEmojiToCache = (emoji) => {
-    emojiCache[emoji.name] = emoji;
+    if(emoji) emojiCache[emoji.name] = emoji;
     return emoji;
 }
 

@@ -207,7 +207,7 @@ export const removeAlertActionRow = (id, uuid, buttonText) => new MessageActionR
 
 export const retryAuthButton = (id, operationId, buttonText) => new MessageButton().setCustomId(`retry_auth/${operationId}`).setStyle("PRIMARY").setLabel(buttonText).setEmoji("🔄");
 
-export const externalEmojisAllowed = (channel) => !channel.guild || channel.permissionsFor(channel.guild.me).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
+export const externalEmojisAllowed = (channel) => !channel.guild || channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
 export const canCreateEmojis = (guild) => guild && guild.me && guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS);
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
 

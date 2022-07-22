@@ -1,5 +1,13 @@
 import {getBuddy, getBundle, getCard, getSkin, getSpray, getTitle} from "../valorant/cache.js";
-import {emojiToString, skinNameAndEmoji,escapeMarkdown, itemTypes, removeAlertActionRow, removeAlertButton, fetchChannel} from "../misc/util.js";
+import {
+    emojiToString,
+    skinNameAndEmoji,
+    escapeMarkdown,
+    itemTypes,
+    removeAlertActionRow,
+    removeAlertButton,
+    fetchChannel
+} from "../misc/util.js";
 import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
@@ -175,13 +183,12 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
     }];
 
     const emojiString = emojiToString(emoji) || s(interaction).info.PRICE;
-    const VP_UUID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741";
 
     for(const offer of market.offers) {
-        const skin = await getSkin(offer.Offer.OfferID);
+        const skin = await getSkin(offer.uuid);
 
         const embed = await skinEmbed(skin.uuid, skin.price, interaction, emojiString);
-        embed.description = `${emojiString} **${offer.DiscountCosts[VP_UUID]}**\n${emojiString} ~~${offer.Offer.Cost[VP_UUID]}~~ (-${offer.DiscountPercent}%)`;
+        embed.description = `${emojiString} **${offer.nmPrice}**\n${emojiString} ~~${offer.realPrice}~~ (-${offer.percent}%)`;
 
         embeds.push(embed);
     }
@@ -422,7 +429,7 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
         embeds: [{
             title: s(interaction).info.INFO_HEADER,
             description: s(interaction).info.INFO_RUNNING.f({t1: readyTimestamp, t2: readyTimestamp}),
-            color: VAL_COLOR_3,
+            color: VAL_COLOR_1,
             fields: fields
         }]
     }

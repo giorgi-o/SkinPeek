@@ -98,7 +98,14 @@ export const redeemUsernamePassword = async (id, login, password) => {
         })
     });
     console.assert(req1.statusCode === 200, `Auth Request Cookies status code is ${req1.statusCode}!`, req1);
-    let cookies = parseSetCookie(req1.headers['set-cookie']);
+
+    const setCookieHeader = req1.headers["set-cookie"];
+    let cookies = {};
+    if(setCookieHeader) cookies = parseSetCookie(setCookieHeader);
+    else {
+        console.error("Riot didn't return any cookies during the auth request! Cloudflare might have something to do with it...");
+        console.error(req1);
+    }
 
     // get access token
     const req2 = await fetch("https://auth.riotgames.com/api/v1/authorization", {
