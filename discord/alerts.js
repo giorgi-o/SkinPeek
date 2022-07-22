@@ -86,6 +86,8 @@ export const checkAlerts = async () => {
     console.log("Checking new shop skins for alerts...");
 
     try {
+        let shouldWait = false;
+
         for(const id of getUserList()) {
             try {
                 let credsExpiredAlerts = false;
@@ -99,7 +101,10 @@ export const checkAlerts = async () => {
                     const userAlerts = alertsForUser(id, i);
                     if(!userAlerts || !userAlerts.length) continue;
 
-                    await wait(config.delayBetweenAlerts); // to prevent being ratelimited
+                    if(shouldWait) {
+                        await wait(config.delayBetweenAlerts); // to prevent being ratelimited
+                        shouldWait = false;
+                    }
 
                     const valorantUser = getUser(id, i);
                     const discordUser = client.users.cache.get(id);
@@ -107,11 +112,18 @@ export const checkAlerts = async () => {
                     console.log(`Checking user ${discordUsername}'s ${valorantUser.username} account (${i}/${accountCount}) for alerts...`);
 
                     const offers = await getOffers(id, i);
+                    shouldWait = valorantUser.auth && !offers.cached;
+
                     if(!offers.success) {
                         if(offers.maintenance) return; // retry in a few hours?
 
-                        if(!credsExpiredAlerts) credsExpiredAlerts = userAlerts;
-                        deleteUserAuth(getUser(id, i));
+                        if(!credsExpiredAlerts) {
+                            if(valorantUser.authFailures < config.authFailureStrikes) {
+                                valorantUser.authFailures++;
+                                credsExpiredAlerts = userAlerts;
+                            }
+                        }
+                        deleteUserAuth(valorantUser);
                         continue;
                     }
 

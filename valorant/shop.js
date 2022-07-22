@@ -51,7 +51,7 @@ const getShop = async (id, account=null) => {
 
 export const getOffers = async (id, account=null) => {
     const shopCache = getShopCache(getPuuid(id, account));
-    if(shopCache) return {success: true, ...shopCache.offers};
+    if(shopCache) return {success: true, cached: true, ...shopCache.offers};
 
     const resp = await getShop(id, account);
     if(!resp.success) return resp;

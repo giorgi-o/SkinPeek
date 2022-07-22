@@ -12,6 +12,8 @@ import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
+import {getUser} from "../valorant/auth.js";
+import {saveUser} from "../valorant/accountSwitcher.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -47,7 +49,14 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
         console.log(`${interaction.user.tag} got rate-limited`);
         embed = basicEmbed(s(interaction).error.RATE_LIMIT);
     }
-    else embed = basicEmbed(message);
+    else {
+        embed = basicEmbed(message);
+
+        // two-strike system
+        const user = getUser(interaction.user.id);
+        user.authFailures++;
+        saveUser(user);
+    }
 
     return {
         embeds: [embed],

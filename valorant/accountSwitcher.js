@@ -47,6 +47,9 @@ export const saveUser = (user, account=null) => {
         }
         saveUserJson(user.id, objectToWrite);
     } else {
+        if(!account) account = userJson.accounts.find(a => a.puuid === user.puuid) || userJson.currentAccount;
+        if(account > userJson.accounts.length) account = userJson.accounts.length;
+
         userJson.accounts[(account || userJson.currentAccount) - 1] = user;
         saveUserJson(user.id, userJson);
     }

@@ -5,7 +5,7 @@ import {client} from "../discord/bot.js";
 import {addUser, deleteUser, getUserJson, saveUser} from "./accountSwitcher.js";
 
 class User {
-    constructor({id, puuid, auth, alerts=[], username, region, locale}) {
+    constructor({id, puuid, auth, alerts=[], username, region, locale, authFailures}) {
         this.id = id;
         this.puuid = puuid;
         this.auth = auth;
@@ -13,6 +13,7 @@ class User {
         this.username = username;
         this.region = region;
         this.locale = locale;
+        this.authFailures = authFailures || 0;
     }
 }
 
