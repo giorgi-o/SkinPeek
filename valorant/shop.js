@@ -1,6 +1,15 @@
 import fs from "fs";
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
-import {discordTag, fetch, formatBundle, getPuuid, isMaintenance, isToday, userRegion} from "../misc/util.js";
+import {
+    discordTag,
+    fetch,
+    formatBundle,
+    formatNightMarket,
+    getPuuid,
+    isMaintenance,
+    isToday,
+    userRegion
+} from "../misc/util.js";
 import {addBundleData} from "./cache.js";
 import {addStore} from "../misc/stats.js";
 import config from "../misc/config.js";
@@ -87,7 +96,7 @@ export const getNightMarket = async (id, account=null) => {
         offers: false
     }
 
-    return {success: true, ...getShopCache(getPuuid(id, account)).night_market};
+    return {success: true, ...formatNightMarket(resp.shop.BonusStore)};
 }
 
 export const getBalance = async (id, account=null) => {
@@ -165,15 +174,7 @@ const addShopCache = (puuid, shopJson) => {
                 expires: Math.floor(now / 1000) + rawBundle.DurationRemainingInSeconds,
             }
         }),
-        night_market: shopJson.BonusStore ? {
-            offers: shopJson.BonusStore.BonusStoreOffers.map(offer => {return {
-                uuid: offer.Offer.OfferID,
-                realPrice: offer.Offer.Cost["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"],
-                nmPrice: offer.DiscountCosts["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"],
-                percent: offer.DiscountPercent
-            }}),
-            expires: Math.floor(now / 1000) + shopJson.BonusStore.BonusStoreRemainingDurationInSeconds
-        } : null,
+        night_market: formatNightMarket(shopJson.BonusStore),
         timestamp: now
     }
 

@@ -177,6 +177,20 @@ export const formatBundle = async (rawBundle) => {
     return bundle;
 }
 
+export const formatNightMarket = (rawNightMarket) => {
+    if(!rawNightMarket) return null;
+
+    return {
+        offers: rawNightMarket.BonusStoreOffers.map(offer => {return {
+            uuid: offer.Offer.OfferID,
+            realPrice: offer.Offer.Cost["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"],
+            nmPrice: offer.DiscountCosts["85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"],
+            percent: offer.DiscountPercent
+        }}),
+        expires: Math.floor(Date.now() / 1000) + rawNightMarket.BonusStoreRemainingDurationInSeconds
+    }
+}
+
 export const getPuuid = (id, account=null) => {
     return getUser(id, account).puuid;
 }

@@ -54,8 +54,10 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
 
         // two-strike system
         const user = getUser(interaction.user.id);
-        user.authFailures++;
-        saveUser(user);
+        if(user) {
+            user.authFailures++;
+            saveUser(user);
+        }
     }
 
     return {
