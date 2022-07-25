@@ -1,4 +1,12 @@
-import {discordTag, fetchChannel, getChannelGuildId, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
+import {
+    discordTag,
+    fetchChannel,
+    getChannelGuildId,
+    removeAlertActionRow,
+    removeDupeAlerts,
+    skinNameAndEmoji,
+    wait
+} from "../misc/util.js";
 import {deleteUserAuth, getUser, getUserList} from "../valorant/auth.js";
 import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
@@ -98,8 +106,8 @@ export const checkAlerts = async () => {
                 const accountCount = userJson.accounts.length;
                 for(let i = 1; i <= accountCount; i++) {
 
-                    const userAlerts = alertsForUser(id, i);
-                    if(!userAlerts || !userAlerts.length) continue;
+                    const rawUserAlerts = alertsForUser(id, i);
+                    if(!rawUserAlerts || !rawUserAlerts.length) continue;
 
                     if(shouldWait) {
                         await wait(config.delayBetweenAlerts); // to prevent being ratelimited
@@ -110,6 +118,12 @@ export const checkAlerts = async () => {
                     const discordUser = client.users.cache.get(id);
                     const discordUsername = discordUser ? discordUser.username : id;
                     console.log(`Checking user ${discordUsername}'s ${valorantUser.username} account (${i}/${accountCount}) for alerts...`);
+
+                    const userAlerts = removeDupeAlerts(rawUserAlerts);
+                    if(userAlerts.length !== rawUserAlerts.length) {
+                        valorantUser.alerts = userAlerts;
+                        saveUser(valorantUser, i);
+                    }
 
                     const offers = await getOffers(id, i);
                     shouldWait = valorantUser.auth && !offers.cached;
@@ -158,7 +172,6 @@ export const checkAlerts = async () => {
 export const sendAlert = async (id, account, alerts, expires, tryOnOtherShard=true) => {
     const user = client.users.cache.get(id);
     const username = user ? user.username : id;
-    console.log(`Sending ${alerts.length} alerts for user ${username}...`);
 
     for(const alert of alerts) {
         const valorantUser = getUser(id, account);
@@ -175,6 +188,8 @@ export const sendAlert = async (id, account, alerts, expires, tryOnOtherShard=tr
             }
             continue;
         }
+
+        console.log(`Sending alert for user ${username}...`);
 
         const skin = await getSkin(alert.uuid);
         console.log(`User ${valorantUser.username} has the skin ${l(skin.names)} in their shop!`);

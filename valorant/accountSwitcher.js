@@ -1,4 +1,5 @@
 import fs from "fs";
+import {removeDupeAlerts} from "../misc/util.js";
 
 /** JSON format:
  * {
@@ -47,7 +48,7 @@ export const saveUser = (user, account=null) => {
         }
         saveUserJson(user.id, objectToWrite);
     } else {
-        if(!account) account = userJson.accounts.find(a => a.puuid === user.puuid) || userJson.currentAccount;
+        if(!account) account = userJson.accounts.findIndex(a => a.puuid === user.puuid) + 1 || userJson.currentAccount;
         if(account > userJson.accounts.length) account = userJson.accounts.length;
 
         userJson.accounts[(account || userJson.currentAccount) - 1] = user;
@@ -62,7 +63,7 @@ export const addUser = (user) => {
         let foundDuplicate = false;
         for(let i = 0; i < userJson.accounts.length; i++) {
             if(userJson.accounts[i].puuid === user.puuid) {
-                user.alerts = user.alerts.concat(userJson.accounts[i].alerts);
+                user.alerts = removeDupeAlerts(user.alerts.concat(userJson.accounts[i].alerts));
                 userJson.accounts[i] = user;
                 userJson.currentAccount = i + 1;
                 foundDuplicate = true;

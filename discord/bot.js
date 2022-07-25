@@ -559,6 +559,9 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
+                    const auth = await authUser(interaction.user.id);
+                    if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
+
                     const searchQuery = interaction.options.get("skin").value
                     const searchResults = await searchSkin(searchQuery, interaction.locale);
 

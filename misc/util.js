@@ -191,6 +191,14 @@ export const formatNightMarket = (rawNightMarket) => {
     }
 }
 
+export const removeDupeAlerts = (alerts) => {
+    const uuids = [];
+    return alerts.filter(alert => {
+        if(uuids.includes(alert.uuid)) return false;
+        return uuids.push(alert.uuid);
+    });
+}
+
 export const getPuuid = (id, account=null) => {
     return getUser(id, account).puuid;
 }
