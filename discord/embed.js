@@ -13,7 +13,7 @@ import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
-import {saveUser} from "../valorant/accountSwitcher.js";
+import {readUserJson, saveUser} from "../valorant/accountSwitcher.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -92,7 +92,11 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => 
         embeds.push(embed);
     }
 
-    return {embeds};
+    const buttons = await switchAccountButtons(interaction.user.id, s(interaction).info.SWITCH_ACCOUNT_BUTTON);
+    return {
+        embeds,
+        components: [buttons]
+    };
 }
 
 export const renderBundles = async (bundles, interaction, VPemoji) => {
@@ -204,7 +208,11 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
         embeds.push(embed);
     }
 
-    return {embeds};
+    const buttons = await switchAccountButtons(interaction.user.id, s(interaction).info.SWITCH_ACCOUNT_BUTTON);
+    return {
+        embeds,
+        components: [buttons]
+    };
 }
 
 export const renderBattlepass = async (battlepass, targetlevel, interaction, valorantUser) => {
@@ -470,6 +478,23 @@ const pageButtons = (pageId, userId, current, max) => {
     if(current === max - 1) rightButton.setEmoji("⏪");
 
     return new MessageActionRow().setComponents(leftButton, rightButton);
+}
+
+const switchAccountButtons = (id, template="{n}") => {
+    const json = readUserJson(id);
+    const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
+
+    const buttons = [];
+    for(const number of accountNumbers) {
+        const label = template.replaceAll("{n}", number.toString());
+
+        const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`shopaccount/${id}/${number}`)
+        button.setDisabled(number === json.currentAccount);
+
+        buttons.push(button);
+    }
+
+    return new MessageActionRow().setComponents(...buttons);
 }
 
 const alertFieldDescription = async (interaction, channel_id, emojiString, price) => {

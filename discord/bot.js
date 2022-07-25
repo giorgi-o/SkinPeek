@@ -42,6 +42,7 @@ import {
     switchAccount
 } from "../valorant/accountSwitcher.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
+import {fetchBundles, fetchNightMarket, fetchShop} from "../valorant/shopManager.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -389,20 +390,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    // fetch the channel if not in cache
-                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
-
-                    // start uploading emoji now
-                    const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
-
-                    let shop = await queueItemShop(interaction.user.id);
-                    while(shop.inQueue) {
-                        const queueStatus = getShopQueueItemStatus(shop.c);
-                        if(queueStatus.processed) shop = queueStatus.result;
-                        else await wait(150);
-                    }
-
-                    const message = await renderOffers(shop, interaction, valorantUser, await emojiPromise);
+                    const message = await fetchShop(interaction, valorantUser);
                     await interaction.followUp(message);
 
                     console.log(`Sent ${interaction.user.tag}'s shop!`); // also logged if maintenance/login failed
@@ -417,17 +405,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
-                    const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
-
-                    let bundles = await queueBundles(interaction.user.id);
-                    while(bundles.inQueue) {
-                        const queueStatus = getShopQueueItemStatus(bundles.c);
-                        if(queueStatus.processed) bundles = queueStatus.result;
-                        else await wait(150);
-                    }
-
-                    const message = await renderBundles(bundles, interaction, await emojiPromise);
+                    const message = await fetchBundles(interaction);
                     await interaction.followUp(message);
 
                     console.log(`Sent ${interaction.user.tag}'s bundle(s)!`);
@@ -496,17 +474,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
-                    const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
-
-                    let market = await queueNightMarket(interaction.user.id);
-                    while(market.inQueue) {
-                        const queueStatus = getShopQueueItemStatus(market.c);
-                        if(queueStatus.processed) market = queueStatus.result;
-                        else await wait(150);
-                    }
-
-                    const message = await renderNightMarket(market, interaction, valorantUser, await emojiPromise);
+                    const message = await fetchNightMarket(interaction, valorantUser);
                     await interaction.followUp(message);
 
                     console.log(`Sent ${interaction.user.tag}'s night market!`);
@@ -653,6 +621,13 @@ client.on("interactionCreate", async (interaction) => {
                 }
                 case "login": {
                     await defer(interaction, true);
+
+                    const json = readUserJson(interaction.user.id);
+                    if(json && json.accounts.length > config.maxAccountsPerUser) {
+                        return await interaction.followUp({
+                            embeds: [basicEmbed(s(interaction).error.TOO_MANY_ACCOUNTS.f({n: config.maxAccountsPerUser}))]
+                        })
+                    }
 
                     const username = interaction.options.get("username").value;
                     const password = interaction.options.get("password").value;
@@ -1016,6 +991,27 @@ client.on("interactionCreate", async (interaction) => {
                     components: [],
                     ...await renderBundle(bundle, interaction, emoji),
                 });
+            } else if(interaction.customId.startsWith("shopaccount") || interaction.customId.startsWith("nmaccount")) {
+                await interaction.deferUpdate();
+
+                const [, id, accountIndex] = interaction.customId.split('/');
+
+                if(id !== interaction.user.id) return await interaction.reply({
+                    embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_GENERIC)],
+                    ephemeral: true
+                });
+
+                const success = switchAccount(interaction.user.id, parseInt(accountIndex));
+                if(!success) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH)],
+                        ephemeral: true
+                });
+
+                let message;
+                if(interaction.customId.startsWith("shopaccount")) message = await fetchShop(interaction, getUser(interaction.user.id));
+                else message = await fetchNightMarket(interaction, getUser(interaction.user.id));
+
+                await interaction.message.edit(message);
             }
         } catch(e) {
             await handleError(e, interaction);

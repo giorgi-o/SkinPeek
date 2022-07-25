@@ -26,6 +26,7 @@
     "NOT_UR_MESSAGE_STATS": "**That's not your message!** Use `/stats` to browse skin stats.",
     "NOT_UR_MESSAGE_BUNDLE": "**That's not your message!** Use `/bundle` to search for bundles.",
     "NOT_UR_MESSAGE_ALERT": "**That's not your message!** Use `/alert` to set your own alert.",
+    "NOT_UR_MESSAGE_GENERIC": "**That's not your message!** Use the command yourself to click on the buttons.",
     "NOT_UR_ALERT": "**That's not your alert!** Use `/alerts` to manage your alerts.",
     "NO_ALERTS": "**You don't have any alerts set up!** Use `/alert` to get started.",
     "DUPLICATE_ALERT": "You already have an alert for the **{s}** in <#{c}>!",
@@ -33,6 +34,7 @@
     "ALERT_NO_PERMS": "**I don't have the necessary permissions to send alerts in this channel!** Do I have the right role?\nMake sure I can `View Channel`, `Send Messages`, `Embed Links` and `Use External Emojis` in this channel, then try `/testalerts`.",
     "NO_NMARKET": "**There is no Night Market currently!**",
     "ACCOUNT_NUMBER_TOO_HIGH": "**You only have {n} accounts!**",
+    "TOO_MANY_ACCOUNTS": "**You can only have maximum {n} accounts on the bot!** `/forget` some accounts and try again.",
     "GENERIC_ERROR": ":no_entry_sign: **There was an error trying to do that!** I blame Riot.\n`{e}`"
   },
   "info":{
@@ -90,6 +92,7 @@
     "ACCOUNT_SWITCHED": "Switched to account number **{n}. {u}**",
     "ACCOUNTS_HEADER": "All your accounts with the bot:",
     "ACCOUNT_CURRENTLY_SELECTED": "(Currently selected)",
+    "SWITCH_ACCOUNT_BUTTON": "Account #{n}",
     "UNHANDLED_COMMAND": "Yer a wizard harry!"
   },
   "battlepass": {
