@@ -32,6 +32,7 @@
     "DUPLICATE_ALERT": "Bạn đã cài thông báo cho skin **{s}** trong <#{c}> rồi mà!",
     "GHOST_ALERT": "Thông báo skin này không còn tồn tại nữa!",
     "ALERT_NO_PERMS": "**Tôi không có quyền gửi các thông báo vào kênh này!** Liệu tôi đã có đúng vai trò trong Discord chưa?\nHãy thêm cho tôi quyền `Xem Kênh`, `Gửi tin nhắn`, `Nhúng liên kết` và `Dùng emoji mở rộng` trong kênh này, rồi thử dùng `/testalerts`.",
+    "GENERIC_NO_PERMS": "**Tôi không có quyền làm điều đó trong kênh này!** Liệu tôi đã có đúng vai trò trong Discord chưa?\nHãy thêm cho tôi quyền `Xem Kênh`, `Gửi tin nhắn`, `Nhúng liên kết` và `Dùng emoji mở rộng` trong kênh này.",
     "NO_NMARKET": "**Hiện tại đang không có Chợ Đêm nào cả!**",
     "ACCOUNT_NUMBER_TOO_HIGH": "**Ban chỉ có {n} tài khoản thôi!**",
     "TOO_MANY_ACCOUNTS": "**Bạn chỉ có thể có tối đa {n} số tài khoản được đăng kí với bot!** `/forget` các tài khoản khác và thử lại nhé.",

@@ -5,10 +5,7 @@ import {
     authFailureMessage,
     basicEmbed,
     renderBundle,
-    renderBundles,
-    renderNightMarket,
     renderBattlepass,
-    renderOffers,
     secondaryEmbed,
     skinChosenEmbed,
     VAL_COLOR_1,
@@ -18,14 +15,14 @@ import {
     alertsPageEmbed,
     statsForSkinEmbed,
     allStatsEmbed,
-    accountsListEmbed
+    accountsListEmbed, switchAccountButtons
 } from "./embed.js";
 import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
 import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
 import {addAlert, alertExists, alertsPerChannelPerGuild, checkAlerts, filteredAlertsForUser, removeAlert, testAlerts} from "./alerts.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
-import {getShopQueueItemStatus, processShopQueue, queueBundles, queueItemShop, queueNightMarket} from "../valorant/shopQueue.js";
+import {processShopQueue} from "../valorant/shopQueue.js";
 import {getAuthQueueItemStatus, processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
 import { getBattlepassProgress } from "../valorant/battlepass.js";
@@ -996,13 +993,17 @@ client.on("interactionCreate", async (interaction) => {
 
                 const [, id, accountIndex] = interaction.customId.split('/');
 
-                if(id !== interaction.user.id) return await interaction.reply({
+                if(id !== interaction.user.id) return await interaction.followUp({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_GENERIC)],
                     ephemeral: true
                 });
 
+                if(!canSendMessages(interaction.channel)) return await interaction.followUp({
+                    embeds: [basicEmbed(s(interaction).error.GENERIC_NO_PERMS)]
+                })
+
                 const success = switchAccount(interaction.user.id, parseInt(accountIndex));
-                if(!success) return await interaction.reply({
+                if(!success) return await interaction.followUp({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH)],
                         ephemeral: true
                 });
@@ -1010,6 +1011,8 @@ client.on("interactionCreate", async (interaction) => {
                 let message;
                 if(interaction.customId.startsWith("shopaccount")) message = await fetchShop(interaction, getUser(interaction.user.id));
                 else message = await fetchNightMarket(interaction, getUser(interaction.user.id));
+
+                if(!message.components) message.components = [switchAccountButtons(interaction.user.id, s(interaction).info.SWITCH_ACCOUNT_BUTTON)];
 
                 await interaction.message.edit(message);
             }

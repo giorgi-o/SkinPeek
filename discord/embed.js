@@ -480,7 +480,7 @@ const pageButtons = (pageId, userId, current, max) => {
     return new MessageActionRow().setComponents(leftButton, rightButton);
 }
 
-const switchAccountButtons = (id, template="{n}") => {
+export const switchAccountButtons = (id, template="{n}") => {
     const json = readUserJson(id);
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
 
