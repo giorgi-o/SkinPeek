@@ -124,6 +124,8 @@
   "settings": {
     "TRUE": "Có",
     "FALSE": "Không",
+    "VIEW_HEADER": "Tất cả cài đặt hiện tại:",
+    "VIEW_DESCRIPTION": "Sử dụng `/settings set` để thay đổi.",
     "SET_QUESTION": "Bạn muốn thay đổi tùy chọn **{s}** thành...?",
     "CONFIRMATION": "Tùy chọn **{s}** đã được thay đổi thành **{v}**.",
     "hideIgn": "Ẩn tên trong game",

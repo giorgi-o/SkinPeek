@@ -53,7 +53,7 @@ const setSetting = (id, setting, value) => {
 export const handleSettingsViewCommand = async (interaction) => {
     const settings = getSettings(interaction.user.id);
 
-    await interaction.reply(settingsEmbed(settings));
+    await interaction.reply(settingsEmbed(settings, interaction));
 }
 
 export const handleSettingsSetCommand = async (interaction) => {

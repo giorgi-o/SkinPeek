@@ -664,15 +664,15 @@ export const accountsListEmbed = (interaction, userJson) => {
 
 export const settingsEmbed = (userSettings, interaction) => {
     const embed = {
-        title: "All your current settings:",
-        description: "Use `/settings set` to change them.",
+        title: s(interaction).settings.VIEW_HEADER,
+        description: s(interaction).settings.VIEW_DESCRIPTION,
         color: VAL_COLOR_1,
         fields: []
     }
 
     for(const [setting, value] of Object.entries(userSettings)) {
         embed.fields.push({
-            name: settingName(setting),
+            name: settingName(setting, interaction),
             value: humanifyValue(value, interaction),
             inline: true
         });

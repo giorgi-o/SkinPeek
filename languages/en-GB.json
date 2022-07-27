@@ -124,6 +124,8 @@
   "settings": {
     "TRUE": "Yes",
     "FALSE": "No",
+    "VIEW_HEADER": "All your current settings:",
+    "VIEW_DESCRIPTION": "Use `/settings set` to change them.",
     "SET_QUESTION": "What do you want to set the setting **{s}** to?",
     "CONFIRMATION": "The setting **{s}** is now set to **{v}**.",
     "hideIgn": "Hide in-game name",
