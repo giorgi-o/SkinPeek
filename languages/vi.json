@@ -94,19 +94,22 @@
     "ACCOUNTS_HEADER": "Các tài khoản của bạn:",
     "ACCOUNT_CURRENTLY_SELECTED": "(Đã chọn)",
     "SWITCH_ACCOUNT_BUTTON": "Tài khoản #{n}",
+    "LOADING": "Đang tải...",
+    "HIDDEN_USERNAME": "tên đã ẩn",
+    "NO_USERNAME": "[Không có tên]",
     "UNHANDLED_COMMAND": "Bạn là một phù thuỷ đó, Harry!"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Tiến trình Battlepass",
     "FINISHED": "\uD83C\uDF89 Congratulations, you've finished the battlepass!",
-    "TIER_HEADER": "Bậc Battlepass của {u}:",
+    "TIER_HEADER": "Bậc Battlepass của **{u}**:",
     "GENERAL_COL": "Chung",
     "XP_COL": "XP",
     "TOTAL_ROW": "XP tổng",
     "LVLUP_ROW": "Lên cấp",
     "TIER50_ROW": "Cấp 50",
     "WEEKLY_LEFT_ROW": "Số XP tuần còn lại",
-    "BP_PURCHASED": "{u} đã mua Battlepass!",
+    "BP_PURCHASED": "Bạn đã mua Battlepass!",
     "GAMES_HEADER": "\uD83D\uDD2B Số trận cần thêm",
     "GAMEMODE_COL": "Chế độ chơi",
     "INCL_WEEKLIES_COL": "gồm n.vụ tuần",
@@ -117,5 +120,13 @@
     "AVERAGE_COL": "Trung bình",
     "DAILY_XP_ROW": "XP ngày",
     "WEEKLY_XP_ROW": "XP tuần"
+  },
+  "settings": {
+    "TRUE": "Có",
+    "FALSE": "Không",
+    "SET_QUESTION": "Bạn muốn thay đổi tùy chọn **{s}** thành...?",
+    "CONFIRMATION": "Tùy chọn **{s}** đã được thay đổi thành **{v}**.",
+    "hideIgn": "Ẩn tên trong game",
+    "privateShop": "Cho phép mọi người xem /shop của bạn"
   }
 }

@@ -40,6 +40,11 @@ import {
 } from "../valorant/accountSwitcher.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
 import {fetchBundles, fetchNightMarket, fetchShop} from "../valorant/shopManager.js";
+import {
+    handleSettingDropdown,
+    handleSettingsSetCommand,
+    handleSettingsViewCommand, settings
+} from "../misc/settings.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
@@ -168,6 +173,31 @@ const commands = [
             description: "Your auth.riotgames.com cookie header",
             required: true
         }]
+    },
+    {
+        name: "settings",
+        description: "Change your settings with the bot, or view your current settings",
+        options: [{
+                name: "view",
+                description: "See your current settings",
+                type: 1,
+            },
+            {
+                name: "set",
+                description: "Change one of your settings with the bot",
+                type: 1,
+                options: [{
+                    name: "setting",
+                    description: "The name of the setting you want to change",
+                    type: "STRING",
+                    require: true,
+                    choices: Object.entries(settings).map(([key, value]) => {return {
+                        name: value.name,
+                        value: key
+                    }})
+                }]
+            }
+        ]
     },
     {
         name: "forget",
@@ -499,7 +529,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await interaction.followUp({
                         embeds: [{ // move this to embed.js?
-                            title: s(interaction).info.WALLET_HEADER.f({u: valorantUser.username}),
+                            title: s(interaction).info.WALLET_HEADER.f({u: valorantUser.username}, interaction),
                             color: VAL_COLOR_1,
                             fields: [
                                 {name: s(interaction).info.VPOINTS, value: `${theVPEmoji} ${balance.vp}`, inline: true},
@@ -664,7 +694,7 @@ client.on("interactionCreate", async (interaction) => {
                     let embed;
                     if(success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
-                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
+                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction));
                         setUserLocale(user, interaction.locale);
                     } else {
                         console.log(`${interaction.user.tag} cookies login failed`);
@@ -697,7 +727,7 @@ client.on("interactionCreate", async (interaction) => {
                         const usernameOfDeleted = deleteUser(interaction.user.id, accountNumber);
 
                         await interaction.followUp({
-                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: accountNumber, u: usernameOfDeleted}))],
+                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: accountNumber, u: usernameOfDeleted}, interaction))],
                         });
                     } else {
                         deleteWholeUser(interaction.user.id);
@@ -784,7 +814,6 @@ client.on("interactionCreate", async (interaction) => {
                     });
 
                     if(accountNumber > accountCount) return await interaction.reply({
-                        // embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
                         ephemeral: true
                     });
@@ -792,7 +821,7 @@ client.on("interactionCreate", async (interaction) => {
                     const valorantUser = switchAccount(interaction.user.id, accountNumber);
 
                     await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({n: accountNumber, u: valorantUser.username}))],
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({n: accountNumber, u: valorantUser.username}, interaction))],
                     });
                     break;
                 }
@@ -804,6 +833,14 @@ client.on("interactionCreate", async (interaction) => {
                     });
 
                     await interaction.reply(accountsListEmbed(interaction, userJson));
+
+                    break;
+                }
+                case "settings": {
+                    switch(interaction.options.getSubcommand()) {
+                        case "view": return await handleSettingsViewCommand(interaction);
+                        case "set": return await handleSettingsSetCommand(interaction);
+                    }
 
                     break;
                 }
@@ -913,6 +950,10 @@ client.on("interactionCreate", async (interaction) => {
 
                     break;
                 }
+                case "set-setting": {
+                    await handleSettingDropdown(interaction);
+                    break;
+                }
             }
         } catch(e) {
             await handleError(e, interaction);
@@ -989,18 +1030,31 @@ client.on("interactionCreate", async (interaction) => {
                     ...await renderBundle(bundle, interaction, emoji),
                 });
             } else if(interaction.customId.startsWith("shopaccount") || interaction.customId.startsWith("nmaccount")) {
-                await interaction.deferUpdate();
+
+                const isShop = interaction.customId.startsWith("shopaccount");
 
                 const [, id, accountIndex] = interaction.customId.split('/');
 
-                if(id !== interaction.user.id) return await interaction.followUp({
+                if(id !== interaction.user.id) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_GENERIC)],
                     ephemeral: true
                 });
 
-                if(!canSendMessages(interaction.channel)) return await interaction.followUp({
+                if(!canSendMessages(interaction.channel)) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.GENERIC_NO_PERMS)]
-                })
+                });
+
+                const message = interaction.message;
+                if(!message.components) message.components = [switchAccountButtons(interaction.user.id, isShop ? "shopaccount" : "nmaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON)];
+
+                for(const component of message.components[0].components) {
+                    if(component.customId === interaction.customId) component.label = s(interaction).info.LOADING;
+                }
+
+                await interaction.update({
+                    embeds: message.embeds,
+                    components: message.components
+                });
 
                 const success = switchAccount(interaction.user.id, parseInt(accountIndex));
                 if(!success) return await interaction.followUp({
@@ -1008,13 +1062,13 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                 });
 
-                let message;
-                if(interaction.customId.startsWith("shopaccount")) message = await fetchShop(interaction, getUser(interaction.user.id));
-                else message = await fetchNightMarket(interaction, getUser(interaction.user.id));
+                let newMessage;
+                if(isShop) newMessage = await fetchShop(interaction, getUser(interaction.user.id));
+                else newMessage = await fetchNightMarket(interaction, getUser(interaction.user.id));
 
-                if(!message.components) message.components = [switchAccountButtons(interaction.user.id, s(interaction).info.SWITCH_ACCOUNT_BUTTON)];
+                if(!newMessage.components) newMessage.components = [switchAccountButtons(interaction.user.id, isShop ? "shopaccount" : "nmaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON)];
 
-                await interaction.message.edit(message);
+                await interaction.message.edit(newMessage);
             }
         } catch(e) {
             await handleError(e, interaction);

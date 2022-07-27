@@ -1,10 +1,12 @@
 import fs from "fs";
 import {removeDupeAlerts} from "../misc/util.js";
+import {defaultSettings} from "../misc/settings.js";
 
 /** JSON format:
  * {
  *     accounts: [User objects],
- *     currentAccount: currently selected account, 1 for first account
+ *     currentAccount: currently selected account, 1 for first account,
+ *     settings: dictionary
  * }
  */
 
@@ -23,7 +25,8 @@ export const getUserJson = (id, account=null) => {
     if(!user.accounts) {
         const userJson =  {
             accounts: [user],
-            currentAccount: 1
+            currentAccount: 1,
+            settings: defaultSettings
         }
         saveUserJson(id, userJson);
         return userJson.accounts[account || 1];
@@ -32,7 +35,7 @@ export const getUserJson = (id, account=null) => {
     return user.accounts[(account || user.currentAccount) - 1];
 }
 
-const saveUserJson = (id, json) => {
+export const saveUserJson = (id, json) => {
     if(!fs.existsSync("data/users")) fs.mkdirSync("data/users");
     fs.writeFileSync("data/users/" + id + ".json", JSON.stringify(json, null, 2));
 }
@@ -44,7 +47,8 @@ export const saveUser = (user, account=null) => {
     if(!userJson) {
         const objectToWrite = {
             accounts: [user],
-            currentAccount: 1
+            currentAccount: 1,
+            settings: defaultSettings
         }
         saveUserJson(user.id, objectToWrite);
     } else {
@@ -79,7 +83,8 @@ export const addUser = (user) => {
     } else {
         const objectToWrite = {
             accounts: [user],
-            currentAccount: 1
+            currentAccount: 1,
+            settings: defaultSettings
         }
         saveUserJson(user.id, objectToWrite);
     }

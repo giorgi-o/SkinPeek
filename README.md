@@ -74,8 +74,11 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 * ~~See battlepass progress~~ (thanks muckelba!)
 * ~~Localization support~~
 * ~~Shop statistics~~
-* Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
+* Settings menu
+* View other people's shops
 * Option to send shop automatically every day
+* Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
+* Show off your skin collection & account value
 * Admin commands (delete user, see/edit everyone's alerts, etc.)
 
 ## Acknowledgements

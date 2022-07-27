@@ -1,5 +1,6 @@
 import fs from "fs";
 import config from "./config.js";
+import {getSetting} from "./settings.js";
 
 // languages valorant doesn't have:
 // danish, croatian, lithuanian, hungarian, dutch, norwegian, romanian, finnish, swedish, czech, greek, bulgarian, ukranian, hindi
@@ -68,8 +69,8 @@ export const s = (interaction) => {
 }
 
 // format a string
-String.prototype.f = function(args) {
-    let str = this;
+String.prototype.f = function(args, interaction=null) {
+    let str = hideUsername(this, interaction);
     for(let i in args)
         str = str.replace(`{${i}}`, args[i]);
     return str;
@@ -87,4 +88,10 @@ export const l = (names, interaction) => {
     if(!valLocale) valLocale = DEFAULT_VALORANT_LANG;
 
     return names[valLocale];
+}
+
+const hideUsername = (str, interaction) => {
+    if(!interaction || !getSetting(interaction.user.id, "hideIgn")) return str;
+    return str.replaceAll("**{u}**", `||*${s(interaction).info.HIDDEN_USERNAME}*||`)
+        .replaceAll("{u}", `[${s(interaction).info.HIDDEN_USERNAME}]`);
 }

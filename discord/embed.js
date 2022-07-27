@@ -14,6 +14,7 @@ import {MessageActionRow, MessageButton} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
 import {readUserJson, saveUser} from "../valorant/accountSwitcher.js";
+import {getSetting, humanifyValue, settingName} from "../misc/settings.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -82,7 +83,8 @@ export const skinChosenEmbed = async (interaction, skin) => {
 export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => {
     if(!shop.success) return authFailureMessage(interaction, shop, s(interaction).error.AUTH_ERROR_SHOP);
 
-    const embeds = [basicEmbed(s(interaction).info.SHOP_HEADER.f({u: valorantUser.username, t: shop.expires}))];
+    const headerText = s(interaction).info.SHOP_HEADER.f({u: valorantUser.username, t: shop.expires}, interaction);
+    const embeds = [basicEmbed(headerText)];
 
     const emojiString = emojiToString(VPemoji) || s(interaction).info.PRICE;
 
@@ -92,7 +94,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => 
         embeds.push(embed);
     }
 
-    const buttons = await switchAccountButtons(interaction.user.id, s(interaction).info.SWITCH_ACCOUNT_BUTTON);
+    const buttons = await switchAccountButtons(interaction.user.id, "shopaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON);
     return {
         embeds,
         components: [buttons]
@@ -193,7 +195,7 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
     if(!market.offers) return {embeds: [basicEmbed(s(interaction).error.NO_NMARKET)]};
 
     const embeds = [{
-        description: s(interaction).info.NMARKET_HEADER.f({u: valorantUser.username, t: market.expires}),
+        description: s(interaction).info.NMARKET_HEADER.f({u: valorantUser.username, t: market.expires}, interaction),
         color: VAL_COLOR_3
     }];
 
@@ -208,7 +210,7 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
         embeds.push(embed);
     }
 
-    const buttons = await switchAccountButtons(interaction.user.id, s(interaction).info.SWITCH_ACCOUNT_BUTTON);
+    const buttons = await switchAccountButtons(interaction.user.id, "nmaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON);
     return {
         embeds,
         components: [buttons]
@@ -223,7 +225,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
         embeds.push({
             title: s(interaction).battlepass.CALCULATIONS_TITLE,
             thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
-            description: `${s(interaction).battlepass.TIER_HEADER.f({u: valorantUser.username})}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
+            description: `${s(interaction).battlepass.TIER_HEADER.f({u: valorantUser.username}, interaction)}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
             color: VAL_COLOR_1,
             fields: [
                 {
@@ -238,7 +240,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
                 }
             ],
             footer: {
-                text: battlepass.battlepassPurchased ? s(interaction).battlepass.BP_PURCHASED.f({u: valorantUser.username}) : ""
+                text: battlepass.battlepassPurchased ? s(interaction).battlepass.BP_PURCHASED.f({u: valorantUser.username}, interaction) : ""
             }
         },
         {
@@ -480,7 +482,7 @@ const pageButtons = (pageId, userId, current, max) => {
     return new MessageActionRow().setComponents(leftButton, rightButton);
 }
 
-export const switchAccountButtons = (id, template="{n}") => {
+export const switchAccountButtons = (id, customId="shopaccount", template="{n}") => {
     const json = readUserJson(id);
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
 
@@ -488,7 +490,7 @@ export const switchAccountButtons = (id, template="{n}") => {
     for(const number of accountNumbers) {
         const label = template.replaceAll("{n}", number.toString());
 
-        const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`shopaccount/${id}/${number}`)
+        const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`${customId}/${id}/${number}`)
         button.setDisabled(number === json.currentAccount);
 
         buttons.push(button);
@@ -636,11 +638,17 @@ export const statsForSkinEmbed = async (skin, stats, interaction) => {
 }
 
 export const accountsListEmbed = (interaction, userJson) => {
+    const hideIgn = getSetting(interaction.user.id, "hideIgn");
     const fields = [];
     for(const [i, account] of Object.entries(userJson.accounts)) {
+        let fieldValue;
+        if(!account.username) fieldValue = s(interaction).info.NO_USERNAME;
+        else if(hideIgn) fieldValue = `*${s(interaction).info.HIDDEN_USERNAME}*`;
+        else fieldValue = account.username;
+
         fields.push({
             name: `${parseInt(i) + 1}. ${userJson.currentAccount === parseInt(i) + 1 ? s(interaction).info.ACCOUNT_CURRENTLY_SELECTED : ''}`,
-            value: account.username || "[No username]",
+            value: fieldValue,
             inline: true
         });
     }
@@ -651,6 +659,27 @@ export const accountsListEmbed = (interaction, userJson) => {
             fields: fields,
             color: VAL_COLOR_1
         }]
+    }
+}
+
+export const settingsEmbed = (userSettings, interaction) => {
+    const embed = {
+        title: "All your current settings:",
+        description: "Use `/settings set` to change them.",
+        color: VAL_COLOR_1,
+        fields: []
+    }
+
+    for(const [setting, value] of Object.entries(userSettings)) {
+        embed.fields.push({
+            name: settingName(setting),
+            value: humanifyValue(value, interaction),
+            inline: true
+        });
+    }
+
+    return {
+        embeds: [embed]
     }
 }
 

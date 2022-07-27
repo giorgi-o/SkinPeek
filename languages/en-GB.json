@@ -94,19 +94,22 @@
     "ACCOUNTS_HEADER": "All your accounts with the bot:",
     "ACCOUNT_CURRENTLY_SELECTED": "(Currently selected)",
     "SWITCH_ACCOUNT_BUTTON": "Account #{n}",
+    "LOADING": "Loading...",
+    "HIDDEN_USERNAME": "username hidden",
+    "NO_USERNAME": "[No username]",
     "UNHANDLED_COMMAND": "Yer a wizard harry!"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Battlepass Calculation",
     "FINISHED": "\uD83C\uDF89 Congratulations, you've finished the battlepass!",
-    "TIER_HEADER": "{u}'s battlepass tier:",
+    "TIER_HEADER": "**{u}**'s battlepass tier:",
     "GENERAL_COL": "General",
     "XP_COL": "XP",
     "TOTAL_ROW": "Total XP",
     "LVLUP_ROW": "Level up",
     "TIER50_ROW": "Tier {t}",
     "WEEKLY_LEFT_ROW": "Weekly XP left",
-    "BP_PURCHASED": "{u} purchased the battlepass!",
+    "BP_PURCHASED": "You purchased the battlepass!",
     "GAMES_HEADER": "\uD83D\uDD2B Number of games needed",
     "GAMEMODE_COL": "Gamemode",
     "INCL_WEEKLIES_COL": "incl. weeklies",
@@ -117,5 +120,13 @@
     "AVERAGE_COL": "Average",
     "DAILY_XP_ROW": "Daily XP",
     "WEEKLY_XP_ROW": "Weekly XP"
+  },
+  "settings": {
+    "TRUE": "Yes",
+    "FALSE": "No",
+    "SET_QUESTION": "What do you want to set the setting **{s}** to?",
+    "CONFIRMATION": "The setting **{s}** is now set to **{v}**.",
+    "hideIgn": "Hide in-game name",
+    "privateShop": "Allow others to use /shop with your username"
   }
 }

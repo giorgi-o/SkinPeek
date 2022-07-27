@@ -197,7 +197,7 @@ export const sendAlert = async (id, account, alerts, expires, tryOnOtherShard=tr
         await channel.send({
             content: `<@${id}>`,
             embeds: [{
-                description: s(valorantUser.locale).info.ALERT_HAPPENED.f({i: id, u:valorantUser.username, s: await skinNameAndEmoji(skin, channel, valorantUser.locale), t: expires}),
+                description: s(valorantUser.locale).info.ALERT_HAPPENED.f({i: id, u: valorantUser.username, s: await skinNameAndEmoji(skin, channel, valorantUser.locale), t: expires}, interaction),
                 color: VAL_COLOR_1,
                 thumbnail: {
                     url: skin.icon
