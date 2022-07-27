@@ -84,7 +84,7 @@ export const handleSettingDropdown = async (interaction) => {
     const valueSet = setSetting(interaction.user.id, setting, value);
 
     await interaction.update({
-        embeds: [basicEmbed(s(interaction).setting.CONFIRMATION.f({s: settingName(setting, interaction), v: humanifyValue(valueSet, interaction)}))],
+        embeds: [basicEmbed(s(interaction).settings.CONFIRMATION.f({s: settingName(setting, interaction), v: humanifyValue(valueSet, interaction)}))],
         components: []
     });
 }
