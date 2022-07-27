@@ -43,7 +43,7 @@ import {fetchBundles, fetchNightMarket, fetchShop} from "../valorant/shopManager
 import {
     handleSettingDropdown,
     handleSettingsSetCommand,
-    handleSettingsViewCommand, settings
+    handleSettingsViewCommand, settingName, settings
 } from "../misc/settings.js";
 
 export const client = new Client({
@@ -191,9 +191,9 @@ const commands = [
                     description: "The name of the setting you want to change",
                     type: "STRING",
                     require: true,
-                    choices: Object.entries(settings).map(([key, value]) => {return {
-                        name: value.name,
-                        value: key
+                    choices: Object.keys(settings).map((setting) => {return {
+                        name: settingName(setting),
+                        value: setting
                     }})
                 }]
             }
