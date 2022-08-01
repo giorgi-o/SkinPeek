@@ -146,13 +146,13 @@ export const getBalance = async (id, account=null) => {
  * }
  */
 
-export const getShopCache = (puuid, bundles=false) => {
+export const getShopCache = (puuid, bundles=false, print=true) => {
     if(!config.useShopCache) return null;
     try {
         const shopCache = JSON.parse(fs.readFileSync("data/shopCache/" + puuid + ".json", "utf8"));
         if(shopCache && isToday(shopCache.timestamp)) {
             if(bundles && new Date(shopCache.timestamp).getUTCHours() < 21 && new Date().getUTCHours() >= 21) return null; // bundles change at 21:00 UTC
-            console.log(`Fetched from shop cache for user ${discordTag(puuid)}`);
+            if(print) console.log(`Fetched shop cache for user ${discordTag(puuid)}`);
             return shopCache;
         }
     } catch(e) {}
@@ -183,4 +183,3 @@ const addShopCache = (puuid, shopJson) => {
 
     console.log(`Added shop cache for user ${discordTag(puuid)}`);
 }
-

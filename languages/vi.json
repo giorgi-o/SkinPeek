@@ -2,6 +2,7 @@
   "translation_by": "Mistral",
   "error":{
     "NOT_REGISTERED": "**Bạn chưa đăng nhập với bot!** Thử dùng `/login` nhé.",
+    "NOT_REGISTERED_OTHER": "**Người dùng đó không đăng nhập vào bot!**",
     "INVALID_PASSWORD": "Tài khoản hoặc mật khẩu không chính xác!",
     "INVALID_COOKIES": "Ơ, có gì đó không đúng... Bạn đã copy chính xác cookies chưa?",
     "INVALID_2FA": "**Mã 2FA không chính xác!** Vui lòng thử lại.",
@@ -9,6 +10,7 @@
     "LOGIN_RATELIMIT": "**Quá nhiều người đang đăng nhập vào bot**, và Riot không thích điều này!\nPVui lòng thử lại sau.",
     "FORGET_FORGOTTEN": "Bạn muốn tôi quên bạn nhưng mà tôi còn không biết bạn là ai... thử đăng nhập trước nhé!",
     "AUTH_ERROR_SHOP": "**Không thể lấy thông tin cửa hàng của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
+    "AUTH_ERROR_SHOP_OTHER": "**Không thể lấy thông tin cửa hàng của {u}**, rất có thể họ đã đăng xuất. Hãy nói với họ đăng nhập lại.",
     "AUTH_ERROR_BUNDLES": "**Không thể lấy thông tin bộ sưu tập trong cửa hàng của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
     "AUTH_ERROR_NMARKET": "**Không thể lấy thông tin chợ đêm của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
     "AUTH_ERROR_BALANCE": "**Không thể xem tài khoản của bạn**, khả năng cao bạn đã bị đăng xuất. Thử đăng nhập lại nhé.",
@@ -20,6 +22,7 @@
     "BUNDLE_NOT_FOUND": "**Không thể tìm được bộ sưu tập với tên đó!** Kiểm tra lại tên bộ sưu tập nhé.",
     "UNKNOWN_ITEM_TYPE": "**Tôi năm nay hơn 70 tuổi rồi mà chưa gặp vật phẩm nào lạ như thế này cả!** `{t}`",
     "MAINTENANCE": "**Máy chủ VALORANT của Riot đang bảo trì!** Thử lại sau nhé.",
+    "OTHER_SHOP_DISABLED": "**{u} đã tắt tính năng cho người khác xem cửa hàng của họ!**",
     "STATS_DISABLED": "**Thống kê skin đã bị vô hiệu hoá trên bot này!**",
     "EMPTY_STATS":  "**Tôi không có dữ liệu thống kê cửa hàng!** dùng `/shop` để bắt đầu nhé.",
     "NO_STATS_FOR_SKIN":  "**Skin đó chưa vào trong bất kỳ một cửa hàng nào** trong {d} ngày qua!",
@@ -129,6 +132,6 @@
     "SET_QUESTION": "Bạn muốn thay đổi tùy chọn **{s}** thành...?",
     "CONFIRMATION": "Tùy chọn **{s}** đã được thay đổi thành **{v}**.",
     "hideIgn": "Ẩn tên trong game",
-    "privateShop": "Cho phép mọi người xem /shop của bạn"
+    "othersCanViewShop": "Cho phép mọi người xem /shop của bạn"
   }
 }

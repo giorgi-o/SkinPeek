@@ -8,9 +8,9 @@ export const settings = {
         values: [true, false],
         default: false
     },
-    privateShop: {
+    othersCanViewShop: {
         values: [true, false],
-        default: false
+        default: true
     }
 }
 
@@ -24,12 +24,23 @@ const getSettings = (id) => {
         json.settings = defaultSettings
         saveUserJson(id, json);
     }
-    else for(const setting in defaultSettings) {
+    else {
         let changed = false;
-        if(!(setting in json.settings)) {
-            json.settings[setting] = defaultSettings[setting];
-            changed = true;
+
+        for(const setting in defaultSettings) {
+            if(!(setting in json.settings)) {
+                json.settings[setting] = defaultSettings[setting];
+                changed = true;
+            }
         }
+
+        for(const setting in json.settings) {
+            if(!(setting in defaultSettings)) {
+                delete json.settings[setting];
+                changed = true;
+            }
+        }
+
         if(changed) saveUserJson(id, json);
     }
 
@@ -93,9 +104,9 @@ export const settingName = (setting, interaction) => {
     return s(interaction).settings[setting];
 }
 
-export const humanifyValue = (value, interaction) => {
-    if(value === true) return s(interaction).settings.TRUE;
-    if(value === false) return s(interaction).settings.FALSE;
+export const humanifyValue = (value, interaction, emoji=false) => {
+    if(value === true) return emoji ? '✅' : s(interaction).settings.TRUE;
+    if(value === false) return emoji ? '❌' : s(interaction).settings.FALSE;
     return value.toString();
 }
 

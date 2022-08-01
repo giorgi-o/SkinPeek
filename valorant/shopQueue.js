@@ -120,5 +120,5 @@ export const getShopQueueItemStatus = (c) => {
 }
 
 const shopCached = (id, bundles=false) => {
-    return getShopCache(getPuuid(id), bundles);
+    return getShopCache(getPuuid(id), bundles, false) !== null;
 }

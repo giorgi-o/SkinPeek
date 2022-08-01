@@ -41,6 +41,7 @@ import {
 import {sendShardMessage} from "../misc/shardMessage.js";
 import {fetchBundles, fetchNightMarket, fetchShop} from "../valorant/shopManager.js";
 import {
+    getSetting,
     handleSettingDropdown,
     handleSettingsSetCommand,
     handleSettingsViewCommand, settingName, settings
@@ -92,7 +93,13 @@ export const destroyTasks = () => {
 const commands = [
     {
         name: "shop",
-        description: "Show your current daily shop!"
+        description: "Show your current daily shop!",
+        options: [{
+            type: "USER",
+            name: "user",
+            description: "Optional: see the daily shop of someone else!",
+            required: false
+        }]
     },
     {
         name: "bundles",
@@ -410,14 +417,29 @@ client.on("interactionCreate", async (interaction) => {
             switch (interaction.commandName) {
                 case "skins":
                 case "shop": {
-                    if(!valorantUser) return await interaction.reply({
+                    let targetId = interaction.user.id;
+
+                    const otherUser = interaction.options.getUser("user");
+                    if(otherUser && otherUser.id !== interaction.user.id) {
+                        const otherValorantUser = getUser(otherUser.id);
+                        if(!otherValorantUser) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED_OTHER)]
+                        });
+
+                        if(!getSetting(otherUser.id, "othersCanViewShop")) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.OTHER_SHOP_DISABLED.f({u: `<@${otherUser.id}>`}))]
+                        });
+
+                        targetId = otherUser.id;
+                    }
+                    else if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
                     await defer(interaction);
 
-                    const message = await fetchShop(interaction, valorantUser);
+                    const message = await fetchShop(interaction, valorantUser, targetId);
                     await interaction.followUp(message);
 
                     console.log(`Sent ${interaction.user.tag}'s shop!`); // also logged if maintenance/login failed

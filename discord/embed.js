@@ -80,10 +80,23 @@ export const skinChosenEmbed = async (interaction, skin) => {
     }
 }
 
-export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => {
-    if(!shop.success) return authFailureMessage(interaction, shop, s(interaction).error.AUTH_ERROR_SHOP);
+export const renderOffers = async (shop, interaction, valorantUser, VPemoji, otherId=null) => {
+    const forOtherUser = otherId && otherId !== interaction.user.id;
+    const otherUserMention = `<@${otherId}>`;
 
-    const headerText = s(interaction).info.SHOP_HEADER.f({u: valorantUser.username, t: shop.expires}, interaction);
+    if(!shop.success) {
+        let errorText;
+
+        if(forOtherUser) errorText = s(interaction).error.AUTH_ERROR_SHOP_OTHER.f({u: otherUserMention});
+        else errorText = s(interaction).error.AUTH_ERROR_SHOP;
+
+        return authFailureMessage(interaction, shop, errorText);
+    }
+
+    let headerText;
+    if(forOtherUser) headerText = s(interaction).info.SHOP_HEADER.f({u: otherUserMention, t: shop.expires});
+    else headerText = s(interaction).info.SHOP_HEADER.f({u: valorantUser.username, t: shop.expires}, interaction);
+
     const embeds = [basicEmbed(headerText)];
 
     const emojiString = emojiToString(VPemoji) || s(interaction).info.PRICE;
@@ -94,10 +107,12 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji) => 
         embeds.push(embed);
     }
 
-    const buttons = await switchAccountButtons(interaction.user.id, "shopaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON);
+    let components;
+    if(forOtherUser) components = null;
+    else components = [await switchAccountButtons(interaction.user.id, "shopaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON)];
+
     return {
-        embeds,
-        components: [buttons]
+        embeds, components
     };
 }
 
@@ -674,7 +689,7 @@ export const settingsEmbed = (userSettings, interaction) => {
     for(const [setting, value] of Object.entries(userSettings)) {
         embed.fields.push({
             name: settingName(setting, interaction),
-            value: humanifyValue(value, interaction),
+            value: humanifyValue(value, interaction, true),
             inline: true
         });
     }

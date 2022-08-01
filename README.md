@@ -94,12 +94,11 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 
 If you are fluent in another language and would like help translate the bot, please do!
 
-1. [Fork the repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo)
-2. Look up the language code for your language [here](https://discord.com/developers/docs/reference#locales)
-3. In the `languages` folder of your forked repo, copy `en-GB.json` and rename it to your language code
-4. Open that file and do the thing
-5. Open a pull request
+1. Look up the language code for your language [here](https://discord.com/developers/docs/reference#locales)
+2. Look in the bot's `languages` folder
+3. If you're starting from scratch, copy the `en-GB.json` file and rename it to your language code
+4. Open the file and do the thing
 
-Alternatively, you can just send me the JSON on discord and I'll upload it for you.
+Once you're done translating, you can either [fork the repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo) and [open a GitHub pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request), or you can just send me the JSON on discord and I'll upload it for you.
 
 Thank you! :)

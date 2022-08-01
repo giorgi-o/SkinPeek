@@ -2,6 +2,7 @@
   "translation_by": "Put your name here if translating :)",
   "error":{
     "NOT_REGISTERED": "**You're not registered with the bot!** Try `/login`.",
+    "NOT_REGISTERED_OTHER": "**That user is not registered with the bot!**",
     "INVALID_PASSWORD": "Invalid username or password!",
     "INVALID_COOKIES": "Whoops, that didn't work! Are your cookies formatted correctly?",
     "INVALID_2FA": "**Invalid 2FA code!** Please try again.",
@@ -9,6 +10,7 @@
     "LOGIN_RATELIMIT": "**Too many people are logging in at the same time**, and Riot is not happy!\nPlease try again later.",
     "FORGET_FORGOTTEN": "I can't forget you if you're not registered!",
     "AUTH_ERROR_SHOP": "**Couldn't fetch your shop**, most likely you got logged out. Try logging in again.",
+    "AUTH_ERROR_SHOP_OTHER": "**Couldn't fetch {u}'s shop**, most likely they got logged out. Tell them to login again.",
     "AUTH_ERROR_BUNDLES": "**Couldn't fetch your bundles**, most likely you got logged out. Try logging in again.",
     "AUTH_ERROR_NMARKET": "**Couldn't fetch your Night Market**, most likely you got logged out. Try logging in again.",
     "AUTH_ERROR_BALANCE": "**Couldn't fetch your balance**, most likely you got logged out. Try logging in again.",
@@ -20,6 +22,7 @@
     "BUNDLE_NOT_FOUND": "**Couldn't find a bundle with that name!** Check the spelling and try again.",
     "UNKNOWN_ITEM_TYPE": "**Unknown item type!** `{t}`",
     "MAINTENANCE": "**Valorant servers are currently down for maintenance!** Try again later.",
+    "OTHER_SHOP_DISABLED": "**{u} disabled the ability to let others see their shop!**",
     "STATS_DISABLED": "**Shop statistics are currently disabled for this bot!**",
     "EMPTY_STATS":  "**I have no shop stats to display!** use `/shop` to get started.",
     "NO_STATS_FOR_SKIN":  "**That skin hasn't been in anyone's shop** in the past {d} days!",
@@ -129,6 +132,6 @@
     "SET_QUESTION": "What do you want to set the setting **{s}** to?",
     "CONFIRMATION": "The setting **{s}** is now set to **{v}**.",
     "hideIgn": "Hide in-game name",
-    "privateShop": "Allow others to use /shop with your username"
+    "othersCanViewShop": "Allow others to use /shop with your username"
   }
 }

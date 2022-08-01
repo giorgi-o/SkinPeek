@@ -3,21 +3,21 @@ import {VPEmoji} from "../discord/emoji.js";
 import {getShopQueueItemStatus, queueBundles, queueItemShop, queueNightMarket} from "./shopQueue.js";
 import {renderBundles, renderNightMarket, renderOffers} from "../discord/embed.js";
 
-export const fetchShop = async (interaction, user) => {
+export const fetchShop = async (interaction, user, targetId=interaction.user.id) => {
     // fetch the channel if not in cache
     const channel = interaction.channel || await fetchChannel(interaction.channelId);
 
     // start uploading emoji now
     const emojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
 
-    let shop = await queueItemShop(interaction.user.id);
+    let shop = await queueItemShop(targetId);
     while(shop.inQueue) {
         const queueStatus = getShopQueueItemStatus(shop.c);
         if(queueStatus.processed) shop = queueStatus.result;
         else await wait(150);
     }
 
-    return await renderOffers(shop, interaction, user, await emojiPromise)
+    return await renderOffers(shop, interaction, user, await emojiPromise, targetId);
 }
 
 export const fetchBundles = async (interaction) => {
