@@ -125,3 +125,9 @@ export const switchAccount = (id, accountNumber) => {
     return userJson.accounts[accountNumber - 1];
 }
 
+export const getAccountWithPuuid = (id, puuid) => {
+    const userJson = readUserJson(id);
+    if(!userJson) return null;
+    return userJson.accounts.find(a => a.puuid === puuid);
+}
+

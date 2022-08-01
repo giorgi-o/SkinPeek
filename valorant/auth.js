@@ -1,8 +1,8 @@
-import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry} from "../misc/util.js";
+import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry, decodeToken} from "../misc/util.js";
 import config from "../misc/config.js";
 import fs from "fs";
 import {client} from "../discord/bot.js";
-import {addUser, deleteUser, getUserJson, saveUser} from "./accountSwitcher.js";
+import {addUser, deleteUser, getAccountWithPuuid, getUserJson, saveUser} from "./accountSwitcher.js";
 
 class User {
     constructor({id, puuid, auth, alerts=[], username, region, locale, authFailures}) {
@@ -226,16 +226,26 @@ const processAuthResponse = async (id, authData, resp, user=null) => {
         delete user.auth.login; delete user.auth.password;
     }
 
-    // get user info
-    const userInfo = await getUserInfo(user);
-    user.puuid = userInfo.puuid;
-    user.username = userInfo.username;
+    user.puuid = decodeToken(rso).sub;
+
+    const existingAccount = getAccountWithPuuid(id, user.puuid);
+    if(existingAccount) {
+        user.username = existingAccount.username;
+        user.region = existingAccount.region;
+        if(existingAccount.auth) user.auth.ent = existingAccount.auth.ent;
+    }
+
+    // get username
+    if(!user.username) {
+        const userInfo = await getUserInfo(user);
+        user.username = userInfo.username;
+    }
 
     // get entitlements token
-    user.auth.ent = await getEntitlements(user);
+    if(!user.auth.ent) user.auth.ent = await getEntitlements(user);
 
     // get region
-    user.region = await getRegion(user);
+    if(!user.region) user.region = await getRegion(user);
 
     return user;
 }

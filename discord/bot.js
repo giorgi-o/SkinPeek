@@ -694,7 +694,7 @@ client.on("interactionCreate", async (interaction) => {
                     let embed;
                     if(success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
-                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction));
+                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
                         setUserLocale(user, interaction.locale);
                     } else {
                         console.log(`${interaction.user.tag} cookies login failed`);

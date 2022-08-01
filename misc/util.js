@@ -127,7 +127,7 @@ export const extractTokensFromUri = (uri) => {
     return [accessToken, idToken]
 }
 
-const decodeToken = (token) => {
+export const decodeToken = (token) => {
     const encodedPayload = token.split('.')[1];
     return JSON.parse(atob(encodedPayload));
 }

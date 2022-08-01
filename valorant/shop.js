@@ -146,7 +146,7 @@ export const getBalance = async (id, account=null) => {
  * }
  */
 
-const getShopCache = (puuid, bundles=false) => {
+export const getShopCache = (puuid, bundles=false) => {
     if(!config.useShopCache) return null;
     try {
         const shopCache = JSON.parse(fs.readFileSync("data/shopCache/" + puuid + ".json", "utf8"));

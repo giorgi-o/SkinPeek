@@ -638,12 +638,10 @@ export const statsForSkinEmbed = async (skin, stats, interaction) => {
 }
 
 export const accountsListEmbed = (interaction, userJson) => {
-    const hideIgn = getSetting(interaction.user.id, "hideIgn");
     const fields = [];
     for(const [i, account] of Object.entries(userJson.accounts)) {
         let fieldValue;
         if(!account.username) fieldValue = s(interaction).info.NO_USERNAME;
-        else if(hideIgn) fieldValue = `*${s(interaction).info.HIDDEN_USERNAME}*`;
         else fieldValue = account.username;
 
         fields.push({
@@ -653,12 +651,15 @@ export const accountsListEmbed = (interaction, userJson) => {
         });
     }
 
+    const hideIgn = getSetting(interaction.user.id, "hideIgn");
+
     return {
         embeds: [{
             title: s(interaction).info.ACCOUNTS_HEADER,
             fields: fields,
             color: VAL_COLOR_1
-        }]
+        }],
+        ephemeral: hideIgn
     }
 }
 

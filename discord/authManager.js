@@ -20,7 +20,7 @@ export const loginUsernamePassword = async (interaction, username, password, ope
     if(login.success && user) {
         console.log(`${interaction.user.tag} logged in as ${user.username}`);
         await interaction.followUp({
-            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction))],
+            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))],
             ephemeral: true
         });
         setUserLocale(user, interaction.locale);
@@ -64,7 +64,7 @@ export const login2FA = async (interaction, code, operationIndex=null) => {
     if(login.success && user) {
         console.log(`${interaction.user.tag} logged in as ${user.username} with 2FA code`);
         await interaction.followUp({
-            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction))]
+            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))]
         });
         setUserLocale(user, interaction.locale);
     } else if(login.error) {

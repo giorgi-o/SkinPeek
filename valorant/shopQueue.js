@@ -1,6 +1,6 @@
 import config from "../misc/config.js";
-import {wait} from "../misc/util.js";
-import {getBundles, getNightMarket, getOffers} from "./shop.js";
+import {getPuuid, wait} from "../misc/util.js";
+import {getBundles, getNightMarket, getOffers, getShopCache} from "./shop.js";
 
 export const Operations = {
     SHOP: "sh",
@@ -12,37 +12,44 @@ export const Operations = {
 const queue = [];
 const queueResults = [];
 let queueCounter = 0;
+let processingCount = 0;
 
 export const queueItemShop = async (id) => {
-    if(!config.useShopQueue) return {inQueue: false, ...await getOffers(id)};
+    if(!config.useShopQueue || shopCached(id)) return {inQueue: false, ...await getOffers(id)};
     const c = queueCounter++;
     queue.push({
         operation: Operations.SHOP,
         c, id
     });
     console.log(`Added item shop fetch to shop queue for user ${id} (c=${c})`);
+
+    if(processingCount === 0) await processShopQueue();
     return {inQueue: true, c};
 }
 
 export const queueNightMarket = async (id) => {
-    if(!config.useShopQueue) return {inQueue: false, ...await getNightMarket(id)};
+    if(!config.useShopQueue || shopCached(id)) return {inQueue: false, ...await getNightMarket(id)};
     const c = queueCounter++;
     queue.push({
         operation: Operations.NIGHT_MARKET,
         c, id
     });
     console.log(`Added night market fetch to shop queue for user ${id} (c=${c})`);
+
+    if(processingCount === 0) await processShopQueue();
     return {inQueue: true, c};
 }
 
 export const queueBundles = async (id) => {
-    if(!config.useShopQueue) return {inQueue: false, ...await getBundles(id)};
+    if(!config.useShopQueue || shopCached(id, true)) return {inQueue: false, ...await getBundles(id)};
     const c = queueCounter++;
     queue.push({
         operation: Operations.BUNDLES,
         c, id
     });
     console.log(`Added bundles fetch to shop queue for user ${id} (c=${c})`);
+
+    if(processingCount === 0) await processShopQueue();
     return {inQueue: true, c};
 }
 
@@ -54,6 +61,8 @@ export const queueNullOperation = async (timeout) => {  // used for stress-testi
         c, timeout
     });
     console.log(`Added null operation to shop queue with timeout ${timeout} (c=${c})`);
+
+    if(processingCount === 0) await processShopQueue();
     return {inQueue: true, c};
 }
 
@@ -62,6 +71,7 @@ export const processShopQueue = async () => {
 
     const item = queue.shift();
     console.log(`Processing shop queue item "${item.operation}" for ${item.id} (c=${item.c})`);
+    processingCount++;
 
     let result;
     try {
@@ -90,6 +100,9 @@ export const processShopQueue = async () => {
         c: item.c,
         result
     });
+
+    console.log(`Finished processing shop queue item "${item.operation}" for ${item.id} (c=${item.c})`);
+    processingCount--;
 }
 
 export const getShopQueueItemStatus = (c) => {
@@ -104,4 +117,8 @@ export const getShopQueueItemStatus = (c) => {
     item = queueResults[index];
     queueResults.splice(index, 1);
     return {processed: true, result: item.result};
+}
+
+const shopCached = (id, bundles=false) => {
+    return getShopCache(getPuuid(id), bundles);
 }

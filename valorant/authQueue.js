@@ -12,6 +12,7 @@ export const Operations = {
 const queue = [];
 const queueResults = [];
 let queueCounter = 0;
+let processingCount = 0;
 
 export const queueUsernamePasswordLogin = async (id, username, password) => {
     if(!config.useLoginQueue) return {inQueue: false, ...await redeemUsernamePassword(id, username, password)};
@@ -21,6 +22,8 @@ export const queueUsernamePasswordLogin = async (id, username, password) => {
         c, id, username, password,
     });
     console.log(`Added Username+Password login to auth queue for user ${id} (c=${c})`);
+
+    if(processingCount === 0) await processAuthQueue();
     return {inQueue: true, c};
 }
 
@@ -32,6 +35,8 @@ export const queue2FACodeRedeem = async (id, code) => {
         c, id, code
     });
     console.log(`Added 2fa code redeem to auth queue for user ${id} (c=${c})`);
+
+    if(processingCount === 0) await processAuthQueue();
     return {inQueue: true, c};
 }
 
@@ -43,6 +48,8 @@ export const queueCookiesLogin = async (id, cookies) => {
         c, id, cookies
     });
     console.log(`Added cookie login to auth queue for user ${id} (c=${c})`);
+
+    if(processingCount === 0) await processAuthQueue();
     return {inQueue: true, c};
 }
 
@@ -54,6 +61,8 @@ export const queueNullOperation = async (timeout) => {  // used for stress-testi
         c, timeout
     });
     console.log(`Added null operation to auth queue with timeout ${timeout} (c=${c})`);
+
+    if(processingCount === 0) await processAuthQueue();
     return {inQueue: true, c};
 }
 
@@ -62,6 +71,7 @@ export const processAuthQueue = async () => {
 
     const item = queue.shift();
     console.log(`Processing auth queue item "${item.operation}" for ${item.id} (c=${item.c})`);
+    processingCount++;
 
     let result;
     try {
@@ -88,6 +98,9 @@ export const processAuthQueue = async () => {
         c: item.c,
         result
     });
+
+    console.log(`Finished processing auth queue item "${item.operation}" for ${item.id} (c=${item.c})`);
+    processingCount--;
 }
 
 export const getAuthQueueItemStatus = (c) => {
