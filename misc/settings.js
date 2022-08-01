@@ -63,7 +63,7 @@ export const handleSettingsSetCommand = async (interaction) => {
 
     const row = new MessageActionRow();
 
-    const options = settingValues.splice(0, 25).map(value => {
+    const options = settingValues.slice(0, 25).map(value => {
         return {
             label: humanifyValue(value, interaction),
             value: `${setting}-${value}`

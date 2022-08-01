@@ -190,7 +190,7 @@ const commands = [
                     name: "setting",
                     description: "The name of the setting you want to change",
                     type: "STRING",
-                    require: true,
+                    required: true,
                     choices: Object.keys(settings).map((setting) => {return {
                         name: settingName(setting),
                         value: setting

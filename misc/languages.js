@@ -69,8 +69,8 @@ export const s = (interaction) => {
 }
 
 // format a string
-String.prototype.f = function(args, interaction=null) {
-    let str = hideUsername(this, interaction);
+String.prototype.f = function(args, interactionOrId=null) {
+    let str = hideUsername(this, interactionOrId);
     for(let i in args)
         str = str.replace(`{${i}}`, args[i]);
     return str;
@@ -90,8 +90,13 @@ export const l = (names, interaction) => {
     return names[valLocale];
 }
 
-const hideUsername = (str, interaction) => {
-    if(!interaction || !getSetting(interaction.user.id, "hideIgn")) return str;
-    return str.replaceAll("**{u}**", `||*${s(interaction).info.HIDDEN_USERNAME}*||`)
-        .replaceAll("{u}", `[${s(interaction).info.HIDDEN_USERNAME}]`);
+const hideUsername = (str, interactionOrId) => {
+    if(!interactionOrId) return str;
+    if(typeof interactionOrId === 'string') {
+        if(!getSetting(interactionOrId, "hideIgn")) return str;
+    }
+    else if(!getSetting(interactionOrId.user.id, "hideIgn")) return str;
+
+    return str.replaceAll("**{u}**", `||*${s(interactionOrId).info.HIDDEN_USERNAME}*||`)
+        .replaceAll("{u}", `[${s(interactionOrId).info.HIDDEN_USERNAME}]`);
 }
