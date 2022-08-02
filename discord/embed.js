@@ -94,7 +94,14 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     }
 
     let headerText;
-    if(forOtherUser) headerText = s(interaction).info.SHOP_HEADER.f({u: otherUserMention, t: shop.expires});
+    if(forOtherUser) {
+        const json = readUserJson(otherId);
+
+        let usernameText = otherUserMention;
+        if(json.accounts.length > 1) usernameText += ' ' + s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: json.currentAccount});
+
+        headerText = s(interaction).info.SHOP_HEADER.f({u: usernameText, t: shop.expires});
+    }
     else headerText = s(interaction).info.SHOP_HEADER.f({u: valorantUser.username, t: shop.expires}, interaction);
 
     const embeds = [basicEmbed(headerText)];
