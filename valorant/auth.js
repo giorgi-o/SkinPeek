@@ -65,6 +65,7 @@ export const getUserList = () => {
 }
 
 export const setUserLocale = (user, locale) => {
+    if(user.locale === locale) return;
     user.locale = locale;
     saveUser(user);
 }

@@ -409,7 +409,7 @@ client.on("messageCreate", async (message) => {
 
 client.on("interactionCreate", async (interaction) => {
     const valorantUser = getUser(interaction.user.id);
-    if(valorantUser) valorantUser.locale = interaction.locale;
+    if(valorantUser) setUserLocale(valorantUser, interaction.locale);
 
     if(interaction.isCommand()) {
         try {
