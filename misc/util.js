@@ -279,3 +279,8 @@ export const isSameDay = (t1, t2) => {
     t1 = new Date(t1); t2 = new Date(t2);
     return t1.getUTCFullYear() === t2.getUTCFullYear() && t1.getUTCMonth() === t2.getUTCMonth() && t1.getUTCDate() === t2.getUTCDate();
 }
+
+export const ensureUsersFolder = () => {
+    if(!fs.existsSync("data")) fs.mkdirSync("data");
+    if(!fs.existsSync("data/users")) fs.mkdirSync("data/users");
+}

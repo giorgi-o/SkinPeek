@@ -1,5 +1,5 @@
 import fs from "fs";
-import {removeDupeAlerts} from "../misc/util.js";
+import {ensureUsersFolder, removeDupeAlerts} from "../misc/util.js";
 import {defaultSettings} from "../misc/settings.js";
 
 /** JSON format:
@@ -36,7 +36,7 @@ export const getUserJson = (id, account=null) => {
 }
 
 export const saveUserJson = (id, json) => {
-    if(!fs.existsSync("data/users")) fs.mkdirSync("data/users");
+    ensureUsersFolder();
     fs.writeFileSync("data/users/" + id + ".json", JSON.stringify(json, null, 2));
 }
 

@@ -1,4 +1,12 @@
-import {fetch, parseSetCookie, stringifyCookies, extractTokensFromUri, tokenExpiry, decodeToken} from "../misc/util.js";
+import {
+    fetch,
+    parseSetCookie,
+    stringifyCookies,
+    extractTokensFromUri,
+    tokenExpiry,
+    decodeToken,
+    ensureUsersFolder
+} from "../misc/util.js";
 import config from "../misc/config.js";
 import fs from "fs";
 import {client} from "../discord/bot.js";
@@ -61,6 +69,7 @@ export const getUser = (id, account=null) => {
 
 const userFilenameRegex = /\d+\.json/
 export const getUserList = () => {
+    ensureUsersFolder();
     return fs.readdirSync("data/users").filter(filename => userFilenameRegex.test(filename)).map(filename => filename.replace(".json", ""));
 }
 
