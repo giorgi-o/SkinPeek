@@ -4,7 +4,7 @@ import {getItem, getRarity} from "../valorant/cache.js";
 
 import https from "https";
 import fs from "fs";
-import {DEFAULT_LANG, l} from "./languages.js";
+import {DEFAULT_LANG, l, valToDiscLang} from "./languages.js";
 import {client} from "../discord/bot.js";
 import {getUser} from "../valorant/auth.js";
 
@@ -259,6 +259,14 @@ export const getChannelGuildId = async (channelId) => {
         const channel = client.channels.cache.get(channelId);
         return channel && channel.guildId;
     }
+}
+
+export const valNamesToDiscordNames = (names) => {
+    const obj = {};
+    for(const [valLang, name] of Object.entries(names)) {
+        if(valToDiscLang[valLang]) obj[valToDiscLang[valLang]] = name;
+    }
+    return obj;
 }
 
 export const canEditInteraction = (interaction) => Date.now() - interaction.createdTimestamp < 14.8 * 60 * 1000;

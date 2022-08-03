@@ -27,10 +27,20 @@ import {getAuthQueueItemStatus, processAuthQueue, queueCookiesLogin,} from "../v
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
 import { getBattlepassProgress } from "../valorant/battlepass.js";
 import {getOverallStats, getStatsFor} from "../misc/stats.js";
-import {canSendMessages, defer, emojiToString, externalEmojisAllowed, fetchChannel, removeAlertActionRow, skinNameAndEmoji, wait} from "../misc/util.js";
+import {
+    canSendMessages,
+    defer,
+    emojiToString,
+    externalEmojisAllowed,
+    fetchChannel,
+    removeAlertActionRow,
+    skinNameAndEmoji,
+    valNamesToDiscordNames,
+    wait
+} from "../misc/util.js";
 import config, {saveConfig} from "../misc/config.js";
 import {sendConsoleOutput} from "../misc/logger.js";
-import {l, s} from "../misc/languages.js";
+import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
 import {
     deleteUser,
     deleteWholeUser,
@@ -130,7 +140,8 @@ const commands = [
             type: "STRING",
             name: "skin",
             description: "The name of the skin you want to set an alert for",
-            required: true
+            required: true,
+            autocomplete: true
         }]
     },
     {
@@ -236,7 +247,8 @@ const commands = [
             type: "STRING",
             name: "skin",
             description: "The name of the skin you want to see the stats of",
-            required: false
+            required: false,
+            autocomplete: true
         }]
     },
     {
@@ -1094,6 +1106,21 @@ client.on("interactionCreate", async (interaction) => {
             }
         } catch(e) {
             await handleError(e, interaction);
+        }
+    } else if(interaction.isAutocomplete()) {
+        try {
+            // console.log("Received autocomplete interaction from " + interaction.user.tag);
+            if(interaction.commandName === "alert" || interaction.commandName === "stats") {
+                const focusedValue = interaction.options.getFocused();
+                const searchResults = await searchSkin(focusedValue, interaction.locale, 0.1);
+                await interaction.respond(searchResults.slice(0, 5).map(result => ({
+                    name: result.names[discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG],
+                    value: result.names[DEFAULT_VALORANT_LANG],
+                    nameLocalizations: valNamesToDiscordNames(result.names) // does this even work?
+                })));
+            }
+        } catch(e) {
+            // await handleError(e, interaction); // unknown interaction happens quite often
         }
     }
 });

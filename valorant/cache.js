@@ -417,11 +417,11 @@ export const getRarity = async (uuid) => {
     if(rarities) return rarities[uuid] || null;
 }
 
-export const searchSkin = async (query, locale) => {
+export const searchSkin = async (query, locale, threshold=0.3) => {
     await fetchData([skins]);
 
     if(!skinSearchers) formatSearchableSkinList();
-    const results = skinSearchers[discToValLang[locale] || DEFAULT_VALORANT_LANG].search(query).filter(result => result.score < 0.3);
+    const results = skinSearchers[discToValLang[locale] || DEFAULT_VALORANT_LANG].search(query).filter(result => result.score < threshold);
 
     return await Promise.all(results.map(result => getSkin(result.item.uuid)));
 }

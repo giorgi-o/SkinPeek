@@ -25,6 +25,11 @@ export const discToValLang = {
     'ko'   : 'ko-KR'
 }
 
+export const valToDiscLang = {};
+Object.keys(discToValLang).forEach(discLang => {
+    valToDiscLang[discToValLang[discLang]] = discLang;
+});
+
 export const DEFAULT_LANG = 'en-GB';
 export const DEFAULT_VALORANT_LANG = 'en-US';
 
