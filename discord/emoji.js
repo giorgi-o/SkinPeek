@@ -19,7 +19,7 @@ export const RadEmoji = async (channel, externalEmojisAllowed=false) => await ge
 export const rarityEmoji = async (channel, name, icon, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, `${name}Rarity`, icon, externalEmojisAllowed);
 
 const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllowed) => {
-    if(!name || !filenameOrUrl) return;
+    if(!channel || !name || !filenameOrUrl) return;
 
     const guild = channel.guild;
 
