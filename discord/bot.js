@@ -122,7 +122,8 @@ const commands = [
             type: "STRING",
             name: "bundle",
             description: "The name of the bundle you want to inspect!",
-            required: true
+            required: true,
+            autocomplete: true
         }]
     },
     {
@@ -477,13 +478,13 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     const searchQuery = interaction.options.get("bundle").value.replace(/collection/i, "").replace(/bundle/i, "");
-                    const searchResults = await searchBundle(searchQuery, interaction.locale);
+                    const searchResults = await searchBundle(searchQuery, interaction.locale, 25);
 
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
 
                     // if the name matches exactly, and there is only one with that name
-                    const nameMatchesExactly = (interaction) => searchResults.filter(r => l(r.names, interaction).toLowerCase() === searchQuery.toLowerCase()).length === 1;
+                    const nameMatchesExactly = (interaction) => searchResults.filter(r => l(r.obj.names, interaction).toLowerCase() === searchQuery.toLowerCase()).length === 1;
 
                     if(searchResults.length === 0) {
                         return await interaction.followUp({
@@ -491,17 +492,17 @@ client.on("interactionCreate", async (interaction) => {
                             ephemeral: true
                         });
                     } else if(searchResults.length === 1 || nameMatchesExactly(interaction) || nameMatchesExactly()) { // check both localized and english
-                        const bundle = searchResults[0];
+                        const bundle = searchResults[0].obj;
                         const message = await renderBundle(bundle, interaction, emoji)
 
                         return await interaction.followUp(message);
                     } else {
                         const row = new MessageActionRow();
 
-                        const options = searchResults.splice(0, 25).map(result => {
+                        const options = searchResults.map(result => {
                             return {
-                                label: l(result.names, interaction),
-                                value: `bundle-${result.uuid}`
+                                label: l(result.obj.names, interaction),
+                                value: `bundle-${result.obj.uuid}`
                             }
                         });
 
@@ -592,12 +593,12 @@ client.on("interactionCreate", async (interaction) => {
                     if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
                     const searchQuery = interaction.options.get("skin").value
-                    const searchResults = await searchSkin(searchQuery, interaction.locale);
+                    const searchResults = await searchSkin(searchQuery, interaction.locale, 25);
 
                     // filter out results for which the user already has an alert set up
                     const filteredResults = [];
                     for(const result of searchResults) {
-                        const otherAlert = alertExists(interaction.user.id, result.uuid);
+                        const otherAlert = alertExists(interaction.user.id, result.obj.uuid);
                         if(!otherAlert) filteredResults.push(result);
                     }
 
@@ -606,7 +607,7 @@ client.on("interactionCreate", async (interaction) => {
                             embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)]
                         });
 
-                        const skin = searchResults[0];
+                        const skin = searchResults[0].obj;
                         const otherAlert = alertExists(interaction.user.id, skin.uuid);
                         return await interaction.followUp({
                             embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction.locale), c: otherAlert.channel_id}))],
@@ -614,8 +615,8 @@ client.on("interactionCreate", async (interaction) => {
                             ephemeral: true
                         });
                     } else if(filteredResults.length === 1 ||
-                        l(filteredResults[0].names, interaction.locale).toLowerCase() === searchQuery.toLowerCase() ||
-                        l(filteredResults[0].names).toLowerCase() === searchQuery.toLowerCase()) {
+                        l(filteredResults[0].obj.names, interaction.locale).toLowerCase() === searchQuery.toLowerCase() ||
+                        l(filteredResults[0].obj.names).toLowerCase() === searchQuery.toLowerCase()) {
                         const skin = filteredResults[0];
 
                         addAlert(interaction.user.id, {
@@ -631,8 +632,8 @@ client.on("interactionCreate", async (interaction) => {
                         const row = new MessageActionRow();
                         const options = filteredResults.splice(0, 25).map(result => {
                             return {
-                                label: l(result.names, interaction),
-                                value: `skin-${result.uuid}`
+                                label: l(result.obj.names, interaction),
+                                value: `skin-${result.obj.uuid}`
                             }
                         });
                         row.addComponents(new MessageSelectMenu().setCustomId("skin-select").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
@@ -800,16 +801,16 @@ client.on("interactionCreate", async (interaction) => {
                     const skinName = (interaction.options.get("skin") || {}).value;
 
                     if(skinName) {
-                        const skins = await searchSkin(skinName, interaction.locale);
+                        const skins = await searchSkin(skinName, interaction.locale, 25);
 
                         if(skins.length === 0) {
                             return await interaction.followUp({
                                 embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)]
                             });
                         } else if(skins.length === 1 ||
-                            l(skins[0].names, interaction.locale).toLowerCase() === skinName.toLowerCase() ||
-                            l(skins[0].names).toLowerCase() === skinName.toLowerCase()) {
-                            const skin = skins[0];
+                            l(skins[0].obj.names, interaction.locale).toLowerCase() === skinName.toLowerCase() ||
+                            l(skins[0].obj.names).toLowerCase() === skinName.toLowerCase()) {
+                            const skin = skins[0].obj;
 
                             const stats = getStatsFor(skin.uuid);
 
@@ -818,10 +819,10 @@ client.on("interactionCreate", async (interaction) => {
                             });
                         } else {
                             const row = new MessageActionRow();
-                            const options = skins.splice(0, 25).map(result => {
+                            const options = skins.map(result => {
                                 return {
-                                    label: l(result.names, interaction),
-                                    value: `skin-${result.uuid}`
+                                    label: l(result.obj.names, interaction),
+                                    value: `skin-${result.obj.uuid}`
                                 }
                             });
                             row.addComponents(new MessageSelectMenu().setCustomId("skin-select-stats").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
@@ -1112,11 +1113,22 @@ client.on("interactionCreate", async (interaction) => {
             // console.log("Received autocomplete interaction from " + interaction.user.tag);
             if(interaction.commandName === "alert" || interaction.commandName === "stats") {
                 const focusedValue = interaction.options.getFocused();
-                const searchResults = await searchSkin(focusedValue, interaction.locale, 0.1);
-                await interaction.respond(searchResults.slice(0, 5).map(result => ({
-                    name: result.names[discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG],
-                    value: result.names[DEFAULT_VALORANT_LANG],
-                    nameLocalizations: valNamesToDiscordNames(result.names) // does this even work?
+                const searchResults = await searchSkin(focusedValue, interaction.locale, 5);
+
+                await interaction.respond(searchResults.map(result => ({
+                    name: result.obj.names[discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG],
+                    value: result.obj.names[DEFAULT_VALORANT_LANG],
+                    nameLocalizations: valNamesToDiscordNames(result.obj.names) // does this even work?
+                })));
+            } else if(interaction.commandName === "bundle") {
+
+                const focusedValue = interaction.options.getFocused();
+                const searchResults = await searchBundle(focusedValue, interaction.locale, 5);
+
+                await interaction.respond(searchResults.map(result => ({
+                    name: result.obj.names[discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG],
+                    value: result.obj.names[DEFAULT_VALORANT_LANG],
+                    nameLocalizations: valNamesToDiscordNames(result.obj.names) // does this even work?
                 })));
             }
         } catch(e) {

@@ -192,7 +192,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
         }
     }]};
 
-    const emojiString = emoji ? emojiToString(emoji) : s(interaction).info.PRICE;
+    const emojiString = emojiToString(emoji) || s(interaction).info.PRICE;
     const bundleTitleEmbed = {
         title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
         description: `${subName}${slantedDescription}${emojiString} **${bundle.price}**${strikedBundleBasePrice}`,
@@ -205,7 +205,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     if(includeExpires && bundle.expires) bundleTitleEmbed.description += ` (${(bundle.expires > Date.now() / 1000 ? 
         s(interaction).info.EXPIRES : s(interaction).info.EXPIRED).f({t: bundle.expires})})`;
 
-    const itemEmbeds = await renderBundleItems(bundle, interaction, emoji);
+    const itemEmbeds = await renderBundleItems(bundle, interaction, emojiString);
     return {
         embeds: [bundleTitleEmbed, ...itemEmbeds]
     }

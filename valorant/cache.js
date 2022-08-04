@@ -1,9 +1,9 @@
 import {asyncReadJSONFile, fetch, isMaintenance, itemTypes, userRegion} from "../misc/util.js";
 import {authUser, getUser, getUserList} from "./auth.js";
 import config from "../misc/config.js";
-import Fuse from "fuse.js";
+import fuzzysort from "fuzzysort";
 import fs from "fs";
-import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
+import {DEFAULT_VALORANT_LANG} from "../misc/languages.js";
 import {client} from "../discord/bot.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
 
@@ -12,8 +12,6 @@ let gameVersion;
 
 let skins, rarities, buddies, sprays, cards, titles, bundles;
 let prices = {timestamp: null};
-
-let skinSearchers, bundleSearchers;
 
 export const getValorantVersion = async () => {
     console.log("Fetching current valorant version...");
@@ -101,15 +99,6 @@ export const getSkinList = async (gameVersion) => {
     }
 
     saveSkinsJSON();
-
-    formatSearchableSkinList();
-}
-
-const formatSearchableSkinList = () => {
-    skinSearchers = {};
-    for(const locale of new Set(Object.values(discToValLang))) {
-        skinSearchers[locale] = new Fuse(Object.values(skins).filter(o => typeof o === "object"), {keys: [`names.${locale}`, `names.${DEFAULT_VALORANT_LANG}`], includeScore: true});
-    }
 }
 
 const getPrices = async (gameVersion, id=null) => {
@@ -237,16 +226,6 @@ const getBundleList = async (gameVersion) => {
     }
 
     saveSkinsJSON();
-
-    formatSearchableBundleList();
-}
-
-export const formatSearchableBundleList = () => {
-    bundleSearchers = {};
-    for(const locale of new Set(Object.values(discToValLang))) {
-        // reverse the array so that older bundles are first
-        bundleSearchers[locale] = new Fuse(Object.values(bundles).reverse().filter(o => typeof o === "object"), {keys: [`names.${locale}`, `names.${DEFAULT_VALORANT_LANG}`], includeScore: true});
-    }
 }
 
 export const addBundleData = async (bundleData) => {
@@ -417,13 +396,22 @@ export const getRarity = async (uuid) => {
     if(rarities) return rarities[uuid] || null;
 }
 
-export const searchSkin = async (query, locale, threshold=0.3) => {
+export const getAllSkins = () => {
+    return Object.values(skins).filter(o => typeof o === "object");
+}
+
+export const searchSkin = async (query, locale, limit=20, threshold=-5000) => {
     await fetchData([skins]);
 
-    if(!skinSearchers) formatSearchableSkinList();
-    const results = skinSearchers[discToValLang[locale] || DEFAULT_VALORANT_LANG].search(query).filter(result => result.score < threshold);
+    const keys = [`names.${locale}`];
+    if(locale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
 
-    return await Promise.all(results.map(result => getSkin(result.item.uuid)));
+    return fuzzysort.go(query, getAllSkins(), {
+        keys: keys,
+        limit: limit,
+        threshold: threshold,
+        all: true
+    });
 }
 
 export const getBundle = async (uuid) => {
@@ -431,13 +419,23 @@ export const getBundle = async (uuid) => {
     return bundles[uuid];
 }
 
-export const searchBundle = async (query, locale) => {
+export const getAllBundles = () => {
+    // reverse the array so that the older bundles are first
+    return Object.values(bundles).reverse().filter(o => typeof o === "object")
+}
+
+export const searchBundle = async (query, locale, limit=20, threshold=-1000) => {
     await fetchData([bundles]);
 
-    if(!bundleSearchers) formatSearchableBundleList();
-    const results = bundleSearchers[discToValLang[locale] || DEFAULT_VALORANT_LANG].search(query).filter(result => result.score < 0.3);
+    const keys = [`names.${locale}`];
+    if(locale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
 
-    return await Promise.all(results.map(result => getBundle(result.item.uuid)));
+    return fuzzysort.go(query, getAllBundles(), {
+        keys: keys,
+        limit: limit,
+        threshold: threshold,
+        all: true
+    });
 }
 
 export const getBuddy = async (uuid) => {

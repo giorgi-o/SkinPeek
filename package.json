@@ -4,7 +4,7 @@
   "main": "SkinPeek.js",
   "dependencies": {
     "discord.js": "^13.6.0",
-    "fuse.js": "^6.5.3",
+    "fuzzysort": "^2.0.1",
     "node-cron": "3.0.0"
   },
   "type": "module"
