@@ -14,7 +14,7 @@ import {
     alertsPageEmbed,
     statsForSkinEmbed,
     allStatsEmbed,
-    accountsListEmbed, switchAccountButtons
+    accountsListEmbed, switchAccountButtons, skinCollectionEmbed
 } from "./embed.js";
 import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
@@ -65,6 +65,7 @@ import {
     handleSettingsViewCommand, settingName, settings
 } from "../misc/settings.js";
 import fuzzysort from "fuzzysort";
+import {getLoadout} from "../valorant/inventory.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS], // what intents does the bot need
@@ -237,6 +238,10 @@ const commands = [
             required: false,
             autocomplete: true
         }]
+    },
+    {
+        name: "collection",
+        description: "Show off your skin collection!",
     },
     {
         name: "battlepass",
@@ -782,6 +787,20 @@ client.on("interactionCreate", async (interaction) => {
                             ephemeral: true
                         });
                     }
+                    break;
+                }
+                case "collection": {
+                    if(!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
+
+                    await defer(interaction);
+
+                    const loadout = await getLoadout(valorantUser); // todo handle auth failure
+
+                    await interaction.followUp(await skinCollectionEmbed(interaction, valorantUser, loadout.loadout));
+
                     break;
                 }
                 case "battlepass": {
