@@ -45,10 +45,10 @@ export const saveSkinsJSON = (filename="data/skins.json") => {
 
 export const fetchData = async (types=null, checkVersion=false) => {
     try {
-        if(client.shard && client.shard.ids[0] !== 0) return loadSkinsJSON();
-
-        if(checkVersion || !gameVersion) gameVersion = (await getValorantVersion()).manifestId;
-        await loadSkinsJSON();
+        if(checkVersion || !gameVersion) {
+            gameVersion = (await getValorantVersion()).manifestId;
+            await loadSkinsJSON();
+        }
 
         if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles];
 
@@ -375,13 +375,13 @@ export const getItem = async (uuid, type) =>  {
     }
 }
 
-export const getSkin = async (uuid) => {
-    await fetchData([skins]);
+export const getSkin = async (uuid, reloadData=true) => {
+    if(reloadData) await fetchData([skins, prices]);
 
     let skin = skins[uuid];
     if(!skin) return null;
 
-    skin.price = await getPrice(uuid);
+    skin.price = prices[uuid] || null;
 
     return skin;
 }
@@ -396,17 +396,18 @@ export const getRarity = async (uuid) => {
     if(rarities) return rarities[uuid] || null;
 }
 
-export const getAllSkins = () => {
-    return Object.values(skins).filter(o => typeof o === "object");
+export const getAllSkins = async () => {
+    return await Promise.all(Object.values(skins).filter(o => typeof o === "object").map(skin => getSkin(skin.uuid, false)));
 }
 
 export const searchSkin = async (query, locale, limit=20, threshold=-5000) => {
-    await fetchData([skins]);
+    await fetchData([skins, prices]);
 
     const keys = [`names.${locale}`];
     if(locale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
 
-    return fuzzysort.go(query, getAllSkins(), {
+    const allSkins = await getAllSkins()
+    return fuzzysort.go(query, allSkins, {
         keys: keys,
         limit: limit,
         threshold: threshold,

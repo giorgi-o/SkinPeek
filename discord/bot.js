@@ -617,7 +617,7 @@ client.on("interactionCreate", async (interaction) => {
                     } else if(filteredResults.length === 1 ||
                         l(filteredResults[0].obj.names, interaction.locale).toLowerCase() === searchQuery.toLowerCase() ||
                         l(filteredResults[0].obj.names).toLowerCase() === searchQuery.toLowerCase()) {
-                        const skin = filteredResults[0];
+                        const skin = filteredResults[0].obj;
 
                         addAlert(interaction.user.id, {
                             uuid: skin.uuid,
