@@ -244,6 +244,10 @@ const commands = [
         description: "Show off your skin collection!",
     },
     {
+        name: "collection",
+        description: "Show off your skin collection!",
+    },
+    {
         name: "battlepass",
         description: "Calculate battlepass progression.",
         options: [{
