@@ -7,10 +7,10 @@ import {DEFAULT_VALORANT_LANG} from "../misc/languages.js";
 import {client} from "../discord/bot.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
 
-const formatVersion = 6;
+const formatVersion = 7;
 let gameVersion;
 
-let skins, rarities, buddies, sprays, cards, titles, bundles;
+let weapons, skins, rarities, buddies, sprays, cards, titles, bundles;
 let prices = {timestamp: null};
 
 export const getValorantVersion = async () => {
@@ -29,6 +29,7 @@ export const loadSkinsJSON = async (filename="data/skins.json") => {
     const jsonData = await asyncReadJSONFile(filename).catch(() => {});
     if(!jsonData || jsonData.formatVersion !== formatVersion) return;
 
+    weapons = jsonData.weapons;
     skins = jsonData.skins;
     prices = jsonData.prices;
     rarities = jsonData.rarities;
@@ -40,7 +41,7 @@ export const loadSkinsJSON = async (filename="data/skins.json") => {
 }
 
 export const saveSkinsJSON = (filename="data/skins.json") => {
-    fs.writeFileSync(filename, JSON.stringify({formatVersion, gameVersion, skins, prices, bundles, rarities, buddies, sprays, cards, titles}, null, 2));
+    fs.writeFileSync(filename, JSON.stringify({formatVersion, gameVersion, weapons, skins, prices, bundles, rarities, buddies, sprays, cards, titles}, null, 2));
 }
 
 export const fetchData = async (types=null, checkVersion=false) => {
@@ -81,20 +82,28 @@ export const fetchData = async (types=null, checkVersion=false) => {
 export const getSkinList = async (gameVersion) => {
     console.log("Fetching valorant skin list...");
 
-    const req = await fetch("https://valorant-api.com/v1/weapons/skins?language=all");
+    const req = await fetch("https://valorant-api.com/v1/weapons?language=all");
     console.assert(req.statusCode === 200, `Valorant skins status code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant skins data status code is ${json.status}!`, json);
 
     skins = {version: gameVersion};
-    for(const skin of json.data) {
-        const levelOne = skin.levels[0];
-        skins[levelOne.uuid] = {
-            uuid: levelOne.uuid,
-            names: skin.displayName,
-            icon: levelOne.displayIcon,
-            rarity: skin.contentTierUuid
+    weapons = {};
+    for(const weapon of json.data) {
+        weapons[weapon.uuid] = {
+            uuid: weapon.uuid,
+            names: weapon.displayName,
+            icon: weapon.displayIcon,
+        }
+        for(const skin of weapon.skins) {
+            const levelOne = skin.levels[0];
+            skins[levelOne.uuid] = {
+                uuid: levelOne.uuid,
+                names: skin.displayName,
+                icon: levelOne.displayIcon,
+                rarity: skin.contentTierUuid
+            }
         }
     }
 
@@ -384,6 +393,12 @@ export const getSkin = async (uuid, reloadData=true) => {
     skin.price = prices[uuid] || null;
 
     return skin;
+}
+
+export const getWeapon = async (uuid) => {
+    await fetchData([skins]);
+
+    return weapons[uuid] || null;
 }
 
 export const getPrice = async (uuid) => {
