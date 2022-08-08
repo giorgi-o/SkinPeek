@@ -116,7 +116,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
 
     let components;
     if(forOtherUser) components = null;
-    else components = [await switchAccountButtons(interaction.user.id, "shopaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON)];
+    else components = switchAccountButtons(interaction, "shop", true);
 
     return {
         embeds, components
@@ -232,22 +232,24 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
         embeds.push(embed);
     }
 
-    const buttons = await switchAccountButtons(interaction.user.id, "nmaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON);
+    const buttons = switchAccountButtons(interaction, "nm", true);
     return {
         embeds,
         components: [buttons]
     };
 }
 
-export const renderBattlepass = async (battlepass, targetlevel, interaction, valorantUser) => {
+export const renderBattlepass = async (battlepass, targetlevel, interaction) => {
     if(!battlepass.success) return authFailureMessage(interaction, battlepass, s(interaction).error.AUTH_ERROR_BPASS);
+
+    const user = getUser(interaction.user.id);
 
     let embeds = []
     if(battlepass.bpdata.progressionLevelReached < 55) {
         embeds.push({
             title: s(interaction).battlepass.CALCULATIONS_TITLE,
             thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
-            description: `${s(interaction).battlepass.TIER_HEADER.f({u: valorantUser.username}, interaction)}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
+            description: `${s(interaction).battlepass.TIER_HEADER.f({u: user.username}, interaction)}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
             color: VAL_COLOR_1,
             fields: [
                 {
@@ -262,7 +264,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
                 }
             ],
             footer: {
-                text: battlepass.battlepassPurchased ? s(interaction).battlepass.BP_PURCHASED.f({u: valorantUser.username}, interaction) : ""
+                text: battlepass.battlepassPurchased ? s(interaction).battlepass.BP_PURCHASED.f({u: user.username}, interaction) : ""
             }
         },
         {
@@ -317,7 +319,9 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, val
         })
     }
 
-    return {embeds};
+    const components = switchAccountButtons(interaction, "bp");
+
+    return {embeds, components};
 }
 
 const renderBundleItems = async (bundle, interaction, VPemojiString) => {
@@ -504,21 +508,22 @@ const pageButtons = (pageId, userId, current, max) => {
     return new MessageActionRow().setComponents(leftButton, rightButton);
 }
 
-export const switchAccountButtons = (id, customId="shopaccount", template="{n}") => {
-    const json = readUserJson(id);
+export const switchAccountButtons = (interaction, customId, oneAccountButton=false) => {
+    const json = readUserJson(interaction.user.id);
+    if(!json || json.accounts.length === 1 && !oneAccountButton) return [];
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
 
     const buttons = [];
     for(const number of accountNumbers) {
-        const label = template.replaceAll("{n}", number.toString());
+        const label = s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: number.toString()});
 
-        const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`${customId}/${id}/${number}`)
+        const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`account/${customId}/${interaction.user.id}/${number}`);
         button.setDisabled(number === json.currentAccount);
 
         buttons.push(button);
     }
 
-    return new MessageActionRow().setComponents(...buttons);
+    return [new MessageActionRow().setComponents(...buttons)];
 }
 
 const alertFieldDescription = async (interaction, channel_id, emojiString, price) => {
@@ -534,9 +539,12 @@ const alertFieldDescription = async (interaction, channel_id, emojiString, price
 }
 
 export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiString) => {
+    const components = switchAccountButtons(interaction, "alerts");
+
     if(alerts.length === 0) {
         return {
-            embeds: [basicEmbed(s(interaction).error.NO_ALERTS)]
+            embeds: [basicEmbed(s(interaction).error.NO_ALERTS)],
+            components: components
         }
     }
 
@@ -553,7 +561,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
                     url: skin.icon
                 }
             }],
-            components: [removeAlertActionRow(interaction.user.id, alert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
+            components: [removeAlertActionRow(interaction.user.id, alert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)].concat(components),
             ephemeral: true
         }
     }
@@ -595,6 +603,8 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
         actionRows.push(actionRow);
     }
     if(maxPages > 1) actionRows.push(pageButtons("changealertspage", interaction.user.id, pageIndex, maxPages));
+
+    if(actionRows.length < 5) actionRows.push(...components);
 
     return {
         embeds: [embed],

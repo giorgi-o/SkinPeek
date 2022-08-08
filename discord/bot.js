@@ -5,7 +5,6 @@ import {
     authFailureMessage,
     basicEmbed,
     renderBundle,
-    renderBattlepass,
     secondaryEmbed,
     skinChosenEmbed,
     VAL_COLOR_1,
@@ -20,12 +19,21 @@ import {
 import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
 import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
-import {addAlert, alertExists, alertsPerChannelPerGuild, checkAlerts, filteredAlertsForUser, removeAlert, testAlerts} from "./alerts.js";
+import {
+    addAlert,
+    alertExists,
+    alertsPerChannelPerGuild,
+    checkAlerts,
+    fetchAlerts,
+    filteredAlertsForUser,
+    removeAlert,
+    testAlerts
+} from "./alerts.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
 import {processShopQueue} from "../valorant/shopQueue.js";
 import {getAuthQueueItemStatus, processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
-import { getBattlepassProgress } from "../valorant/battlepass.js";
+import {renderBattlepassProgress} from "../valorant/battlepass.js";
 import {getOverallStats, getStatsFor} from "../misc/stats.js";
 import {
     canSendMessages,
@@ -58,7 +66,7 @@ import {
 } from "../misc/settings.js";
 
 export const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES], // what intents does the bot need
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS], // what intents does the bot need
     //shards: "auto" // uncomment this to use internal sharding instead of sharding.js
 });
 const cronTasks = [];
@@ -654,13 +662,8 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const auth = await authUser(interaction.user.id);
-                    if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
-
-                    const channel = interaction.channel || await fetchChannel(interaction.channelId);
-                    const emojiString = emojiToString(await VPEmoji(channel, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
-
-                    await interaction.followUp(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), 0, emojiString));
+                    const message = await fetchAlerts(interaction);
+                    await interaction.followUp(message);
 
                     break;
                 }
@@ -783,12 +786,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const battlepassProgress = await getBattlepassProgress(interaction.user.id, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50);
-
-                    if(battlepassProgress.success === false)
-                        return await interaction.followUp(authFailureMessage(interaction, battlepassProgress, s(interaction).error.AUTH_ERROR_BPASS));
-
-                    const message = await renderBattlepass(battlepassProgress, interaction.options.get("maxlevel") !== null ? interaction.options.get("maxlevel").value : 50, interaction, valorantUser);
+                    const message = await renderBattlepassProgress(interaction);
                     await interaction.followUp(message);
 
                     console.log(`Sent ${interaction.user.tag}'s battlepass!`);
@@ -1064,11 +1062,9 @@ client.on("interactionCreate", async (interaction) => {
                     components: [],
                     ...await renderBundle(bundle, interaction, emoji),
                 });
-            } else if(interaction.customId.startsWith("shopaccount") || interaction.customId.startsWith("nmaccount")) {
+            } else if(interaction.customId.startsWith("account")) {
 
-                const isShop = interaction.customId.startsWith("shopaccount");
-
-                const [, id, accountIndex] = interaction.customId.split('/');
+                const [, customId, id, accountIndex] = interaction.customId.split('/');
 
                 if(id !== interaction.user.id) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_GENERIC)],
@@ -1080,11 +1076,14 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 const message = interaction.message;
-                if(!message.components) message.components = [switchAccountButtons(interaction.user.id, isShop ? "shopaccount" : "nmaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON)];
+                if(!message.components) message.components = switchAccountButtons(interaction, customId, true);
 
-                for(const component of message.components[0].components) {
-                    if(component.customId === interaction.customId) component.label = s(interaction).info.LOADING;
+                for(const actionRow of message.components) {
+                    for(const component of actionRow.components) {
+                        if(component.customId === interaction.customId) component.label = s(interaction).info.LOADING;
+                    }
                 }
+
 
                 await interaction.update({
                     embeds: message.embeds,
@@ -1098,10 +1097,14 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 let newMessage;
-                if(isShop) newMessage = await fetchShop(interaction, getUser(interaction.user.id));
-                else newMessage = await fetchNightMarket(interaction, getUser(interaction.user.id));
+                switch(customId) {
+                    case "shop": newMessage = await fetchShop(interaction, getUser(interaction.user.id)); break;
+                    case "nm": newMessage = await fetchNightMarket(interaction, getUser(interaction.user.id)); break;
+                    case "bp": newMessage = await renderBattlepassProgress(interaction); break;
+                    case "alerts": newMessage = await fetchAlerts(interaction); break;
+                }
 
-                if(!newMessage.components) newMessage.components = [switchAccountButtons(interaction.user.id, isShop ? "shopaccount" : "nmaccount", s(interaction).info.SWITCH_ACCOUNT_BUTTON)];
+                if(!newMessage.components) newMessage.components = switchAccountButtons(interaction, customId, true);
 
                 await interaction.message.edit(newMessage);
             }

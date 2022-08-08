@@ -1,5 +1,5 @@
 import {
-    discordTag,
+    discordTag, emojiToString, externalEmojisAllowed,
     fetchChannel,
     getChannelGuildId,
     removeAlertActionRow,
@@ -7,15 +7,16 @@ import {
     skinNameAndEmoji,
     wait
 } from "../misc/util.js";
-import {deleteUserAuth, getUser, getUserList} from "../valorant/auth.js";
+import {authUser, deleteUserAuth, getUser, getUserList} from "../valorant/auth.js";
 import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
-import {basicEmbed, VAL_COLOR_1} from "./embed.js";
+import {alertsPageEmbed, authFailureMessage, basicEmbed, VAL_COLOR_1} from "./embed.js";
 import {client} from "./bot.js";
 import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
 import {readUserJson, saveUser} from "../valorant/accountSwitcher.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
+import {VPEmoji} from "./emoji.js";
 
 
 /* Alert format: {
@@ -273,4 +274,14 @@ export const testAlerts = async (interaction) => {
         else console.error(e);
         return false;
     }
+}
+
+export const fetchAlerts = async (interaction) => {
+    const auth = await authUser(interaction.user.id);
+    if(!auth.success) return authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS);
+
+    const channel = interaction.channel || await fetchChannel(interaction.channelId);
+    const emojiString = emojiToString(await VPEmoji(channel, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
+
+    return await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), 0, emojiString);
 }

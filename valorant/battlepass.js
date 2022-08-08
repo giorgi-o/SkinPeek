@@ -1,6 +1,7 @@
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {fetch, isMaintenance, userRegion} from "../misc/util.js";
 import { getValorantVersion } from "./cache.js";
+import {renderBattlepass} from "../discord/embed.js";
 
 const CONTRACT_UUID = "99ac9283-4dd3-5248-2e01-8baf778affb4";
 const AVERAGE_UNRATED_XP_CONSTANT = 4200;
@@ -201,4 +202,11 @@ const getBattlepassPurchase = async (id) => {
     }
 
     return false;
+}
+
+export const renderBattlepassProgress = async (interaction) => {
+    const maxlevel = interaction.options && interaction.options.getNumber("maxlevel") || 50;
+    const battlepassProgress = await getBattlepassProgress(interaction.user.id, maxlevel);
+
+    return await renderBattlepass(battlepassProgress, maxlevel, interaction);
 }
