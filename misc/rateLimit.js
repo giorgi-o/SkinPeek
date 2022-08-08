@@ -1,6 +1,6 @@
 const rateLimits = {};
 
-const checkRateLimit = (req, url) => {
+export const checkRateLimit = (req, url) => {
     if(req.statusCode === 429) {
         const retryAfter = req.headers['retry-after'];
         console.log(`I am ratelimited at ${url} for ${retryAfter} more seconds!`);
@@ -13,7 +13,7 @@ const checkRateLimit = (req, url) => {
     return false;
 }
 
-const isRateLimited = (url) => {
+export const isRateLimited = (url) => {
     const retryAt = rateLimits[url];
 
     if(!retryAt) return false;

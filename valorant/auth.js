@@ -11,6 +11,7 @@ import config from "../misc/config.js";
 import fs from "fs";
 import {client} from "../discord/bot.js";
 import {addUser, deleteUser, getAccountWithPuuid, getUserJson, saveUser} from "./accountSwitcher.js";
+import {checkRateLimit, isRateLimited} from "../misc/rateLimit.js";
 
 class User {
     constructor({id, puuid, auth, alerts=[], username, region, locale, authFailures}) {
