@@ -8,6 +8,7 @@
     "INVALID_2FA": "**Invalid 2FA code!** Please try again.",
     "UNEXPECTED_2FA": "**Not expecting a 2FA code!** Try `/login` if you're not logged in.",
     "LOGIN_RATELIMIT": "**Too many people are logging in at the same time**, and Riot is not happy!\nPlease try again later.",
+    "LOGIN_RATELIMIT_UNTIL": "**Too many people are logging in at the same time**, and Riot is not happy!\nPlease try again <t:{t}:R>.",
     "FORGET_FORGOTTEN": "I can't forget you if you're not registered!",
     "AUTH_ERROR_SHOP": "**Couldn't fetch your shop**, most likely you got logged out. Try logging in again.",
     "AUTH_ERROR_SHOP_OTHER": "**Couldn't fetch {u}'s shop**, most likely they got logged out. Tell them to login again.",

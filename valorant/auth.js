@@ -93,6 +93,10 @@ export const authUser = async (id, account=null) => {
 const userAgent = "RiotClient/51.0.0.4429735.4381201 rso-auth (Windows;10;;Professional, x64)";
 
 export const redeemUsernamePassword = async (id, login, password) => {
+
+    let rateLimit = isRateLimited("auth.riotgames.com");
+    if(rateLimit) return {success: false, rateLimit: rateLimit};
+
     // prepare cookies for auth request
     const req1 = await fetch("https://auth.riotgames.com/api/v1/authorization", {
         method: "POST",
@@ -109,6 +113,9 @@ export const redeemUsernamePassword = async (id, login, password) => {
         })
     });
     console.assert(req1.statusCode === 200, `Auth Request Cookies status code is ${req1.statusCode}!`, req1);
+
+    rateLimit = checkRateLimit(req1, "auth.riotgames.com");
+    if(rateLimit) return {success: false, rateLimit: rateLimit};
 
     const setCookieHeader = req1.headers["set-cookie"];
     let cookies = {};
@@ -135,7 +142,8 @@ export const redeemUsernamePassword = async (id, login, password) => {
     });
     console.assert(req2.statusCode === 200, `Auth status code is ${req2.statusCode}!`, req2);
 
-    if(req2.statusCode === 429) return {success: false, rateLimit: true};
+    rateLimit = checkRateLimit(req2, "auth.riotgames.com")
+    if(rateLimit) return {success: false, rateLimit: rateLimit};
 
     cookies = {
         ...cookies,
@@ -174,6 +182,9 @@ export const redeemUsernamePassword = async (id, login, password) => {
 }
 
 export const redeem2FACode = async (id, code) => {
+    let rateLimit = isRateLimited("auth.riotgames.com");
+    if(rateLimit) return {success: false, rateLimit: rateLimit};
+
     let user = getUser(id);
 
     const req = await fetch("https://auth.riotgames.com/api/v1/authorization", {
@@ -191,7 +202,8 @@ export const redeem2FACode = async (id, code) => {
     });
     console.assert(req.statusCode === 200, `2FA status code is ${req.statusCode}!`, req);
 
-    if(req.statusCode === 429) return {success: false, rateLimit: true};
+    rateLimit = checkRateLimit(req, "auth.riotgames.com")
+    if(rateLimit) return {success: false, rateLimit: rateLimit};
 
     deleteUser(id);
 
@@ -307,6 +319,9 @@ const getRegion = async (user) => {
 }
 
 export const redeemCookies = async (id, cookies) => {
+    let rateLimit = isRateLimited("auth.riotgames.com");
+    if(rateLimit) return {success: false, rateLimit: rateLimit};
+
     const user = new User({id});
 
     const req = await fetch("https://auth.riotgames.com/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&scope=account%20openid&nonce=1", {
@@ -316,6 +331,9 @@ export const redeemCookies = async (id, cookies) => {
         }
     });
     console.assert(req.statusCode === 303, `Cookie Reauth status code is ${req.statusCode}!`, req);
+
+    rateLimit = checkRateLimit(req, "auth.riotgames.com")
+    if(rateLimit) return {success: false, rateLimit: rateLimit};
 
     if(req.headers.location.startsWith("/login")) return false; // invalid cookies
 
