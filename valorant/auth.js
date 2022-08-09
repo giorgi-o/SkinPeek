@@ -120,7 +120,7 @@ export const redeemUsernamePassword = async (id, login, password) => {
 
     const setCookieHeader = req1.headers["set-cookie"];
     let cookies = {};
-    if(setCookieHeader) cookies = parseSetCookie(setCookieHeader);
+    if(Array.isArray(setCookieHeader)) cookies = parseSetCookie(setCookieHeader);
     else {
         console.error("Riot didn't return any cookies during the auth request! Cloudflare might have something to do with it...");
         console.error(req1);
