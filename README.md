@@ -1,20 +1,21 @@
 # SkinPeek
 
-**The best discord shop bot.** Easy to use, featureful, and battle-tested.  
-See your daily VALORANT item shop without launching the game, set alerts for skins, and much more.
+View your Valorant daily shop from the comfort of your bed, set alerts for skins, and much more.  
+Easy to use, has many features, and used by small & large bots alike.  
 
-![image](https://user-images.githubusercontent.com/20621396/153754892-2be9dff0-19e7-4cc3-976b-713c327b440b.png)  
-![image](https://user-images.githubusercontent.com/20621396/153755071-62ffe0f5-ae36-4aa7-924c-b2ffd9e4dc1b.png)
+<img src="https://user-images.githubusercontent.com/20621396/184029573-588c84aa-e183-409c-9452-e8d13028c228.png" alt="shop" width="504" >  
+<img src="https://user-images.githubusercontent.com/20621396/184029594-18d59bc6-7a54-48c8-89fc-d89aac76b180.png" alt="alert" width="633" >
 
 
 <details>
 <summary>See some more screenshots</summary>
 
-![image](https://user-images.githubusercontent.com/20621396/155337379-f9435975-2b6e-44fa-8bd4-9dd8413b5622.png)  
-![image](https://user-images.githubusercontent.com/20621396/155331133-6f078c13-eabb-4617-a5af-0e1339360c42.png)  
-![image](https://user-images.githubusercontent.com/20621396/155335268-6540b345-c08d-4252-ba31-725d216da880.png)  
-![image](https://user-images.githubusercontent.com/20621396/165736062-08c3270f-fde8-4cfa-9fca-f11005f0d250.png)  
-![image](https://user-images.githubusercontent.com/20621396/155335737-6df6c650-212c-47b3-838b-18a9a15b3f94.png)
+<img src="https://user-images.githubusercontent.com/20621396/184029778-cc9e0306-8e23-4948-9d1d-5fe0db5d7e76.png" alt="nightmarket" width="501" ><br>
+<img src="https://user-images.githubusercontent.com/20621396/184029833-5abc2141-0876-41f5-9f0d-5d137f548472.png" alt="stats" width="556" ><br>
+<img src="https://user-images.githubusercontent.com/20621396/184029864-97c8d7c9-ba21-49f6-9777-1054f6dc9bee.png" alt="reaverstats" width="389" ><br>
+<img src="https://user-images.githubusercontent.com/20621396/184029894-6222e1ed-1536-42f0-bcf4-156a6ea3db06.png" alt="balance" width="284" ><br>
+<img src="https://user-images.githubusercontent.com/20621396/184029907-6df0e9af-a9aa-494c-9577-a4d57cfe5622.png" alt="battlepass" width="504" ><br>
+
 
 </details>
 
@@ -22,28 +23,34 @@ Feel free to join the [support server](https://discord.gg/yx5sPJxWth) for any he
 
 ## Features
 
-- Login using `/login`
-- See your daily shop using `/shop`
-- See featured bundles using `/bundles`
-- See your night market using `/nightmarket`
-- See your battlepass progress using `/battlepass`
-- Set alerts using `/alert`
-- Manage your alerts using `/alerts`
-- See your shop statistics using `/stats`
-- Show your VALORANT Points & Radianite using `/balance`
+- 🔍 See your shop, bundles and night market easily and without lauching the game
+- 🔔 Set skin alerts to be notified automatically when they are in your shop
+- 🔀 Account switcher to check the shop and set alerts for multiple accounts
+- 📋 Automatically track skin occurence stats
+- 👀 See the shop of your friends using the bot (can be disabled)
+- ⬛ Hide your Valorant username from the message using `/settings`
+- ✔ Automatically imports new skins from Valorant updates
+- 🌍 Skin names are automatically translated to any language that Valorant supports
+- 🛠 For bot admins:
+  - Easy to setup, highly configurable in `config.json`
+  - Optimised for reliability and performance
+  - Toggleable login and shop queues to prevent rate limiting
+  - Shop cache to prevent fetching the same user's shop twice
+  - Used by large shop bots, highly scalable
+  - Fully supports sharding (required for 2500+ servers)
+  
 
 ## Installation
 
-- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the `applications.commands` scope
-- Install [node.js](https://nodejs.org/en/) v16.6 or newer
+- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the `bot` and `applications.commands` scope
+- Install [Node.js](https://nodejs.org/en/) v16.6 or newer
 - Clone/[Download](https://github.com/giorgi-o/SkinPeek/archive/refs/heads/master.zip) the repo, rename the `config.json.example` file to `config.json` and put your bot token into it.
 - [Open a command prompt in the same folder](https://www.thewindowsclub.com/how-to-open-command-prompt-from-right-click-menu#:~:text=To%20open%20a%20command%20prompt%20window%20in%20any%20folder%2C%20simply,the%20same%20inside%20any%20folder.) and type `npm i` to install dependencies
-- Run [SkinPeek.js](https://github.com/giorgi-o/SkinPeek/blob/master/SkinPeek.js) using `node SkinPeek.js`
+- Run [SkinPeek.js](https://github.com/giorgi-o/SkinPeek/blob/master/SkinPeek.js) using `node SkinPeek.js` in the command prompt
 - Give the bot a [role](https://support.discord.com/hc/en-us/articles/206029707-Setting-Up-Permissions-FAQ) that allows it to send messages and create custom emojis
 - Send `!deploy guild` or `!deploy global` to deploy the commands.
 
-Deploying in the guild happens instantly but the commands can only be used in that guild. Deploying globally can take up to an hour due to Discord's caching.
-
+Deploying in the guild happens instantly but the commands can only be used in that guild. Deploying globally can take up to an hour due to Discord's caching.  
 If you deployed both globally and in a guild, you will see every command twice. In that case, just send `!undeploy guild`!
 
 By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
@@ -56,7 +63,7 @@ If you're bored, check out [this writeup](https://gist.github.com/giorgi-o/e0fc2
 
 For advanced users who want to deploy the bot using [Docker](https://www.docker.com/):
 
-- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the `applications.commands` scope
+- [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the  bot and `applications.commands` scope
 - Create a docker-compose file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/docker-compose.yml) and a config file like [this](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
 - Put your bot token in [config.json](https://github.com/giorgi-o/SkinPeek/blob/master/config.json.example)
 - Use `docker-compose up -d` to start the bot, `docker-compose logs -f` to see the logs and `docker-compose down` to stop it.
@@ -65,17 +72,17 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 
 ## Future Improvements
 
-* ~~Balance~~
-* ~~Auto fetch skins on startup~~
+* ~~Auto check for new Valorant version~~
+* ~~View balance~~
+* ~~Auto fetch skin data on startup~~
 * ~~Skin notifier/reminder~~
 * ~~Show weapon rarity~~
-* ~~Auto check for new Valorant version~~
 * ~~See current bundles~~
 * ~~See battlepass progress~~ (thanks muckelba!)
 * ~~Localization support~~
 * ~~Shop statistics~~
-* Settings menu
-* View other people's shops
+* ~~Settings menu~~
+* ~~View other people's shops~~
 * Option to send shop automatically every day
 * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
 * Show off your skin collection & account value
