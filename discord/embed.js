@@ -233,10 +233,9 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
         embeds.push(embed);
     }
 
-    const buttons = switchAccountButtons(interaction, "nm", true);
+    const components = switchAccountButtons(interaction, "nm", true);
     return {
-        embeds,
-        components: [buttons]
+        embeds, components
     };
 }
 

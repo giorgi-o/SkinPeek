@@ -139,7 +139,12 @@ export const getBalance = async (id, account=null) => {
  *         expires: timestamp
  *     }, {...}],
  *     night_market?: {
- *         uuids: [...],
+ *         offers: [{
+ *             uuid: uuid,
+ *             realPrice: 5000,
+ *             nmPrice: 1000,
+ *             percent: 80
+ *         }, {...}],
  *         expires: timestamp
  *     },
  *     timestamp: timestamp

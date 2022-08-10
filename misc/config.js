@@ -45,6 +45,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "loginRetryTimeout", 10 * 60 * 1000);
     applyConfig(loadedConfig, "authFailureStrikes", 2);
     applyConfig(loadedConfig, "maxAccountsPerUser", 5);
+    applyConfig(loadedConfig, "rateLimitBackoff", 60);
     applyConfig(loadedConfig, "useShopQueue", false);
     applyConfig(loadedConfig, "shopQueue", "*/1 * * * * *");
     applyConfig(loadedConfig, "storePasswords", false);

@@ -118,13 +118,7 @@ export const redeemUsernamePassword = async (id, login, password) => {
     rateLimit = checkRateLimit(req1, "auth.riotgames.com");
     if(rateLimit) return {success: false, rateLimit: rateLimit};
 
-    const setCookieHeader = req1.headers["set-cookie"];
-    let cookies = {};
-    if(Array.isArray(setCookieHeader)) cookies = parseSetCookie(setCookieHeader);
-    else {
-        console.error("Riot didn't return any cookies during the auth request! Cloudflare might have something to do with it...");
-        console.error(req1);
-    }
+    let cookies = parseSetCookie(req1.headers["set-cookie"]);
 
     // get access token
     const req2 = await fetch("https://auth.riotgames.com/api/v1/authorization", {

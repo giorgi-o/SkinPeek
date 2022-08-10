@@ -105,6 +105,11 @@ export const itemTypes = {
 }
 
 export const parseSetCookie = (setCookie) => {
+    if(!setCookie) {
+        console.error("Riot didn't return any cookies during the auth request! Cloudflare might have something to do with it...");
+        return {};
+    }
+
     const cookies = {};
     for(const cookie of setCookie) {
         const sep = cookie.indexOf("=");
