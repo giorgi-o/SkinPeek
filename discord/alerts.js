@@ -126,24 +126,41 @@ export const checkAlerts = async () => {
                         saveUser(valorantUser, i);
                     }
 
-                    const offers = await getOffers(id, i);
-                    shouldWait = valorantUser.auth && !offers.cached;
+                    let offers;
+                    do { // retry loop in case of rate limit or maintenance
+                        offers = await getOffers(id, i);
+                        shouldWait = valorantUser.auth && !offers.cached;
 
-                    if(!offers.success) {
-                        if(offers.maintenance) return; // retry in a few hours?
+                        if(!offers.success) {
+                            if(offers.maintenance) {
+                                console.log("Valorant servers are under maintenance, waiting 15min before continuing alert checks...");
+                                await wait(15 * 60 * 1000);
+                            }
 
-                        if(!credsExpiredAlerts) {
-                            if(valorantUser.authFailures < config.authFailureStrikes) {
-                                valorantUser.authFailures++;
-                                credsExpiredAlerts = userAlerts;
+                            else if(offers.rateLimit) {
+                                console.error(`I got ratelimited while checking alerts for user ${id} #${i} for ${offers.rateLimit}s!`);
+                                await wait(offers.rateLimit * 1000);
+                            }
+
+                            else {
+                                if(!credsExpiredAlerts) {
+                                    if(valorantUser.authFailures < config.authFailureStrikes) {
+                                        valorantUser.authFailures++;
+                                        credsExpiredAlerts = userAlerts;
+                                    }
+                                }
+
+                                deleteUserAuth(valorantUser);
+                                break;
                             }
                         }
-                        deleteUserAuth(valorantUser);
-                        continue;
-                    }
 
-                    const positiveAlerts = userAlerts.filter(alert => offers.offers.includes(alert.uuid));
-                    if(positiveAlerts.length) await sendAlert(id, i, positiveAlerts, offers.expires);
+                    } while(!offers.success);
+
+                    if(offers.success && offers.offers) {
+                        const positiveAlerts = userAlerts.filter(alert => offers.offers.includes(alert.uuid));
+                        if(positiveAlerts.length) await sendAlert(id, i, positiveAlerts, offers.expires);
+                    }
                 }
 
                 if(credsExpiredAlerts) {
