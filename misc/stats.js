@@ -61,10 +61,12 @@ export const calculateOverallStats = () => {
 }
 
 export const getOverallStats = () => {
+    loadStats();
     return overallStats || {};
 }
 
 export const getStatsFor = (uuid) => {
+    loadStats();
     return {
         shopsIncluded: overallStats.shopsIncluded,
         count: overallStats.items[uuid] || 0,
@@ -74,6 +76,8 @@ export const getStatsFor = (uuid) => {
 
 export const addStore = (puuid, items) => {
     if(!config.trackStoreStats) return;
+
+    loadStats();
 
     const today = formatDate(new Date());
 

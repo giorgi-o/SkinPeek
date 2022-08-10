@@ -752,8 +752,6 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    await defer(interaction);
-
                     const accountNumber = interaction.options.get("account") && interaction.options.get("account").value;
                     if(accountNumber) {
                         const accountCount = getNumberOfAccounts(interaction.user.id);
@@ -764,14 +762,14 @@ client.on("interactionCreate", async (interaction) => {
 
                         const usernameOfDeleted = deleteUser(interaction.user.id, accountNumber);
 
-                        await interaction.followUp({
+                        await interaction.reply({
                             embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: accountNumber, u: usernameOfDeleted}, interaction))],
                         });
                     } else {
                         deleteWholeUser(interaction.user.id);
                         console.log(`${interaction.user.tag} deleted their account`);
 
-                        await interaction.followUp({
+                        await interaction.reply({
                             embeds: [basicEmbed(s(interaction).info.ACCOUNT_DELETED)],
                             ephemeral: true
                         });
