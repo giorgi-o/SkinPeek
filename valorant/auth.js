@@ -62,7 +62,7 @@ export const transferUserDataFromOldUsersJson = () => {
 export const getUser = (id, account=null) => {
     try {
         const userData = getUserJson(id, account);
-        return new User(userData);
+        return userData && new User(userData);
     } catch(e) {
         return null;
     }

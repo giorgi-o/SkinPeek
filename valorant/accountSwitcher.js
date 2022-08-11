@@ -131,3 +131,13 @@ export const getAccountWithPuuid = (id, puuid) => {
     return userJson.accounts.find(a => a.puuid === puuid);
 }
 
+export const findTargetAccountIndex = (id, query) => {
+    const userJson = readUserJson(id);
+    if(!userJson) return null;
+
+    let index = userJson.accounts.findIndex(a => a.username === query || a.puuid === query);
+    if(index !== -1) return index + 1;
+
+    return parseInt(query) || null;
+}
+

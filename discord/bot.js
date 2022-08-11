@@ -51,7 +51,7 @@ import {sendConsoleOutput} from "../misc/logger.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
 import {
     deleteUser,
-    deleteWholeUser,
+    deleteWholeUser, findTargetAccountIndex,
     getNumberOfAccounts,
     readUserJson,
     switchAccount
@@ -64,6 +64,7 @@ import {
     handleSettingsSetCommand,
     handleSettingsViewCommand, settingName, settings
 } from "../misc/settings.js";
+import fuzzysort from "fuzzysort";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS], // what intents does the bot need
@@ -230,11 +231,11 @@ const commands = [
         name: "forget",
         description: "Forget and permanently delete your account from the bot.",
         options: [{
-            type: "INTEGER",
+            type: "STRING",
             name: "account",
-            description: "The account number you want to forget. Leave blank to forget all accounts.",
+            description: "The account you want to forget. Leave blank to forget all accounts.",
             required: false,
-            minValue: 1
+            autocomplete: true
         }]
     },
     {
@@ -264,11 +265,11 @@ const commands = [
         name: "account",
         description: "Switch the Valorant account you are currently using",
         options: [{
-            type: "INTEGER",
+            type: "STRING",
             name: "account",
-            description: "The account number you want to switch to",
+            description: "The account you want to switch to",
             required: true,
-            minValue: 1
+            autocomplete: true
         }]
     },
     {
@@ -747,23 +748,30 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "forget": {
-                    if(!valorantUser) return await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).error.FORGET_FORGOTTEN)],
+                    const accountCount = getNumberOfAccounts(interaction.user.id);
+                    if(accountCount === 0) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
-                    const accountNumber = interaction.options.get("account") && interaction.options.get("account").value;
-                    if(accountNumber) {
-                        const accountCount = getNumberOfAccounts(interaction.user.id);
-                        if(accountNumber > accountCount) return await interaction.reply({
+                    const targetAccount = interaction.options.get("account") && interaction.options.get("account").value;
+                    if(targetAccount) {
+                        const targetIndex = findTargetAccountIndex(interaction.user.id, targetAccount);
+
+                        if(targetIndex === null) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
+                            ephemeral: true
+                        });
+
+                        if(targetIndex > accountCount) return await interaction.reply({
                             embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
                             ephemeral: true
                         });
 
-                        const usernameOfDeleted = deleteUser(interaction.user.id, accountNumber);
+                        const usernameOfDeleted = deleteUser(interaction.user.id, targetIndex);
 
                         await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: accountNumber, u: usernameOfDeleted}, interaction))],
+                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: targetIndex, u: usernameOfDeleted}, interaction))],
                         });
                     } else {
                         deleteWholeUser(interaction.user.id);
@@ -836,23 +844,29 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "account": {
-                    const accountNumber = interaction.options.get("account").value;
-
                     const accountCount = getNumberOfAccounts(interaction.user.id);
                     if(accountCount === 0) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
-                    if(accountNumber > accountCount) return await interaction.reply({
+                    const targetAccount = interaction.options.get("account").value;
+                    const targetIndex = findTargetAccountIndex(interaction.user.id, targetAccount);
+
+                    if(targetIndex === null) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
+                        ephemeral: true
+                    });
+
+                    if(targetIndex > accountCount) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
                         ephemeral: true
                     });
 
-                    const valorantUser = switchAccount(interaction.user.id, accountNumber);
+                    const valorantUser = switchAccount(interaction.user.id, targetIndex);
 
                     await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({n: accountNumber, u: valorantUser.username}, interaction))],
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({n: targetIndex, u: valorantUser.username}, interaction))],
                     });
                     break;
                 }
@@ -1131,8 +1145,34 @@ client.on("interactionCreate", async (interaction) => {
                     value: result.obj.names[DEFAULT_VALORANT_LANG],
                     nameLocalizations: valNamesToDiscordNames(result.obj.names) // does this even work?
                 })));
+            } else if(interaction.commandName === "account" || interaction.commandName === "forget") {
+                const focusedValue = interaction.options.getFocused();
+
+                const userJson = readUserJson(interaction.user.id);
+                if(!userJson) return await interaction.respond([]);
+
+                const values = [];
+                for(const [index, account] of Object.entries(userJson.accounts)) {
+                    const username = account.username || s(interaction).info.NO_USERNAME;
+                    if(values.find(a => a.name === username)) continue;
+
+                    values.push({
+                        name: username,
+                        value: (parseInt(index) + 1).toString()
+                    });
+                }
+
+                const filteredValues = fuzzysort.go(focusedValue, values, {
+                    key: "name",
+                    threshold: -1000,
+                    limit: 5,
+                    all: true
+                });
+
+                await interaction.respond(filteredValues.map(value => value.obj));
             }
         } catch(e) {
+            console.error(e);
             // await handleError(e, interaction); // unknown interaction happens quite often
         }
     }

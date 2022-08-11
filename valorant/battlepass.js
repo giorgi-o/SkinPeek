@@ -205,7 +205,7 @@ const getBattlepassPurchase = async (id) => {
 }
 
 export const renderBattlepassProgress = async (interaction) => {
-    const maxlevel = interaction.options && interaction.options.getNumber("maxlevel") || 50;
+    const maxlevel = interaction.options && interaction.options.getInteger("maxlevel") || 50;
     const battlepassProgress = await getBattlepassProgress(interaction.user.id, maxlevel);
 
     return await renderBattlepass(battlepassProgress, maxlevel, interaction);
