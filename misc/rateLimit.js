@@ -3,24 +3,24 @@ import config from "./config.js";
 const rateLimits = {};
 
 export const checkRateLimit = (req, url) => {
-    if(req.statusCode === 429) {
-        const retryAfter = req.headers['retry-after'];
-        console.log(`I am ratelimited at ${url} for ${retryAfter} more seconds!`);
+    let rateLimited = req.statusCode === 429;
+    if(!rateLimited) try {
+        const json = JSON.parse(req.body);
+        rateLimited = json.error === "rate_limited";
+    } catch(e) {}
 
-        const retryAt = (Date.now() + (retryAfter + 1) * 1000) || Date.now() + config.rateLimitBackoff * 1000;
+    if(rateLimited) {
+        let retryAfter = req.headers['retry-after'] + 1;
+        if(retryAfter) console.log(`I am ratelimited at ${url} for ${retryAfter - 1} more seconds!`);
+        else {
+            retryAfter = config.rateLimitBackoff;
+            console.log(`I am temporarily ratelimited at ${url} (no ETA given, waiting ${config.rateLimitBackoff}s)`);
+        }
+
+        const retryAt = Date.now() + retryAfter * 1000;
         rateLimits[url] = retryAt;
         return retryAt;
     }
-
-    try {
-        const json = JSON.parse(req.body);
-        if(json.error === "rate_limited") {
-            console.log(`I am temporarily ratelimited at ${url} (no ETA given, waiting ${config.rateLimitBackoff}s)`);
-
-            rateLimits[url] = Date.now() + config.rateLimitBackoff * 1000;
-            return rateLimits[url];
-        }
-    } catch(e) {}
 
     return false;
 }

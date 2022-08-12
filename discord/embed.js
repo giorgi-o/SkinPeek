@@ -48,8 +48,8 @@ export const authFailureMessage = (interaction, authResponse, message, hideEmail
     }
     else if(authResponse.rateLimit) {
         console.log(`${interaction.user.tag} got rate-limited`);
-        if(typeof authResponse.rateLimit === "number") embed = basicEmbed(s(interaction).error.LOGIN_RATELIMIT_UNTIL.f({s: authResponse.rateLimit}));
-        embed = basicEmbed(s(interaction).error.LOGIN_RATELIMIT);
+        if(typeof authResponse.rateLimit === "number") embed = basicEmbed(s(interaction).error.LOGIN_RATELIMIT_UNTIL.f({t: Math.ceil(authResponse.rateLimit / 1000)}));
+        else embed = basicEmbed(s(interaction).error.LOGIN_RATELIMIT);
     }
     else {
         embed = basicEmbed(message);
