@@ -138,8 +138,9 @@ export const checkAlerts = async () => {
                             }
 
                             else if(offers.rateLimit) {
-                                console.error(`I got ratelimited while checking alerts for user ${id} #${i} for ${offers.rateLimit}s!`);
-                                await wait(Date.now() - offers.rateLimit);
+                                const waitMs = offers.rateLimit - Date.now();
+                                console.error(`I got ratelimited while checking alerts for user ${id} #${i} for ${Math.floor(waitMs / 1000)}s!`);
+                                await wait(waitMs);
                             }
 
                             else {
