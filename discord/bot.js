@@ -14,7 +14,8 @@ import {
     alertsPageEmbed,
     statsForSkinEmbed,
     allStatsEmbed,
-    accountsListEmbed, switchAccountButtons, skinCollectionEmbed
+    accountsListEmbed,
+    switchAccountButtons
 } from "./embed.js";
 import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
@@ -65,7 +66,7 @@ import {
     handleSettingsViewCommand, settingName, settings
 } from "../misc/settings.js";
 import fuzzysort from "fuzzysort";
-import {getLoadout} from "../valorant/inventory.js";
+import {renderCollection} from "../valorant/inventory.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS], // what intents does the bot need
@@ -801,12 +802,10 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const authSuccess = await authUser(interaction.user.id);
-                    if(!authSuccess.success) return await interaction.followUp(authFailureMessage(interaction, authSuccess, "Auth error, login again"));
+                    const message = await renderCollection(interaction);
+                    await interaction.followUp(message);
 
-                    const loadout = await getLoadout(valorantUser); // todo handle auth failure
-
-                    await interaction.followUp(await skinCollectionEmbed(interaction, valorantUser, loadout.loadout));
+                    console.log(`Sent ${interaction.user.tag}'s collection!`);
 
                     break;
                 }
@@ -1140,6 +1139,7 @@ client.on("interactionCreate", async (interaction) => {
                     case "nm": newMessage = await fetchNightMarket(interaction, getUser(interaction.user.id)); break;
                     case "bp": newMessage = await renderBattlepassProgress(interaction); break;
                     case "alerts": newMessage = await fetchAlerts(interaction); break;
+                    case "cl": newMessage = await renderCollection(interaction); break;
                 }
 
                 if(!newMessage.components) newMessage.components = switchAccountButtons(interaction, customId, true);

@@ -1,5 +1,6 @@
 import {fetch, isMaintenance} from "../misc/util.js";
-import {deleteUserAuth} from "./auth.js";
+import {authUser, deleteUserAuth, getUser} from "./auth.js";
+import {authFailureMessage, skinCollectionEmbed} from "../discord/embed.js";
 
 
 export const getEntitlements = async (user, itemTypeId, itemType="item") => {
@@ -58,4 +59,14 @@ export const getLoadout = async (user) => {
         success: true,
         loadout: json
     }
+}
+
+export const renderCollection = async (interaction) => {
+    const authSuccess = await authUser(interaction.user.id);
+    if(!authSuccess.success) return authFailureMessage(interaction, authSuccess, "Auth error, login again");
+
+    const user = getUser(interaction.user.id);
+    const loadout = await getLoadout(user);
+
+    return await skinCollectionEmbed(interaction, user, loadout.loadout);
 }

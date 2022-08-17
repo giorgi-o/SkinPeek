@@ -391,7 +391,7 @@ export const getSkin = async (uuid, reloadData=true) => {
     let skin = skins[uuid];
     if(!skin) return null;
 
-    skin.price = prices[uuid] || null;
+    skin.price = await getPrice(uuid);
 
     return skin;
 }
@@ -402,7 +402,7 @@ export const getSkinFromSkinUuid = async (uuid, reloadData=true) => {
     let skin = Object.values(skins).find(skin => skin.skinUuid === uuid);
     if(!skin) return null;
 
-    skin.price = prices[skin.uuid] || null;
+    skin.price = await getPrice(skin.uuid);
 
     return skin;
 }
@@ -415,7 +415,18 @@ export const getWeapon = async (uuid) => {
 
 export const getPrice = async (uuid) => {
     if(!prices) await fetchData([prices]);
-    return prices[uuid] || null;
+
+    if(prices[uuid]) return prices[uuid];
+
+    if(!bundles) await fetchData([bundles]); // todo rewrite this part
+    const bundle = Object.values(bundles).find(bundle => bundle.items?.find(item => item.uuid === uuid));
+    if(bundle) {
+        const bundleItem = bundle.items.find(item => item.uuid === uuid);
+        return bundleItem.price;
+    }
+
+    return null;
+
 }
 
 export const getRarity = async (uuid) => {

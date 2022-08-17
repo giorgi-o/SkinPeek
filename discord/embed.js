@@ -15,7 +15,7 @@ import {
     itemTypes,
     removeAlertActionRow,
     removeAlertButton,
-    fetchChannel
+    fetchChannel, externalEmojisAllowed
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
@@ -24,6 +24,7 @@ import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
 import {readUserJson, saveUser} from "../valorant/accountSwitcher.js";
 import {getSetting, humanifyValue, settingName} from "../misc/settings.js";
+import {VPEmoji} from "./emoji.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -465,9 +466,14 @@ const Weapons = {
 }
 
 export const skinCollectionEmbed = async (interaction, user, loadout) => {
+    let totalValue = 0;
+
     const createField = async (weaponUuid, inline=true) => {
         const weapon = await getWeapon(weaponUuid);
         const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
+
+        totalValue += skin.price;
+
         return {
             name: l(weapon.names, interaction),
             value: await skinNameAndEmoji(skin, interaction.channel, interaction.locale),
@@ -476,46 +482,53 @@ export const skinCollectionEmbed = async (interaction, user, loadout) => {
     }
 
     const emptyField = {
-        name: "[empty]",
-        value: "[field]",
+        name: "\u200b",
+        value: "\u200b",
         inline: true
     }
 
     const fields = [
+        await createField(Weapons.Vandal),
+        await createField(Weapons.Phantom),
+        await createField(Weapons.Operator),
+
+        await createField(Weapons.Knife),
+        await createField(Weapons.Sheriff),
+        await createField(Weapons.Spectre),
+
         await createField(Weapons.Classic),
-        await createField(Weapons.Stinger),
+        await createField(Weapons.Ghost),
+        await createField(Weapons.Frenzy),
+
         await createField(Weapons.Bulldog),
-        await createField(Weapons.Marshal, false),
+        await createField(Weapons.Guardian),
+        await createField(Weapons.Marshal),
+
+        await createField(Weapons.Stinger),
+        await createField(Weapons.Ares),
+        await createField(Weapons.Odin),
 
         await createField(Weapons.Shorty),
-        await createField(Weapons.Spectre),
-        await createField(Weapons.Guardian),
-        await createField(Weapons.Operator, false),
-
-        await createField(Weapons.Frenzy),
         await createField(Weapons.Bucky),
-        await createField(Weapons.Phantom),
-        await createField(Weapons.Ares, false),
-
-        await createField(Weapons.Ghost),
         await createField(Weapons.Judge),
-        await createField(Weapons.Vandal),
-        await createField(Weapons.Odin, false),
-
-        await createField(Weapons.Sheriff),
-        emptyField,
-        emptyField,
-        await createField(Weapons.Knife, false)
     ]
 
+    const emoji = await VPEmoji(interaction.channel, externalEmojisAllowed(interaction.channel));
+    fields.push(emptyField, {
+        name: "Collection value:",
+        value: `${emoji} ${totalValue}`,
+        inline: true
+    }, emptyField);
+
     const embed = {
-        description: "**{u}**'s skin collection:".f({u: user.username}, interaction),
+        description: "**{u}**'s Skin Collection".f({u: user.username}, interaction),
         color: VAL_COLOR_1,
         fields: fields
     }
 
     return {
-        embeds: [embed]
+        embeds: [embed],
+        components: switchAccountButtons(interaction, "cl")
     }
 }
 
