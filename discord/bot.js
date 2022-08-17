@@ -67,6 +67,7 @@ import {
 } from "../misc/settings.js";
 import fuzzysort from "fuzzysort";
 import {renderCollection} from "../valorant/inventory.js";
+import {getLoadout} from "../valorant/inventory.js";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS], // what intents does the bot need
