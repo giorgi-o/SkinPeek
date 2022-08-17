@@ -622,7 +622,7 @@ client.on("interactionCreate", async (interaction) => {
                         });
 
                         const skin = searchResults[0].obj;
-                        const otherAlert = alertExists(interaction.user.id, skin.uuid);
+                        const otherAlert = alertExists(interaction.user.id, skin.levelUuid);
                         return await interaction.followUp({
                             embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction.locale), c: otherAlert.channel_id}))],
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
@@ -796,6 +796,9 @@ client.on("interactionCreate", async (interaction) => {
                     });
 
                     await defer(interaction);
+
+                    const authSuccess = await authUser(interaction.user.id);
+                    if(!authSuccess.success) return await interaction.followUp(authFailureMessage(interaction, authSuccess, "Auth error, login again"));
 
                     const loadout = await getLoadout(valorantUser); // todo handle auth failure
 

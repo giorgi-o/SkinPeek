@@ -100,6 +100,7 @@ export const getSkinList = async (gameVersion) => {
             const levelOne = skin.levels[0];
             skins[levelOne.uuid] = {
                 uuid: levelOne.uuid,
+                skinUuid: skin.uuid,
                 names: skin.displayName,
                 icon: levelOne.displayIcon,
                 rarity: skin.contentTierUuid
@@ -391,6 +392,17 @@ export const getSkin = async (uuid, reloadData=true) => {
     if(!skin) return null;
 
     skin.price = prices[uuid] || null;
+
+    return skin;
+}
+
+export const getSkinFromSkinUuid = async (uuid, reloadData=true) => {
+    if(reloadData) await fetchData([skins, prices]);
+
+    let skin = Object.values(skins).find(skin => skin.skinUuid === uuid);
+    if(!skin) return null;
+
+    skin.price = prices[skin.uuid] || null;
 
     return skin;
 }
