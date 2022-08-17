@@ -1,4 +1,13 @@
-import {getBuddy, getBundle, getCard, getSkin, getSpray, getTitle, getWeapon} from "../valorant/cache.js";
+import {
+    getBuddy,
+    getBundle,
+    getCard,
+    getSkin,
+    getSkinFromSkinUuid,
+    getSpray,
+    getTitle,
+    getWeapon
+} from "../valorant/cache.js";
 import {
     emojiToString,
     skinNameAndEmoji,
@@ -454,7 +463,7 @@ const Weapons = {
 export const skinCollectionEmbed = async (interaction, user, loadout) => {
     const createField = async (weaponUuid, inline=true) => {
         const weapon = await getWeapon(weaponUuid);
-        const skin = await getSkin(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinLevelID);
+        const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
         return {
             name: l(weapon.names, interaction),
             value: await skinNameAndEmoji(skin, interaction.channel, interaction.locale),
@@ -496,7 +505,7 @@ export const skinCollectionEmbed = async (interaction, user, loadout) => {
     ]
 
     const embed = {
-        description: "{u}'s skin collection:".f({u: user.username}, interaction),
+        description: "**{u}**'s skin collection:".f({u: user.username}, interaction),
         color: VAL_COLOR_1,
         fields: fields
     }
