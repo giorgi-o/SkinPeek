@@ -1,6 +1,7 @@
 import {fetch, isMaintenance} from "../misc/util.js";
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
-import {authFailureMessage, skinCollectionEmbed} from "../discord/embed.js";
+import {authFailureMessage, skinCollectionSingleEmbed} from "../discord/embed.js";
+import config from "../misc/config.js";
 
 
 export const getEntitlements = async (user, itemTypeId, itemType="item") => {
@@ -38,7 +39,20 @@ export const getSkins = async (user) => {
     }
 }
 
+
+const loadoutCache = {};
+
 export const getLoadout = async (user) => {
+    if(user.puuid in loadoutCache) {
+        const cached = loadoutCache[user.puuid];
+        if(Date.now() - cached.timestamp > config.loadoutCacheExpiration) {
+            delete loadoutCache[user.puuid];
+        } else {
+            console.log(`Fetched loadout from cache for user ${user.username}! It expires in ${Math.ceil((cached.timestamp - Date.now() + config.loadoutCacheExpiration) / 1000)}s.`);
+            return {success: true, loadout: cached.loadout};
+        }
+    }
+
     const req = await fetch(`https://pd.${user.region}.a.pvp.net/personalization/v2/players/${user.puuid}/playerloadout`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
@@ -55,6 +69,11 @@ export const getLoadout = async (user) => {
     } else if (isMaintenance(json))
         return { success: false, maintenance: true };
 
+    loadoutCache[user.puuid] = {
+        loadout: json,
+        timestamp: Date.now()
+    }
+
     return {
         success: true,
         loadout: json
@@ -68,5 +87,5 @@ export const renderCollection = async (interaction) => {
     const user = getUser(interaction.user.id);
     const loadout = await getLoadout(user);
 
-    return await skinCollectionEmbed(interaction, user, loadout.loadout);
+    return await skinCollectionSingleEmbed(interaction, user, loadout.loadout);
 }

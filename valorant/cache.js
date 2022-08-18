@@ -98,11 +98,17 @@ export const getSkinList = async (gameVersion) => {
         }
         for(const skin of weapon.skins) {
             const levelOne = skin.levels[0];
+
+            let icon;
+            if(skin.themeUuid === "5a629df4-4765-0214-bd40-fbb96542941f") // default skins don't have displayIcon
+                icon = skin.chromas[0].fullRender;
+            else icon = levelOne.displayIcon;
+
             skins[levelOne.uuid] = {
                 uuid: levelOne.uuid,
                 skinUuid: skin.uuid,
                 names: skin.displayName,
-                icon: levelOne.displayIcon,
+                icon: icon,
                 rarity: skin.contentTierUuid
             }
         }
@@ -422,7 +428,7 @@ export const getPrice = async (uuid) => {
     const bundle = Object.values(bundles).find(bundle => bundle.items?.find(item => item.uuid === uuid));
     if(bundle) {
         const bundleItem = bundle.items.find(item => item.uuid === uuid);
-        return bundleItem.price;
+        return bundleItem.price || null;
     }
 
     return null;

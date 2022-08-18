@@ -239,7 +239,7 @@ export const canCreateEmojis = (guild) => guild && guild.me && guild.me.permissi
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
 
 export const canSendMessages = (channel) => {
-    if(!channel.guild) return true;
+    if(!channel || !channel.guild) return true;
     const permissions = channel.permissionsFor(channel.guild.me);
     return permissions.has(Permissions.FLAGS.VIEW_CHANNEL) && permissions.has(Permissions.FLAGS.SEND_MESSAGES) && permissions.has(Permissions.FLAGS.EMBED_LINKS);
 }

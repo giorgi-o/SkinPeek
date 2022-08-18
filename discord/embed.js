@@ -465,7 +465,7 @@ const Weapons = {
     Knife: "2f59173c-4bed-b6c3-2191-dea9b58be9c7",
 }
 
-export const skinCollectionEmbed = async (interaction, user, loadout) => {
+export const skinCollectionSingleEmbed = async (interaction, user, loadout) => {
     let totalValue = 0;
 
     const createField = async (weaponUuid, inline=true) => {
@@ -526,10 +526,66 @@ export const skinCollectionEmbed = async (interaction, user, loadout) => {
         fields: fields
     }
 
+    const components = [
+        new MessageActionRow().addComponents(collectionSwitchEmbedButton(interaction, true)),
+        ...switchAccountButtons(interaction, "cl")
+    ]
+
     return {
         embeds: [embed],
-        components: switchAccountButtons(interaction, "cl")
+        components: components
     }
+}
+
+export const skinCollectionPageEmbed = async (interaction, user, loadout, pageIndex=0) => {
+    let totalValue = 0;
+    const emoji = await VPEmoji(interaction.channel, externalEmojisAllowed(interaction.channel)) || "Price:";
+
+    const createEmbed = async (weaponUuid) => {
+        const weapon = await getWeapon(weaponUuid);
+        const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
+
+        totalValue += skin.price;
+
+        return {
+            title: l(weapon.names, interaction),
+            description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}**\n${emoji} ${skin.price || 'N/A'}`,
+            color: VAL_COLOR_2,
+            thumbnail: {
+                url: skin.icon
+            }
+        }
+    }
+
+    const pages = [
+        [Weapons.Vandal, Weapons.Phantom, Weapons.Operator, Weapons.Knife],
+        [Weapons.Classic, Weapons.Sheriff, Weapons.Spectre, Weapons.Marshal],
+        [Weapons.Frenzy, Weapons.Ghost, Weapons.Bulldog, Weapons.Guardian],
+        [Weapons.Shorty, Weapons.Bucky, Weapons.Judge],
+        [Weapons.Stinger, Weapons.Ares, Weapons.Odin],
+    ];
+
+    if(pageIndex < 0) pageIndex = pages.length - 1;
+    if(pageIndex >= pages.length) pageIndex = 0;
+
+    const embeds = [];
+    for(const weapon of pages[pageIndex]) {
+        embeds.push(await createEmbed(weapon));
+    }
+
+    const firstRowButtons = [collectionSwitchEmbedButton(interaction, false)];
+    firstRowButtons.push(...(pageButtons("clpage", interaction.user.id, pageIndex, pages.length).components))
+
+    const components = [
+        new MessageActionRow().setComponents(...firstRowButtons),
+        ...switchAccountButtons(interaction, "cl")
+    ]
+
+    return {embeds, components}
+}
+
+const collectionSwitchEmbedButton = (interaction, switchToPage) => {
+    return new MessageButton().setEmoji('🔀').setLabel(s(interaction).info.SWITCH_DESIGN_BUTTON).setStyle("PRIMARY").setCustomId("clswitch/" + (switchToPage ? "p" : "s"));
 }
 
 export const botInfoEmbed = (interaction, client, guildCount, userCount, registeredUserCount, ownerString, status) => {
@@ -603,8 +659,8 @@ const pageButtons = (pageId, userId, current, max) => {
     const leftButton = new MessageButton().setStyle("SECONDARY").setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
     const rightButton = new MessageButton().setStyle("SECONDARY").setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
 
-    if(current === 0) leftButton.setEmoji("⏩");
-    if(current === max - 1) rightButton.setEmoji("⏪");
+    if(current === 0) leftButton.setEmoji("⏪");
+    if(current === max - 1) rightButton.setEmoji("⏩");
 
     return new MessageActionRow().setComponents(leftButton, rightButton);
 }
@@ -613,10 +669,12 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
     const json = readUserJson(interaction.user.id);
     if(!json || json.accounts.length === 1 && !oneAccountButton) return [];
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
+    const hideIgn = getSetting(interaction.user.id, "hideIgn");
 
     const buttons = [];
     for(const number of accountNumbers) {
-        const label = s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: number.toString()});
+        const username = json.accounts[number - 1].username || s(interaction).info.NO_USERNAME;
+        const label = hideIgn ? s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: number.toString()}) : username;
 
         const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`account/${customId}/${interaction.user.id}/${number}`);
         button.setDisabled(number === json.currentAccount);

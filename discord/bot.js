@@ -15,7 +15,7 @@ import {
     statsForSkinEmbed,
     allStatsEmbed,
     accountsListEmbed,
-    switchAccountButtons
+    switchAccountButtons, skinCollectionPageEmbed, skinCollectionSingleEmbed
 } from "./embed.js";
 import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
@@ -240,10 +240,6 @@ const commands = [
             required: false,
             autocomplete: true
         }]
-    },
-    {
-        name: "collection",
-        description: "Show off your skin collection!",
     },
     {
         name: "collection",
@@ -1086,6 +1082,17 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 await interaction.update(await allStatsEmbed(interaction, await getOverallStats(), parseInt(pageIndex)));
+            } else if(interaction.customId.startsWith("clpage")) {
+                const pageIndex = interaction.customId.split('/')[2];
+
+                const loadout = (await getLoadout(valorantUser)).loadout;
+                await interaction.update(await skinCollectionPageEmbed(interaction, valorantUser, loadout, parseInt(pageIndex)));
+            } else if(interaction.customId.startsWith("clswitch")) {
+                const switchToPage = interaction.customId.split('/')[1] === "p";
+                const loadout = (await getLoadout(valorantUser)).loadout;
+
+                if(switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, valorantUser, loadout));
+                else await interaction.update(await skinCollectionSingleEmbed(interaction, valorantUser, loadout));
             } else if(interaction.customId.startsWith("viewbundle")) {
                 const [, id, uuid] = interaction.customId.split('/');
 
@@ -1118,10 +1125,13 @@ client.on("interactionCreate", async (interaction) => {
 
                 for(const actionRow of message.components) {
                     for(const component of actionRow.components) {
-                        if(component.customId === interaction.customId) component.label = s(interaction).info.LOADING;
+                        if(component.customId === interaction.customId) {
+                            component.label = s(interaction).info.LOADING;
+                            component.style = "DANGER";
+                            component.emoji = {name: '⏳'};
+                        }
                     }
                 }
-
 
                 await interaction.update({
                     embeds: message.embeds,

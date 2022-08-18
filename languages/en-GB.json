@@ -99,6 +99,7 @@
     "ACCOUNTS_HEADER": "All your accounts with the bot:",
     "ACCOUNT_CURRENTLY_SELECTED": "(Currently selected)",
     "SWITCH_ACCOUNT_BUTTON": "Account #{n}",
+    "SWITCH_DESIGN_BUTTON": "Switch design",
     "LOADING": "Loading...",
     "HIDDEN_USERNAME": "username hidden",
     "NO_USERNAME": "[No username]",
