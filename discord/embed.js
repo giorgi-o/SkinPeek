@@ -1,6 +1,14 @@
-import {getBuddy, getBundle, getCard, getSkin, getSpray, getTitle} from "../valorant/cache.js";
 import {
-    emojiToString,
+    getBuddy,
+    getBundle,
+    getCard,
+    getSkin,
+    getSkinFromSkinUuid,
+    getSpray,
+    getTitle,
+    getWeapon
+} from "../valorant/cache.js";
+import {
     skinNameAndEmoji,
     escapeMarkdown,
     itemTypes,
@@ -15,6 +23,7 @@ import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
 import {readUserJson, saveUser} from "../valorant/accountSwitcher.js";
 import {getSetting, humanifyValue, settingName} from "../misc/settings.js";
+import {VPEmoji} from "./emoji.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -34,7 +43,7 @@ const thumbnails = [
     "https://media.valorant-api.com/sprays/40ff9251-4c11-b729-1f27-088ee032e7ce/fulltransparenticon.png"
 ];
 
-export const authFailureMessage = (interaction, authResponse, message, hideEmail=false) => {
+export const authFailureMessage = (interaction, authResponse, message="AUTH_ERROR", hideEmail=false) => {
     let embed;
 
     if(authResponse.maintenance) embed = basicEmbed(s(interaction).error.MAINTENANCE);
@@ -107,11 +116,9 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
 
     const embeds = [basicEmbed(headerText)];
 
-    const emojiString = emojiToString(VPemoji) || s(interaction).info.PRICE;
-
     for(const uuid of shop.offers) {
         const skin = await getSkin(uuid);
-        const embed = await skinEmbed(skin.uuid, skin.price, interaction, emojiString);
+        const embed = await skinEmbed(skin.uuid, skin.price, interaction, VPemoji);
         embeds.push(embed);
     }
 
@@ -140,8 +147,6 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         return renderedBundle;
     }
 
-    const emojiString = emojiToString(VPemoji) || s(interaction).info.PRICE;
-
     const embeds = [{
         title: s(interaction).info.BUNDLES_HEADER,
         description: s(interaction).info.BUNDLES_HEADER_DESC,
@@ -157,7 +162,7 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         const slantedDescription = bundle.descriptions ? "*" + l(bundle.descriptions, interaction) + "*\n" : "";
         const embed = {
             title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
-            description: `${subName}${slantedDescription}${emojiString} **${bundle.price || s(interaction).info.FREE}** - ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
+            description: `${subName}${slantedDescription}${VPemoji} **${bundle.price || s(interaction).info.FREE}** - ${s(interaction).info.EXPIRES.f({t:bundle.expires})}`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: bundle.icon
@@ -193,10 +198,9 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
         }
     }]};
 
-    const emojiString = emojiToString(emoji) || s(interaction).info.PRICE;
     const bundleTitleEmbed = {
         title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
-        description: `${subName}${slantedDescription}${emojiString} **${bundle.price}**${strikedBundleBasePrice}`,
+        description: `${subName}${slantedDescription}${emoji} **${bundle.price}**${strikedBundleBasePrice}`,
         color: VAL_COLOR_3,
         image: {
             url: bundle.icon
@@ -206,7 +210,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     if(includeExpires && bundle.expires) bundleTitleEmbed.description += ` (${(bundle.expires > Date.now() / 1000 ? 
         s(interaction).info.EXPIRES : s(interaction).info.EXPIRED).f({t: bundle.expires})})`;
 
-    const itemEmbeds = await renderBundleItems(bundle, interaction, emojiString);
+    const itemEmbeds = await renderBundleItems(bundle, interaction, emoji);
     return {
         embeds: [bundleTitleEmbed, ...itemEmbeds]
     }
@@ -222,13 +226,11 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
         color: VAL_COLOR_3
     }];
 
-    const emojiString = emojiToString(emoji) || s(interaction).info.PRICE;
-
     for(const offer of market.offers) {
         const skin = await getSkin(offer.uuid);
 
-        const embed = await skinEmbed(skin.uuid, skin.price, interaction, emojiString);
-        embed.description = `${emojiString} **${offer.nmPrice}**\n${emojiString} ~~${offer.realPrice}~~ (-${offer.percent}%)`;
+        const embed = await skinEmbed(skin.uuid, skin.price, interaction, emoji);
+        embed.description = `${emoji} **${offer.nmPrice}**\n${emoji} ~~${offer.realPrice}~~ (-${offer.percent}%)`;
 
         embeds.push(embed);
     }
@@ -431,6 +433,153 @@ const titleEmbed = async (uuid, price, locale, VPemojiString) => {
     }
 }
 
+const Weapons = {
+    Classic: "29a0cfab-485b-f5d5-779a-b59f85e204a8",
+    Shorty: "42da8ccc-40d5-affc-beec-15aa47b42eda",
+    Frenzy: "44d4e95c-4157-0037-81b2-17841bf2e8e3",
+    Ghost: "1baa85b4-4c70-1284-64bb-6481dfc3bb4e",
+    Sheriff: "e336c6b8-418d-9340-d77f-7a9e4cfe0702",
+
+    Stinger: "f7e1b454-4ad4-1063-ec0a-159e56b58941",
+    Spectre: "462080d1-4035-2937-7c09-27aa2a5c27a7",
+    Bucky: "910be174-449b-c412-ab22-d0873436b21b",
+    Judge: "ec845bf4-4f79-ddda-a3da-0db3774b2794",
+
+    Bulldog: "ae3de142-4d85-2547-dd26-4e90bed35cf7",
+    Guardian: "4ade7faa-4cf1-8376-95ef-39884480959b",
+    Phantom: "ee8e8d15-496b-07ac-e5f6-8fae5d4c7b1a",
+    Vandal: "9c82e19d-4575-0200-1a81-3eacf00cf872",
+
+    Marshal: "c4883e50-4494-202c-3ec3-6b8a9284f00b",
+    Operator: "a03b24d3-4319-996d-0f8c-94bbfba1dfc7",
+    Ares: "55d8a0f4-4274-ca67-fe2c-06ab45efdf58",
+    Odin: "63e6c2b6-4a8e-869c-3d4c-e38355226584",
+    Knife: "2f59173c-4bed-b6c3-2191-dea9b58be9c7",
+}
+
+export const skinCollectionSingleEmbed = async (interaction, id, user, loadout) => {
+    let totalValue = 0;
+
+    const createField = async (weaponUuid, inline=true) => {
+        const weapon = await getWeapon(weaponUuid);
+        const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
+
+        totalValue += skin.price;
+
+        return {
+            name: l(weapon.names, interaction),
+            value: await skinNameAndEmoji(skin, interaction.channel, interaction.locale),
+            inline: inline
+        }
+    }
+
+    const emptyField = {
+        name: "\u200b",
+        value: "\u200b",
+        inline: true
+    }
+
+    const fields = [
+        await createField(Weapons.Vandal),
+        await createField(Weapons.Phantom),
+        await createField(Weapons.Operator),
+
+        await createField(Weapons.Knife),
+        await createField(Weapons.Sheriff),
+        await createField(Weapons.Spectre),
+
+        await createField(Weapons.Classic),
+        await createField(Weapons.Ghost),
+        await createField(Weapons.Frenzy),
+
+        await createField(Weapons.Bulldog),
+        await createField(Weapons.Guardian),
+        await createField(Weapons.Marshal),
+
+        await createField(Weapons.Stinger),
+        await createField(Weapons.Ares),
+        await createField(Weapons.Odin),
+
+        await createField(Weapons.Shorty),
+        await createField(Weapons.Bucky),
+        await createField(Weapons.Judge),
+    ]
+
+    const emoji = await VPEmoji(interaction);
+    fields.push(emptyField, {
+        name: s(interaction).info.COLLECTION_VALUE,
+        value: `${emoji} ${totalValue}`,
+        inline: true
+    }, emptyField);
+
+    const embed = {
+        description: s(interaction).info.COLLECTION_HEADER.f({u: user.username}, id),
+        color: VAL_COLOR_1,
+        fields: fields
+    }
+
+    const components = [
+        new MessageActionRow().addComponents(collectionSwitchEmbedButton(interaction, true, id)),
+        ...switchAccountButtons(interaction, "cl", false, id)
+    ]
+
+    return {
+        embeds: [embed],
+        components: components
+    }
+}
+
+export const skinCollectionPageEmbed = async (interaction, id, user, loadout, pageIndex=0) => {
+    let totalValue = 0;
+    const emoji = await VPEmoji(interaction);
+
+    const createEmbed = async (weaponUuid) => {
+        const weapon = await getWeapon(weaponUuid);
+        const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
+
+        totalValue += skin.price;
+
+        return {
+            title: l(weapon.names, interaction),
+            description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}**\n${emoji} ${skin.price || 'N/A'}`,
+            color: VAL_COLOR_2,
+            thumbnail: {
+                url: skin.icon
+            }
+        }
+    }
+
+    const pages = [
+        [Weapons.Vandal, Weapons.Phantom, Weapons.Operator, Weapons.Knife],
+        [Weapons.Classic, Weapons.Sheriff, Weapons.Spectre, Weapons.Marshal],
+        [Weapons.Frenzy, Weapons.Ghost, Weapons.Bulldog, Weapons.Guardian],
+        [Weapons.Shorty, Weapons.Bucky, Weapons.Judge],
+        [Weapons.Stinger, Weapons.Ares, Weapons.Odin],
+    ];
+
+    if(pageIndex < 0) pageIndex = pages.length - 1;
+    if(pageIndex >= pages.length) pageIndex = 0;
+
+    const embeds = [basicEmbed(s(interaction).info.COLLECTION_HEADER.f({u: user.username}, id))];
+    for(const weapon of pages[pageIndex]) {
+        embeds.push(await createEmbed(weapon));
+    }
+
+    const firstRowButtons = [collectionSwitchEmbedButton(interaction, false, id)];
+    firstRowButtons.push(...(pageButtons("clpage", id, pageIndex, pages.length).components))
+
+    const components = [
+        new MessageActionRow().setComponents(...firstRowButtons),
+        ...switchAccountButtons(interaction, "cl", false, id)
+    ]
+
+    return {embeds, components}
+}
+
+const collectionSwitchEmbedButton = (interaction, switchToPage, id) => {
+    return new MessageButton().setEmoji('🔀').setLabel(s(interaction).info.SWITCH_DESIGN_BUTTON).setStyle("PRIMARY").setCustomId(`clswitch/${switchToPage ? "p" : "s"}/${id}`);
+}
+
 export const botInfoEmbed = (interaction, client, guildCount, userCount, registeredUserCount, ownerString, status) => {
     const fields = [
         {
@@ -502,22 +651,24 @@ const pageButtons = (pageId, userId, current, max) => {
     const leftButton = new MessageButton().setStyle("SECONDARY").setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
     const rightButton = new MessageButton().setStyle("SECONDARY").setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
 
-    if(current === 0) leftButton.setEmoji("⏩");
-    if(current === max - 1) rightButton.setEmoji("⏪");
+    if(current === 0) leftButton.setEmoji("⏪");
+    if(current === max - 1) rightButton.setEmoji("⏩");
 
     return new MessageActionRow().setComponents(leftButton, rightButton);
 }
 
-export const switchAccountButtons = (interaction, customId, oneAccountButton=false) => {
-    const json = readUserJson(interaction.user.id);
+export const switchAccountButtons = (interaction, customId, oneAccountButton=false, id=interaction.user.id) => {
+    const json = readUserJson(id);
     if(!json || json.accounts.length === 1 && !oneAccountButton) return [];
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
+    const hideIgn = getSetting(id, "hideIgn");
 
     const buttons = [];
     for(const number of accountNumbers) {
-        const label = s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: number.toString()});
+        const username = json.accounts[number - 1].username || s(interaction).info.NO_USERNAME;
+        const label = hideIgn ? s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: number.toString()}) : username;
 
-        const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`account/${customId}/${interaction.user.id}/${number}`);
+        const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`account/${customId}/${id}/${number}`);
         button.setDisabled(number === json.currentAccount);
 
         buttons.push(button);

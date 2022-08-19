@@ -39,6 +39,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "delayBetweenAlerts", 5 * 1000);
     applyConfig(loadedConfig, "alertsPerPage", 10);
     applyConfig(loadedConfig, "emojiCacheExpiration", 10 * 1000);
+    applyConfig(loadedConfig, "loadoutCacheExpiration", 10 * 60 * 1000);
     applyConfig(loadedConfig, "useShopCache", true);
     applyConfig(loadedConfig, "useLoginQueue", false);
     applyConfig(loadedConfig, "loginQueue", "*/3 * * * * *");

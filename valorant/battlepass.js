@@ -2,6 +2,7 @@ import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {fetch, isMaintenance, userRegion} from "../misc/util.js";
 import { getValorantVersion } from "./cache.js";
 import {renderBattlepass} from "../discord/embed.js";
+import {getEntitlements} from "./inventory.js";
 
 const CONTRACT_UUID = "99ac9283-4dd3-5248-2e01-8baf778affb4";
 const AVERAGE_UNRATED_XP_CONSTANT = 4200;
@@ -177,25 +178,10 @@ const getBattlepassPurchase = async (id) => {
     const user = getUser(id);
     console.log(`Fetching battlepass purchases for ${user.username}...`);
 
-    // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetEntitlements.md
-    const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/entitlements/${user.puuid}/f85cb6f7-33e5-4dc8-b609-ec7212301948`, {
-        headers: {
-            "Authorization": "Bearer " + user.auth.rso,
-            "X-Riot-Entitlements-JWT": user.auth.ent
-        }
-    });
+    const data = await getEntitlements(user, "f85cb6f7-33e5-4dc8-b609-ec7212301948", "battlepass");
+    if(!data.success) return false;
 
-    console.assert(req.statusCode === 200, `Valorant battlepass purchases code is ${req.statusCode}!`, req);
-
-    const json = JSON.parse(req.body);
-    if (json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
-        deleteUserAuth(user);
-        return { success: false };
-    } else if (isMaintenance(json))
-        return { success: false, maintenance: true };
-
-
-    for (let entitlement of json.Entitlements) {
+    for (let entitlement of data.entitlements.Entitlements) {
         if (entitlement.ItemID === CONTRACT_UUID) {
             return true;
         }
