@@ -3,7 +3,7 @@ import {authUser, getUser, getUserList} from "./auth.js";
 import config from "../misc/config.js";
 import fuzzysort from "fuzzysort";
 import fs from "fs";
-import {DEFAULT_VALORANT_LANG} from "../misc/languages.js";
+import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
 import {client} from "../discord/bot.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
 
@@ -447,8 +447,9 @@ export const getAllSkins = async () => {
 export const searchSkin = async (query, locale, limit=20, threshold=-5000) => {
     await fetchData([skins, prices]);
 
-    const keys = [`names.${locale}`];
-    if(locale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
+    const valLocale = discToValLang[locale];
+    const keys = [`names.${valLocale}`];
+    if(valLocale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
 
     const allSkins = await getAllSkins()
     return fuzzysort.go(query, allSkins, {
@@ -472,8 +473,9 @@ export const getAllBundles = () => {
 export const searchBundle = async (query, locale, limit=20, threshold=-1000) => {
     await fetchData([bundles]);
 
-    const keys = [`names.${locale}`];
-    if(locale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
+    const valLocale = discToValLang[locale];
+    const keys = [`names.${valLocale}`];
+    if(valLocale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
 
     return fuzzysort.go(query, getAllBundles(), {
         keys: keys,
