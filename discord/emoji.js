@@ -1,5 +1,7 @@
-import {asyncReadFile, canCreateEmojis} from "../misc/util.js";
+import {asyncReadFile, canCreateEmojis, emojiToString, externalEmojisAllowed} from "../misc/util.js";
 import config from "../misc/config.js";
+import {client} from "./bot.js";
+import {s} from "../misc/languages.js";
 
 const VPEmojiName = "ValPointsIcon";
 const VPEmojiFilename = "assets/vp.png"; // https://media.valorant-api.com/currencies/85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741/largeicon.png
@@ -13,25 +15,26 @@ const lastEmojiFetch = {};
 // a cache for emoji objects (note: due to sharding, might just be JSON representations of the emoji)
 const emojiCache = {};
 
-export const VPEmoji = async (channel, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, VPEmojiName, VPEmojiFilename, externalEmojisAllowed);
-export const RadEmoji = async (channel, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, RadEmojiName, RadEmojiFilename, externalEmojisAllowed);
+export const VPEmoji = async (interaction, channel=interaction.channel) => emojiToString(await getOrCreateEmoji(channel, VPEmojiName, VPEmojiFilename)) || s(interaction).info.PRICE;
+export const RadEmoji = async (interaction, channel=interaction.channel) => emojiToString(await getOrCreateEmoji(channel, RadEmojiName, RadEmojiFilename));
 
-export const rarityEmoji = async (channel, name, icon, externalEmojisAllowed=false) => await getOrCreateEmoji(channel, `${name}Rarity`, icon, externalEmojisAllowed);
+export const rarityEmoji = async (channel, name, icon) => emojiToString(await getOrCreateEmoji(channel, `${name}Rarity`, icon));
 
-const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllowed) => {
-    if(!channel || !name || !filenameOrUrl) return;
+const getOrCreateEmoji = async (channel, name, filenameOrUrl) => {
+    if(!name || !filenameOrUrl) return;
 
-    const guild = channel.guild;
+    const guild = channel && channel.guild;
 
     // see if emoji exists already
     const emoji = emojiInGuild(guild, name);
     if(emoji && emoji.available) return addEmojiToCache(emoji);
 
     // check in other guilds
-    if(externalEmojisAllowed) {
+    const externalAllowed = externalEmojisAllowed(channel);
+    if(externalAllowed) {
         if(config.useEmojisFromServer) {
             try {
-                const emojiGuild = await channel.client.guilds.fetch(config.useEmojisFromServer);
+                const emojiGuild = await client.guilds.fetch(config.useEmojisFromServer);
                 if(!emojiGuild) console.error("useEmojisFromServer server not found! Either the ID is incorrect or I am not in that server anymore!");
                 else {
                     await updateEmojiCache(emojiGuild);
@@ -44,12 +47,12 @@ const getOrCreateEmoji = async (channel, name, filenameOrUrl, externalEmojisAllo
         const cachedEmoji = emojiCache[name];
         if(cachedEmoji) return cachedEmoji;
 
-        for(const otherGuild of channel.client.guilds.cache.values()) {
+        for(const otherGuild of client.guilds.cache.values()) {
             const emoji = emojiInGuild(otherGuild, name);
             if(emoji && emoji.available) return addEmojiToCache(emoji);
         }
 
-        if(channel.client.shard) {
+        if(client.shard) {
             const results = await channel.client.shard.broadcastEval(findEmoji, { context: { name } });
             const emoji = results.find(e => e);
             if(emoji) return addEmojiToCache(emoji);

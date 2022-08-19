@@ -223,7 +223,7 @@ export const skinNameAndEmoji = async (skin, channel, locale=DEFAULT_LANG) => {
     const rarity = await getRarity(skin.rarity, channel);
     if(!rarity) return name;
 
-    const rarityIcon = await rarityEmoji(channel, rarity.name, rarity.icon, externalEmojisAllowed(channel));
+    const rarityIcon = await rarityEmoji(channel, rarity.name, rarity.icon);
     return rarityIcon ? `${rarityIcon} ${name}` : name;
 }
 

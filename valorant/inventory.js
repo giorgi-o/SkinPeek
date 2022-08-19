@@ -2,6 +2,7 @@ import {fetch, isMaintenance} from "../misc/util.js";
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {authFailureMessage, skinCollectionSingleEmbed} from "../discord/embed.js";
 import config from "../misc/config.js";
+import {s} from "../misc/languages.js";
 
 
 export const getEntitlements = async (user, itemTypeId, itemType="item") => {
@@ -53,6 +54,9 @@ export const getLoadout = async (user) => {
         }
     }
 
+    const authResult = await authUser(user.id);
+    if(!authResult.success) return authResult;
+
     const req = await fetch(`https://pd.${user.region}.a.pvp.net/personalization/v2/players/${user.puuid}/playerloadout`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
@@ -82,10 +86,10 @@ export const getLoadout = async (user) => {
 
 export const renderCollection = async (interaction) => {
     const authSuccess = await authUser(interaction.user.id);
-    if(!authSuccess.success) return authFailureMessage(interaction, authSuccess, "Auth error, login again");
+    if(!authSuccess.success) return authFailureMessage(interaction, authSuccess, s(interaction).error.AUTH_ERROR_COLLECTION);
 
     const user = getUser(interaction.user.id);
     const loadout = await getLoadout(user);
 
-    return await skinCollectionSingleEmbed(interaction, user, loadout.loadout);
+    return await skinCollectionSingleEmbed(interaction, interaction.user.id, user, loadout.loadout);
 }

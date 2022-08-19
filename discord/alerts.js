@@ -1,5 +1,5 @@
 import {
-    discordTag, emojiToString, externalEmojisAllowed,
+    discordTag,
     fetchChannel,
     getChannelGuildId,
     removeAlertActionRow,
@@ -299,7 +299,7 @@ export const fetchAlerts = async (interaction) => {
     if(!auth.success) return authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS);
 
     const channel = interaction.channel || await fetchChannel(interaction.channelId);
-    const emojiString = emojiToString(await VPEmoji(channel, externalEmojisAllowed(channel)) || s(interaction).info.PRICE);
+    const emojiString = await VPEmoji(interaction, channel);
 
     return await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), 0, emojiString);
 }

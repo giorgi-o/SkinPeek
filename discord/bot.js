@@ -39,8 +39,6 @@ import {getOverallStats, getStatsFor} from "../misc/stats.js";
 import {
     canSendMessages,
     defer,
-    emojiToString,
-    externalEmojisAllowed,
     fetchChannel,
     removeAlertActionRow,
     skinNameAndEmoji,
@@ -497,7 +495,7 @@ client.on("interactionCreate", async (interaction) => {
                     const searchResults = await searchBundle(searchQuery, interaction.locale, 25);
 
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
-                    const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
+                    const emoji = await VPEmoji(interaction, channel);
 
                     // if the name matches exactly, and there is only one with that name
                     const nameMatchesExactly = (interaction) => searchResults.filter(r => l(r.obj.names, interaction).toLowerCase() === searchQuery.toLowerCase()).length === 1;
@@ -568,15 +566,15 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
-                    const VPEmojiPromise = VPEmoji(channel, externalEmojisAllowed(channel));
-                    const RadEmojiPromise = RadEmoji(channel, externalEmojisAllowed(channel));
+                    const VPEmojiPromise = VPEmoji(interaction, channel);
+                    const RadEmojiPromise = RadEmoji(interaction, channel);
 
                     const balance = await getBalance(interaction.user.id);
 
                     if(!balance.success) return await interaction.followUp(authFailureMessage(interaction, balance, "**Could not fetch your balance**, most likely you got logged out. Try logging in again."));
 
-                    const theVPEmoji = emojiToString(await VPEmojiPromise) || "";
-                    const theRadEmoji = emojiToString(await RadEmojiPromise) || "";
+                    const theVPEmoji = await VPEmojiPromise;
+                    const theRadEmoji = await RadEmojiPromise || "";
 
                     await interaction.followUp({
                         embeds: [{ // move this to embed.js?
@@ -1007,7 +1005,7 @@ client.on("interactionCreate", async (interaction) => {
                     const bundle = await getBundle(chosenBundle);
 
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
-                    const emoji = await VPEmoji(channel, externalEmojisAllowed(channel));
+                    const emoji = await VPEmoji(interaction, channel);
                     const message = await renderBundle(bundle, interaction, emoji);
 
                     await interaction.update({
@@ -1071,7 +1069,7 @@ client.on("interactionCreate", async (interaction) => {
                     ephemeral: true
                 });
 
-                const emojiString = emojiToString(await VPEmoji(interaction.channel, externalEmojisAllowed(interaction.channel)) || s(interaction).info.PRICE);
+                const emojiString = await VPEmoji(interaction);
                 await interaction.update(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), parseInt(pageIndex), emojiString));
             } else if(interaction.customId.startsWith("changestatspage")) {
                 const [, id, pageIndex] = interaction.customId.split('/');
@@ -1083,16 +1081,25 @@ client.on("interactionCreate", async (interaction) => {
 
                 await interaction.update(await allStatsEmbed(interaction, await getOverallStats(), parseInt(pageIndex)));
             } else if(interaction.customId.startsWith("clpage")) {
-                const pageIndex = interaction.customId.split('/')[2];
+                const [, id, pageIndex] = interaction.customId.split('/');
 
-                const loadout = (await getLoadout(valorantUser)).loadout;
-                await interaction.update(await skinCollectionPageEmbed(interaction, valorantUser, loadout, parseInt(pageIndex)));
+                let user;
+                if(id !== interaction.user.id) user = getUser(id);
+                else user = valorantUser;
+
+                const loadout = (await getLoadout(user)).loadout;
+                await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadout, parseInt(pageIndex)));
             } else if(interaction.customId.startsWith("clswitch")) {
-                const switchToPage = interaction.customId.split('/')[1] === "p";
-                const loadout = (await getLoadout(valorantUser)).loadout;
+                const [, switchTo, id] = interaction.customId.split('/');
+                const switchToPage = switchTo === "p";
 
-                if(switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, valorantUser, loadout));
-                else await interaction.update(await skinCollectionSingleEmbed(interaction, valorantUser, loadout));
+                let user;
+                if(id !== interaction.user.id) user = getUser(id);
+                else user = valorantUser;
+                const loadout = (await getLoadout(user)).loadout;
+
+                if(switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadout));
+                else await interaction.update(await skinCollectionSingleEmbed(interaction, id, user, loadout));
             } else if(interaction.customId.startsWith("viewbundle")) {
                 const [, id, uuid] = interaction.customId.split('/');
 
@@ -1102,7 +1109,7 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 const bundle = await getBundle(uuid);
-                const emoji = await VPEmoji(interaction.channel, externalEmojisAllowed(interaction.channel));
+                const emoji = await VPEmoji(interaction);
                 await interaction.update({
                     components: [],
                     ...await renderBundle(bundle, interaction, emoji),
