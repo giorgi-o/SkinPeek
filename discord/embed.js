@@ -692,6 +692,8 @@ const alertFieldDescription = async (interaction, channel_id, emojiString, price
 export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiString) => {
     const components = switchAccountButtons(interaction, "alerts");
 
+    alerts = alerts.filter(alert => alert.uuid);
+
     if(alerts.length === 0) {
         return {
             embeds: [basicEmbed(s(interaction).error.NO_ALERTS)],
@@ -701,6 +703,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
 
     if(alerts.length === 1) {
         const alert = alerts[0];
+
         const skin = await getSkin(alert.uuid);
 
         return {
