@@ -43,7 +43,7 @@ export const getSkins = async (user) => {
 
 const loadoutCache = {};
 
-export const getLoadout = async (user) => {
+export const getLoadout = async (user, account) => {
     if(user.puuid in loadoutCache) {
         const cached = loadoutCache[user.puuid];
         if(Date.now() - cached.timestamp > config.loadoutCacheExpiration) {
@@ -54,8 +54,11 @@ export const getLoadout = async (user) => {
         }
     }
 
-    const authResult = await authUser(user.id);
+    const authResult = await authUser(user.id, account);
     if(!authResult.success) return authResult;
+
+    user = getUser(user.id, account);
+    console.log(`Fetching loadout for ${user.username}...`);
 
     const req = await fetch(`https://pd.${user.region}.a.pvp.net/personalization/v2/players/${user.puuid}/playerloadout`, {
         headers: {
