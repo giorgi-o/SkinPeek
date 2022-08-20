@@ -78,6 +78,8 @@ export const getLoadout = async (user) => {
         timestamp: Date.now()
     }
 
+    console.log(`Fetched loadout for ${user.username}`);
+
     return {
         success: true,
         loadout: json
@@ -85,11 +87,9 @@ export const getLoadout = async (user) => {
 }
 
 export const renderCollection = async (interaction) => {
-    const authSuccess = await authUser(interaction.user.id);
-    if(!authSuccess.success) return authFailureMessage(interaction, authSuccess, s(interaction).error.AUTH_ERROR_COLLECTION);
-
     const user = getUser(interaction.user.id);
     const loadout = await getLoadout(user);
+    if(!loadout.success) return authFailureMessage(interaction, loadout, s(interaction).error.AUTH_ERROR_COLLECTION);
 
     return await skinCollectionSingleEmbed(interaction, interaction.user.id, user, loadout.loadout);
 }

@@ -1087,8 +1087,10 @@ client.on("interactionCreate", async (interaction) => {
                 if(id !== interaction.user.id) user = getUser(id);
                 else user = valorantUser;
 
-                const loadout = (await getLoadout(user)).loadout;
-                await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadout, parseInt(pageIndex)));
+                const loadoutResponse = await getLoadout(user);
+                if(!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
+
+                await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadoutResponse.loadout, parseInt(pageIndex)));
             } else if(interaction.customId.startsWith("clswitch")) {
                 const [, switchTo, id] = interaction.customId.split('/');
                 const switchToPage = switchTo === "p";
@@ -1096,8 +1098,11 @@ client.on("interactionCreate", async (interaction) => {
                 let user;
                 if(id !== interaction.user.id) user = getUser(id);
                 else user = valorantUser;
-                const loadout = (await getLoadout(user)).loadout;
 
+                const loadoutResponse = await getLoadout(user);
+                if(!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
+
+                const loadout = loadoutResponse.loadout;
                 if(switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadout));
                 else await interaction.update(await skinCollectionSingleEmbed(interaction, id, user, loadout));
             } else if(interaction.customId.startsWith("viewbundle")) {
