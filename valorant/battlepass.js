@@ -4,11 +4,11 @@ import { getValorantVersion } from "./cache.js";
 import {renderBattlepass} from "../discord/embed.js";
 import {getEntitlements} from "./inventory.js";
 
-const CONTRACT_UUID = "99ac9283-4dd3-5248-2e01-8baf778affb4";
+const CONTRACT_UUID = "2b3a941d-4b85-a0df-5beb-8897224d290a";
 const AVERAGE_UNRATED_XP_CONSTANT = 4200;
 const SPIKERUSH_XP_CONSTANT = 1000;
 const LEVEL_MULTIPLIER = 750;
-const SEASON_END = 'August 24, 2022'; // TODO fetch season end from API, maybe store that date to reduce calls?
+const SEASON_END = '2022-10-18T00:00:00Z'; // TODO fetch season end from API, maybe store that date to reduce calls?
 
 const getWeeklies = async () => {
     console.log("Fetching mission data...");
