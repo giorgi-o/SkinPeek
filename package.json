@@ -3,7 +3,7 @@
   "version": "1.3",
   "main": "SkinPeek.js",
   "dependencies": {
-    "discord.js": "^13.9.2",
+    "discord.js": "^13.10.3",
     "fuzzysort": "^2.0.1",
     "node-cron": "3.0.0"
   },

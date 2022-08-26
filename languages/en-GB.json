@@ -17,6 +17,7 @@
     "AUTH_ERROR_BALANCE": "**Couldn't fetch your balance**, most likely you got logged out. Try logging in again.",
     "AUTH_ERROR_BPASS": "**Couldn't fetch your battlepass progression**, most likely you got logged out. Try logging in again.",
     "AUTH_ERROR_COLLECTION": "**Couldn't fetch your skin collection**, most likely you got logged out. Try logging in again.",
+    "AUTH_ERROR_COLLECTION_OTHER": "**Couldn't fetch {u}'s skin collection**, most likely they got logged out. Tell them to login again.",
     "AUTH_ERROR_ALERTS": "**Your alerts won't work because you got logged out!** Please `/login` again.",
     "AUTH_ERROR_ALERTS_HAPPENED": "**<@{u}> I couldn't check your alerts!** Did you change your password?\nPlease `/login` again.",
     "AUTH_ERROR_RETRY_EXPIRED": "**Unknown Retry operation**, did you wait too long before pressing Retry? Please `/login` again.",
@@ -25,6 +26,7 @@
     "UNKNOWN_ITEM_TYPE": "**Unknown item type!** `{t}`",
     "MAINTENANCE": "**Valorant servers are currently down for maintenance!** Try again later.",
     "OTHER_SHOP_DISABLED": "**{u} disabled the ability to let others see their shop!**",
+    "OTHER_COLLECTION_DISABLED": "**{u} disabled the ability to let others see their collection!**",
     "STATS_DISABLED": "**Shop statistics are currently disabled for this bot!**",
     "EMPTY_STATS":  "**I have no shop stats to display!** use `/shop` to get started.",
     "NO_STATS_FOR_SKIN":  "**That skin hasn't been in anyone's shop** in the past {d} days!",
@@ -98,6 +100,8 @@
     "STATS_CHOICE": "Which skin would you like to see the stats of?",
     "COLLECTION_HEADER": "**{u}**'s Skin Collection:",
     "COLLECTION_VALUE": "Skins Value:",
+    "COLLECTION_VIEW_IMAGES": "View images",
+    "COLLECTION_VIEW_ALL": "View all",
     "ACCOUNT_SWITCHED": "Switched to account number **{n}. {u}**",
     "ACCOUNTS_HEADER": "All your accounts with the bot:",
     "ACCOUNT_CURRENTLY_SELECTED": "(Currently selected)",
@@ -138,6 +142,7 @@
     "SET_QUESTION": "What do you want to set the setting **{s}** to?",
     "CONFIRMATION": "The setting **{s}** is now set to **{v}**.",
     "hideIgn": "Hide in-game name",
-    "othersCanViewShop": "Allow others to use /shop with your username"
+    "othersCanViewShop": "Allow others to use /shop with your username",
+    "othersCanViewColl": "Allow others to use /collection with your username"
   }
 }

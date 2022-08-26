@@ -47,7 +47,7 @@ export const loginUsernamePassword = async (interaction, username, password, ope
         });
     } else {
         console.log(`${interaction.user.tag} login error`);
-        await interaction.followUp(authFailureMessage(interaction, login, s(interaction).error.INVALID_PASSWORD));
+        await interaction.followUp(authFailureMessage(interaction, login, s(interaction).error.INVALID_PASSWORD, true));
     }
 }
 
@@ -85,9 +85,7 @@ export const login2FA = async (interaction, code, operationIndex=null) => {
         });
     } else {
         console.log(`${interaction.user.tag} 2FA code failed`);
-        await interaction.followUp({
-            embeds: [basicEmbed(s(interaction).error.INVALID_2FA)]
-        });
+        await interaction.followUp(authFailureMessage(interaction, login, s(interaction).error.INVALID_2FA, true));
     }
 }
 

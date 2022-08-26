@@ -242,6 +242,12 @@ const commands = [
     {
         name: "collection",
         description: "Show off your skin collection!",
+        options: [{
+            type: "USER",
+            name: "user",
+            description: "Optional: see someone else's collection!",
+            required: false
+        }]
     },
     {
         name: "battlepass",
@@ -444,7 +450,7 @@ client.on("interactionCreate", async (interaction) => {
             switch (interaction.commandName) {
                 case "skins":
                 case "shop": {
-                    let targetId = interaction.user.id;
+                    let targetUser = interaction.user;
 
                     const otherUser = interaction.options.getUser("user");
                     if(otherUser && otherUser.id !== interaction.user.id) {
@@ -457,7 +463,7 @@ client.on("interactionCreate", async (interaction) => {
                             embeds: [basicEmbed(s(interaction).error.OTHER_SHOP_DISABLED.f({u: `<@${otherUser.id}>`}))]
                         });
 
-                        targetId = otherUser.id;
+                        targetUser = otherUser;
                     }
                     else if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
@@ -466,10 +472,10 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const message = await fetchShop(interaction, valorantUser, targetId);
+                    const message = await fetchShop(interaction, valorantUser, targetUser.id);
                     await interaction.followUp(message);
 
-                    console.log(`Sent ${interaction.user.tag}'s shop!`); // also logged if maintenance/login failed
+                    console.log(`Sent ${targetUser.tag}'s shop!`); // also logged if maintenance/login failed
 
                     break;
                 }
@@ -790,17 +796,32 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "collection": {
-                    if(!valorantUser) return await interaction.reply({
+                    let targetUser = interaction.user;
+
+                    const otherUser = interaction.options.getUser("user");
+                    if(otherUser && otherUser.id !== interaction.user.id) {
+                        const otherValorantUser = getUser(otherUser.id);
+                        if(!otherValorantUser) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED_OTHER)]
+                        });
+
+                        if(!getSetting(otherUser.id, "othersCanViewColl")) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.OTHER_COLLECTION_DISABLED.f({u: `<@${otherUser.id}>`}))]
+                        });
+
+                        targetUser = otherUser;
+                    }
+                    else if(!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
                     await defer(interaction);
 
-                    const message = await renderCollection(interaction);
+                    const message = await renderCollection(interaction, targetUser.id);
                     await interaction.followUp(message);
 
-                    console.log(`Sent ${interaction.user.tag}'s collection!`);
+                    console.log(`Sent ${targetUser.tag}'s collection!`);
 
                     break;
                 }

@@ -43,15 +43,15 @@ const thumbnails = [
     "https://media.valorant-api.com/sprays/40ff9251-4c11-b729-1f27-088ee032e7ce/fulltransparenticon.png"
 ];
 
-export const authFailureMessage = (interaction, authResponse, message="AUTH_ERROR", hideEmail=false) => {
+export const authFailureMessage = (interaction, authResponse, message="AUTH_ERROR", isEphemeral=false) => {
     let embed;
 
     if(authResponse.maintenance) embed = basicEmbed(s(interaction).error.MAINTENANCE);
     else if(authResponse.mfa) {
         console.log(`${interaction.user.tag} needs 2FA code`);
         if(authResponse.method === "email") {
-            if(hideEmail) embed = basicEmbed(s(interaction).info.MFA_EMAIL_HIDDEN);
-            else embed = basicEmbed(s(interaction).info.MFA_EMAIL.f({e: escapeMarkdown(authResponse.email)}));
+            if(isEphemeral) embed = basicEmbed(s(interaction).info.MFA_EMAIL.f({e: escapeMarkdown(authResponse.email)}));
+            else embed = basicEmbed(s(interaction).info.MFA_EMAIL_HIDDEN);
         }
         else embed = basicEmbed(s(interaction).info.MFA_GENERIC);
     }
@@ -577,7 +577,9 @@ export const skinCollectionPageEmbed = async (interaction, id, user, loadout, pa
 }
 
 const collectionSwitchEmbedButton = (interaction, switchToPage, id) => {
-    return new MessageButton().setEmoji('🔀').setLabel(s(interaction).info.SWITCH_DESIGN_BUTTON).setStyle("PRIMARY").setCustomId(`clswitch/${switchToPage ? "p" : "s"}/${id}`);
+    const label = s(interaction).info[switchToPage ? "COLLECTION_VIEW_IMAGES" : "COLLECTION_VIEW_ALL"];
+    const customId = `clswitch/${switchToPage ? "p" : "s"}/${id}`;
+    return new MessageButton().setEmoji('🔍').setLabel(label).setStyle("PRIMARY").setCustomId(customId);
 }
 
 export const botInfoEmbed = (interaction, client, guildCount, userCount, registeredUserCount, ownerString, status) => {

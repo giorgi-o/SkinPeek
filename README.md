@@ -15,6 +15,7 @@ Easy to use, has many features, and used by small & large bots alike.
 <img src="https://user-images.githubusercontent.com/20621396/184029864-97c8d7c9-ba21-49f6-9777-1054f6dc9bee.png" alt="reaverstats" width="389" ><br>
 <img src="https://user-images.githubusercontent.com/20621396/184029894-6222e1ed-1536-42f0-bcf4-156a6ea3db06.png" alt="balance" width="284" ><br>
 <img src="https://user-images.githubusercontent.com/20621396/184029907-6df0e9af-a9aa-494c-9577-a4d57cfe5622.png" alt="battlepass" width="504" ><br>
+<img src="https://user-images.githubusercontent.com/20621396/186977298-d668c22c-ccfa-441a-82d9-f7430fe14e25.png" alt="collection" width="506" ><br>
 
 
 </details>
@@ -26,10 +27,10 @@ Feel free to join the [support server](https://discord.gg/yx5sPJxWth) for any he
 - 🔍 See your shop, bundles and night market easily and without lauching the game
 - 🔔 Set skin alerts to be notified automatically when they are in your shop
 - 🔀 Account switcher to check the shop and set alerts for multiple accounts
-- 📋 Automatically track skin occurence stats
+- 📋 Automatically track which skins appear the most in your shop
 - 👀 See the shop of your friends using the bot (can be disabled)
-- ⬛ Hide your Valorant username from the message using `/settings`
 - ✔ Automatically imports new skins from Valorant updates
+- ⬛ Hide your Valorant username from the message using `/settings`
 - 🌍 Skin names are automatically translated to any language that Valorant supports
 - 🛠 For bot admins:
   - Easy to setup, highly configurable in `config.json`
@@ -42,7 +43,6 @@ Feel free to join the [support server](https://discord.gg/yx5sPJxWth) for any he
 
 ## Installation
 
-[![Run on Repl.it](https://replit.com/badge/github/Gam3rBoy57/SkinPeekReplit)](https://replit.com/github/Gam3rBoy57/SkinPeekReplit)
 - [Create a discord bot](https://discordjs.guide/preparations/setting-up-a-bot-application.html#creating-your-bot) and [add it to your server](https://discordjs.guide/preparations/adding-your-bot-to-servers.html#creating-and-using-your-invite-link) with the `bot` and `applications.commands` scope
 - Install [Node.js](https://nodejs.org/en/) v16.6 or newer
 - Clone/[Download](https://github.com/giorgi-o/SkinPeek/archive/refs/heads/master.zip) the repo, rename the `config.json.example` file to `config.json` and put your bot token into it.
@@ -51,14 +51,23 @@ Feel free to join the [support server](https://discord.gg/yx5sPJxWth) for any he
 - Give the bot a [role](https://support.discord.com/hc/en-us/articles/206029707-Setting-Up-Permissions-FAQ) that allows it to send messages and create custom emojis
 - Send `!deploy guild` or `!deploy global` to deploy the commands.
 
-Deploying in the guild happens instantly but the commands can only be used in that guild. Deploying globally can take up to an hour due to Discord's caching.  
-If you deployed both globally and in a guild, you will see every command twice. In that case, just send `!undeploy guild`!
+### Useful Information
 
-By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
-You can log in using [your auth.riotgames.com cookies](https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies) using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
-Obviously, only log in if you trust whoever is hosting the bot, as they can theoretically do anything with your account.
+- Deploying in the guild happens instantly but the commands can only be used in that guild. Deploying globally can take up to an hour due to Discord's caching.  
+  - If you deployed both globally and in a guild, you will see every command twice. In that case, just send `!undeploy guild`!
 
-If you're bored, check out [this writeup](https://gist.github.com/giorgi-o/e0fc2f6160a5fd43f05be8567ad6fdd7) on how Riot treats third-party projects like this one.
+- By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
+  - You can log in using [your auth.riotgames.com cookies](https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies) using `/cookies` to avoid sending your password, and you can delete your account from the bot using `/forget`.  
+  - Obviously, only log in if you trust whoever is hosting the bot, as they can theoretically do anything with your account.
+
+- If you're bored, check out [this writeup](https://gist.github.com/giorgi-o/e0fc2f6160a5fd43f05be8567ad6fdd7) on how Riot treats third-party projects like this one.
+
+### Replit
+
+[![Run on Repl.it](https://replit.com/badge/github/Gam3rBoy57/SkinPeekReplit)](https://replit.com/github/Gam3rBoy57/SkinPeekReplit)  
+Thanks to Gam3rBoy57 for maintaining the Replit version!  
+**Note:** You will probably have to `/login` every day, and your alerts most likely won't work. Read more [here](https://github.com/giorgi-o/SkinPeek/pull/46#issuecomment-1213579690).
+
 
 ### Docker
 
@@ -84,9 +93,9 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 * ~~Shop statistics~~
 * ~~Settings menu~~
 * ~~View other people's shops~~
+* ~~Show off your skin collection~~
 * Option to send shop automatically every day
 * Inspect weapon skin (all 4 levels + videos + radianite upgrade price)
-* Show off your skin collection & account value
 * Admin commands (delete user, see/edit everyone's alerts, etc.)
 
 ## Acknowledgements

@@ -11,6 +11,10 @@ export const settings = {
     othersCanViewShop: {
         values: [true, false],
         default: true
+    },
+    othersCanViewColl: {
+        values: [true, false],
+        default: true
     }
 }
 

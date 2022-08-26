@@ -89,10 +89,16 @@ export const getLoadout = async (user, account) => {
     }
 }
 
-export const renderCollection = async (interaction) => {
-    const user = getUser(interaction.user.id);
+export const renderCollection = async (interaction, targetId=interaction.user.id) => {
+    const user = getUser(targetId);
     const loadout = await getLoadout(user);
-    if(!loadout.success) return authFailureMessage(interaction, loadout, s(interaction).error.AUTH_ERROR_COLLECTION);
+    if(!loadout.success) {
+        let errorText;
+        if(targetId && targetId !== interaction.user.id) errorText = s(interaction).error.AUTH_ERROR_COLLECTION_OTHER.f({u: `<@${targetId}>`});
+        else errorText = s(interaction).error.AUTH_ERROR_COLLECTION;
 
-    return await skinCollectionSingleEmbed(interaction, interaction.user.id, user, loadout.loadout);
+        return authFailureMessage(interaction, loadout, errorText);
+    }
+
+    return await skinCollectionSingleEmbed(interaction, targetId, user, loadout.loadout);
 }
