@@ -141,3 +141,20 @@ export const findTargetAccountIndex = (id, query) => {
     return parseInt(query) || null;
 }
 
+export const removeDupeAccounts = (id, json=readUserJson(id)) => {
+    const accounts = json.accounts;
+    const newAccounts = [];
+    for(let i = 0; i < accounts.length; i++) {
+        const existingAccount = newAccounts.find(a => a.puuid === accounts[i].puuid);
+        if(!existingAccount) newAccounts.push(accounts[i]);
+        else existingAccount.alerts = removeDupeAlerts(existingAccount.alerts.concat(accounts[i].alerts));
+    }
+
+    if(accounts.length !== newAccounts.length) {
+        json.accounts = newAccounts;
+        saveUserJson(id, json);
+    }
+
+    return json;
+}
+

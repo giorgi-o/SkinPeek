@@ -21,7 +21,7 @@ import {l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
-import {readUserJson, saveUser} from "../valorant/accountSwitcher.js";
+import {readUserJson, removeDupeAccounts, saveUser} from "../valorant/accountSwitcher.js";
 import {getSetting, humanifyValue, settingName} from "../misc/settings.js";
 import {VPEmoji} from "./emoji.js";
 
@@ -658,7 +658,7 @@ const pageButtons = (pageId, userId, current, max) => {
 }
 
 export const switchAccountButtons = (interaction, customId, oneAccountButton=false, id=interaction.user.id) => {
-    const json = readUserJson(id);
+    const json = removeDupeAccounts(id);
     if(!json || json.accounts.length === 1 && !oneAccountButton) return [];
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
     const hideIgn = getSetting(id, "hideIgn");

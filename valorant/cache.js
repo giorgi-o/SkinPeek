@@ -10,7 +10,7 @@ import {sendShardMessage} from "../misc/shardMessage.js";
 const formatVersion = 7;
 let gameVersion;
 
-let weapons, skins, rarities, buddies, sprays, cards, titles, bundles;
+let weapons, skins, rarities, buddies, sprays, cards, titles, bundles, battlepass;
 let prices = {timestamp: null};
 
 export const getValorantVersion = async () => {
@@ -38,10 +38,11 @@ export const loadSkinsJSON = async (filename="data/skins.json") => {
     sprays = jsonData.sprays;
     cards = jsonData.cards;
     titles = jsonData.titles;
+    battlepass = jsonData.battlepass;
 }
 
 export const saveSkinsJSON = (filename="data/skins.json") => {
-    fs.writeFileSync(filename, JSON.stringify({formatVersion, gameVersion, weapons, skins, prices, bundles, rarities, buddies, sprays, cards, titles}, null, 2));
+    fs.writeFileSync(filename, JSON.stringify({formatVersion, gameVersion, weapons, skins, prices, bundles, rarities, buddies, sprays, cards, titles, battlepass}, null, 2));
 }
 
 export const fetchData = async (types=null, checkVersion=false) => {
@@ -51,7 +52,7 @@ export const fetchData = async (types=null, checkVersion=false) => {
             await loadSkinsJSON();
         }
 
-        if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles];
+        if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles, battlepass];
 
         const promises = [];
 
@@ -63,6 +64,7 @@ export const fetchData = async (types=null, checkVersion=false) => {
         if(types.includes(cards) && (!cards || cards.version !== gameVersion)) promises.push(getCards(gameVersion));
         if(types.includes(sprays) && (!sprays || sprays.version !== gameVersion)) promises.push(getSprays(gameVersion));
         if(types.includes(titles) && (!titles || titles.version !== gameVersion)) promises.push(getTitles(gameVersion));
+        if(types.includes(battlepass) && (!battlepass || battlepass.version !== gameVersion)) promises.push(fetchBattlepassInfo(gameVersion));
 
         if(!prices || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) promises.push(getPrices(gameVersion)); // refresh prices every 24h
 
@@ -381,6 +383,40 @@ export const getTitles = async (gameVersion) => {
     saveSkinsJSON();
 }
 
+export const fetchBattlepassInfo = async (gameVersion) => {
+    console.log("Fetching battlepass UUID and end date...");
+
+    // current season & end date
+    const req1 = await fetch("https://valorant-api.com/v1/seasons");
+    console.assert(req1.statusCode === 200, `Valorant seasons status code is ${req1.statusCode}!`, req1);
+
+    const json1 = JSON.parse(req1.body);
+    console.assert(json1.status === 200, `Valorant seasons data status code is ${json1.status}!`, json1);
+
+    // battlepass uuid
+    const req2 = await fetch("https://valorant-api.com/v1/contracts");
+    console.assert(req2.statusCode === 200, `Valorant contracts status code is ${req2.statusCode}!`, req2);
+
+    const json2 = JSON.parse(req2.body);
+    console.assert(json2.status === 200, `Valorant contracts data status code is ${json2.status}!`, json2);
+
+    // find current season
+    const now = Date.now();
+    const currentSeason = json1.data.find(season => season.type === "EAresSeasonType::Act" && new Date(season.startTime) < now && new Date(season.endTime) > now);
+
+    // find current battlepass
+    const currentBattlepass = json2.data.find(contract => contract.content.relationUuid === currentSeason.uuid);
+
+    // save data
+    battlepass = {
+        version: gameVersion,
+        uuid: currentBattlepass.uuid,
+        end: currentSeason.endTime
+    }
+
+    saveSkinsJSON();
+}
+
 export const getItem = async (uuid, type) =>  {
     switch(type) {
         case itemTypes.SKIN: return await getSkin(uuid);
@@ -503,4 +539,9 @@ export const getCard = async (uuid) => {
 export const getTitle = async (uuid) => {
     if(!titles) await fetchData([titles]);
     return titles[uuid];
+}
+
+export const getBattlepassInfo = async () => {
+    if(!battlepass) await fetchData([battlepass]);
+    return battlepass;
 }

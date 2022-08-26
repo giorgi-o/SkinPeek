@@ -1,14 +1,12 @@
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {fetch, isMaintenance, userRegion} from "../misc/util.js";
-import { getValorantVersion } from "./cache.js";
+import {getBattlepassInfo, getValorantVersion} from "./cache.js";
 import {renderBattlepass} from "../discord/embed.js";
 import {getEntitlements} from "./inventory.js";
 
-const CONTRACT_UUID = "2b3a941d-4b85-a0df-5beb-8897224d290a";
 const AVERAGE_UNRATED_XP_CONSTANT = 4200;
 const SPIKERUSH_XP_CONSTANT = 1000;
 const LEVEL_MULTIPLIER = 750;
-const SEASON_END = '2022-10-18T00:00:00Z'; // TODO fetch season end from API, maybe store that date to reduce calls?
 
 const getWeeklies = async () => {
     console.log("Fetching mission data...");
@@ -73,22 +71,18 @@ export const getBattlepassProgress = async (id, maxlevel) => {
     } else if (isMaintenance(json))
         return { success: false, maintenance: true };
 
+    const battlepassInfo = await getBattlepassInfo();
+    const contract = json.Contracts.find(contract => contract.ContractDefinitionID === battlepassInfo.uuid);
 
-    let contractData = {};
-    json["Contracts"].forEach(contract => {
-        if (contract.ContractDefinitionID === CONTRACT_UUID) {
-            contractData = {
-                progressionLevelReached: contract.ProgressionLevelReached,
-                progressionTowardsNextLevel: contract.ProgressionTowardsNextLevel,
-                totalProgressionEarned: contract.ContractProgression.TotalProgressionEarned
-            };
+    const contractData = {
+        progressionLevelReached: contract.ProgressionLevelReached,
+        progressionTowardsNextLevel: contract.ProgressionTowardsNextLevel,
+        totalProgressionEarned: contract.ContractProgression.TotalProgressionEarned,
+        missions: {
+            missionArray: json.Missions,
+            weeklyCheckpoint: json.MissionMetadata.WeeklyCheckpoint
         }
-
-    contractData["missions"] = {
-        missionArray: json.Missions,
-        weeklyCheckpoint: json.MissionMetadata.WeeklyCheckpoint
     }
-    });
 
     const weeklyxp = await getWeeklyXP(contractData.missions);
     const battlepassPurchased = await getBattlepassPurchase(id);
@@ -97,7 +91,7 @@ export const getBattlepassProgress = async (id, maxlevel) => {
         return battlepassPurchased;
 
     // Calculate
-    const season_end = new Date(SEASON_END);
+    const season_end = new Date(battlepassInfo.end);
     const season_now = Date.now();
     const season_left = Math.abs(season_end - season_now);
     const season_days_left = Math.floor(season_left / (1000 * 60 * 60 * 24)); // 1000 * 60 * 60 * 24 is one day in milliseconds
@@ -181,8 +175,10 @@ const getBattlepassPurchase = async (id) => {
     const data = await getEntitlements(user, "f85cb6f7-33e5-4dc8-b609-ec7212301948", "battlepass");
     if(!data.success) return false;
 
+    const battlepassInfo = await getBattlepassInfo();
+
     for (let entitlement of data.entitlements.Entitlements) {
-        if (entitlement.ItemID === CONTRACT_UUID) {
+        if (entitlement.ItemID === battlepassInfo.uuid) {
             return true;
         }
     }
