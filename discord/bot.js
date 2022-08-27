@@ -45,7 +45,7 @@ import {
     valNamesToDiscordNames,
     wait
 } from "../misc/util.js";
-import config, {saveConfig} from "../misc/config.js";
+import config, {loadConfig, saveConfig} from "../misc/config.js";
 import {sendConsoleOutput} from "../misc/logger.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
 import {
@@ -350,6 +350,19 @@ client.on("messageCreate", async (message) => {
                 if(client.shard) sendShardMessage({type: "configReload"});
 
                 let s = "Successfully reloaded the config!";
+                if(config.token !== oldToken)
+                    s += "\nI noticed you changed the token. You'll have to restart the bot for that to happen."
+                await message.reply(s);
+            } else if(splits[1] === "load") {
+                const oldToken = config.token;
+
+                loadConfig();
+                destroyTasks();
+                scheduleTasks();
+
+                if(client.shard) sendShardMessage({type: "configReload"});
+
+                let s = "Successfully reloaded the config from disk!";
                 if(config.token !== oldToken)
                     s += "\nI noticed you changed the token. You'll have to restart the bot for that to happen."
                 await message.reply(s);
