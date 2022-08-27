@@ -1153,7 +1153,8 @@ client.on("interactionCreate", async (interaction) => {
                     embeds: [basicEmbed(s(interaction).error.GENERIC_NO_PERMS)]
                 });
 
-                const message = interaction.message;
+                const channel = await client.channels.fetch(interaction.channelId);
+                const message = await channel.messages.fetch(interaction.message.id);
                 if(!message.components) message.components = switchAccountButtons(interaction, customId, true);
 
                 for(const actionRow of message.components) {
@@ -1173,7 +1174,7 @@ client.on("interactionCreate", async (interaction) => {
 
                 const success = switchAccount(interaction.user.id, parseInt(accountIndex));
                 if(!success) return await interaction.followUp({
-                        embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH)],
+                        embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
                         ephemeral: true
                 });
 
@@ -1188,7 +1189,8 @@ client.on("interactionCreate", async (interaction) => {
 
                 if(!newMessage.components) newMessage.components = switchAccountButtons(interaction, customId, true);
 
-                await interaction.message.edit(newMessage);
+
+                await message.edit(newMessage);
             }
         } catch(e) {
             await handleError(e, interaction);
