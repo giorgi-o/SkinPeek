@@ -366,6 +366,9 @@ client.on("messageCreate", async (message) => {
                 if(config.token !== oldToken)
                     s += "\nI noticed you changed the token. You'll have to restart the bot for that to happen."
                 await message.reply(s);
+            } else if(splits[1] === "read") {
+                const s = "Here is the config.json the bot currently has loaded:```json\n" + JSON.stringify({...config, token: "[redacted]"}, null, 2) + "```";
+                await message.reply(s);
             } else {
                 const target = splits[1];
                 const value = splits.slice(2).join(' ');
