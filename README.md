@@ -107,6 +107,8 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 - [warriorzz](https://github.com/warriorzz) for setting up the Docker
 - [The dev discord server](https://discord.gg/a9yzrw3KAm), join here!
 
+Special thanks to [Mistral](https://github.com/blongnh), [Jukki](https://github.com/Kyedae) and [Keny](https://github.com/pandakeny) for their countless bug reports, suggestions and feedback, and without whom the bot wouldn't be anywhere near as good as what it is today.
+
 ## Translations
 
 If you are fluent in another language and would like help translate the bot, please do!
