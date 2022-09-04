@@ -158,6 +158,7 @@ export const getShopCache = (puuid, target="offers", print=true) => {
 
         let expiresTimestamp;
         if(target === "offers") expiresTimestamp = shopCache[target].expires;
+        else if(target === "night_market") expiresTimestamp = shopCache[target] ? shopCache[target].expires : getMidnightTimestamp(shopCache.timestamp);
         else if(target === "bundles") expiresTimestamp = Math.min(...shopCache.bundles.map(bundle => bundle.expires), get9PMTimetstamp(Date.now()));
         else if(target === "all") expiresTimestamp = Math.min(shopCache.offers.expires, ...shopCache.bundles.map(bundle => bundle.expires), get9PMTimetstamp(Date.now()), shopCache.night_market.expires);
         else console.error("Invalid target for shop cache! " + target);
@@ -193,6 +194,11 @@ const addShopCache = (puuid, shopJson) => {
     fs.writeFileSync("data/shopCache/" + puuid + ".json", JSON.stringify(shopCache, null, 2));
 
     console.log(`Added shop cache for user ${discordTag(puuid)}`);
+}
+
+const getMidnightTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 23, 59, 59, 999) / 1000;
 }
 
 const get9PMTimetstamp = (timestamp) => { // new bundles appear at 9PM UTC
