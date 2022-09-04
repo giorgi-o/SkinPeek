@@ -60,6 +60,10 @@ const importLanguage = (language) => {
         });
     }
 
+    for(const category in languages[DEFAULT_LANG]) {
+        if(!languageHandler[category]) languageHandler[category] = languages[DEFAULT_LANG][category];
+    }
+
     languages[language] = languageHandler;
 }
 importLanguage(DEFAULT_LANG);
