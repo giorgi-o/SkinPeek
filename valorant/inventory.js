@@ -1,6 +1,6 @@
 import {fetch, isMaintenance} from "../misc/util.js";
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
-import {authFailureMessage, skinCollectionSingleEmbed} from "../discord/embed.js";
+import {authFailureMessage, basicEmbed, skinCollectionSingleEmbed} from "../discord/embed.js";
 import config from "../misc/config.js";
 import {s} from "../misc/languages.js";
 
@@ -91,6 +91,8 @@ export const getLoadout = async (user, account) => {
 
 export const renderCollection = async (interaction, targetId=interaction.user.id) => {
     const user = getUser(targetId);
+    if(!user) return await interaction.reply({embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)]});
+
     const loadout = await getLoadout(user);
     if(!loadout.success) {
         let errorText;

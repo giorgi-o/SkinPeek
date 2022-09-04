@@ -32,7 +32,9 @@ export const getUserJson = (id, account=null) => {
         return userJson.accounts[account || 1];
     }
 
-    return user.accounts[(account || user.currentAccount) - 1];
+    account = account || user.currentAccount || 1;
+    if(account > user.accounts.length) account = 1;
+    return user.accounts[account - 1];
 }
 
 export const saveUserJson = (id, json) => {
