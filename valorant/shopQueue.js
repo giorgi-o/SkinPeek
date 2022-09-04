@@ -15,7 +15,7 @@ let queueCounter = 0;
 let processingCount = 0;
 
 export const queueItemShop = async (id) => {
-    if(!config.useShopQueue || shopCached(id)) return {inQueue: false, ...await getOffers(id)};
+    if(!config.useShopQueue || shopCached(id, "offers")) return {inQueue: false, ...await getOffers(id)};
     const c = queueCounter++;
     queue.push({
         operation: Operations.SHOP,
@@ -28,7 +28,7 @@ export const queueItemShop = async (id) => {
 }
 
 export const queueNightMarket = async (id) => {
-    if(!config.useShopQueue || shopCached(id)) return {inQueue: false, ...await getNightMarket(id)};
+    if(!config.useShopQueue || shopCached(id, "night_market")) return {inQueue: false, ...await getNightMarket(id)};
     const c = queueCounter++;
     queue.push({
         operation: Operations.NIGHT_MARKET,
@@ -41,7 +41,7 @@ export const queueNightMarket = async (id) => {
 }
 
 export const queueBundles = async (id) => {
-    if(!config.useShopQueue || shopCached(id, true)) return {inQueue: false, ...await getBundles(id)};
+    if(!config.useShopQueue || shopCached(id, "bundles")) return {inQueue: false, ...await getBundles(id)};
     const c = queueCounter++;
     queue.push({
         operation: Operations.BUNDLES,
@@ -119,6 +119,6 @@ export const getShopQueueItemStatus = (c) => {
     return {processed: true, result: item.result};
 }
 
-const shopCached = (id, bundles=false) => {
-    return getShopCache(getPuuid(id), bundles, false) !== null;
+const shopCached = (id, target="all") => {
+    return getShopCache(getPuuid(id), target, false) !== null;
 }

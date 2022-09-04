@@ -7,7 +7,6 @@ import {
     formatNightMarket,
     getPuuid,
     isMaintenance,
-    isToday,
     userRegion
 } from "../misc/util.js";
 import {addBundleData} from "./cache.js";
@@ -59,7 +58,7 @@ const getShop = async (id, account=null) => {
 }
 
 export const getOffers = async (id, account=null) => {
-    const shopCache = getShopCache(getPuuid(id, account));
+    const shopCache = getShopCache(getPuuid(id, account), "offers");
     if(shopCache) return {success: true, cached: true, ...shopCache.offers};
 
     const resp = await getShop(id, account);
@@ -73,7 +72,7 @@ export const getOffers = async (id, account=null) => {
 }
 
 export const getBundles = async (id, account=null) => {
-    const shopCache = getShopCache(getPuuid(id, account), true);
+    const shopCache = getShopCache(getPuuid(id, account), "bundles");
     if(shopCache) return {success: true, bundles: shopCache.bundles};
 
     const resp = await getShop(id, account);
@@ -85,7 +84,7 @@ export const getBundles = async (id, account=null) => {
 }
 
 export const getNightMarket = async (id, account=null) => {
-    const shopCache = getShopCache(getPuuid(id, account));
+    const shopCache = getShopCache(getPuuid(id, account), "night_market");
     if(shopCache) return {success: true, ...shopCache.night_market};
 
     const resp = await getShop(id, account);
@@ -151,15 +150,22 @@ export const getBalance = async (id, account=null) => {
  * }
  */
 
-export const getShopCache = (puuid, bundles=false, print=true) => {
+export const getShopCache = (puuid, target="offers", print=true) => {
     if(!config.useShopCache) return null;
+
     try {
         const shopCache = JSON.parse(fs.readFileSync("data/shopCache/" + puuid + ".json", "utf8"));
-        if(shopCache && isToday(shopCache.timestamp)) {
-            if(bundles && new Date(shopCache.timestamp).getUTCHours() < 21 && new Date().getUTCHours() >= 21) return null; // bundles change at 21:00 UTC
-            if(print) console.log(`Fetched shop cache for user ${discordTag(puuid)}`);
-            return shopCache;
-        }
+
+        let expiresTimestamp;
+        if(target === "offers") expiresTimestamp = shopCache[target].expires;
+        else if(target === "bundles") expiresTimestamp = Math.min(...shopCache.bundles.map(bundle => bundle.expires), get9PMTimetstamp(Date.now()));
+        else if(target === "all") expiresTimestamp = Math.min(shopCache.offers.expires, ...shopCache.bundles.map(bundle => bundle.expires), get9PMTimetstamp(Date.now()), shopCache.night_market.expires);
+        else console.error("Invalid target for shop cache! " + target);
+
+        if(Date.now() / 1000 > expiresTimestamp) return null;
+
+        if(print) console.log(`Fetched shop cache for user ${discordTag(puuid)}`);
+        return shopCache;
     } catch(e) {}
     return null;
 }
@@ -187,4 +193,9 @@ const addShopCache = (puuid, shopJson) => {
     fs.writeFileSync("data/shopCache/" + puuid + ".json", JSON.stringify(shopCache, null, 2));
 
     console.log(`Added shop cache for user ${discordTag(puuid)}`);
+}
+
+const get9PMTimetstamp = (timestamp) => { // new bundles appear at 9PM UTC
+    const date = new Date(timestamp);
+    return Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), 20, 59, 59, 999) / 1000;
 }
