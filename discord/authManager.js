@@ -20,7 +20,7 @@ export const loginUsernamePassword = async (interaction, username, password, ope
     if(login.success && user) {
         console.log(`${interaction.user.tag} logged in as ${user.username}`);
         await interaction.followUp({
-            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))],
+            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction))],
             ephemeral: true
         });
         setUserLocale(user, interaction.locale);

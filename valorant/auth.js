@@ -278,7 +278,7 @@ const getUserInfo = async (user) => {
     const json = JSON.parse(req.body);
     if(json.acct) return {
         puuid: json.sub,
-        username: json.acct.game_name + "#" + json.acct.tag_line
+        username: json.acct.game_name && json.acct.game_name + "#" + json.acct.tag_line
     }
 }
 

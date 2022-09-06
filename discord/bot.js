@@ -716,7 +716,7 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction, true);
 
                     const json = readUserJson(interaction.user.id);
-                    if(json && json.accounts.length > config.maxAccountsPerUser) {
+                    if(json && json.accounts.length >= config.maxAccountsPerUser) {
                         return await interaction.followUp({
                             embeds: [basicEmbed(s(interaction).error.TOO_MANY_ACCOUNTS.f({n: config.maxAccountsPerUser}))]
                         })
