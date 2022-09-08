@@ -110,6 +110,11 @@
     "LOADING": "Loading...",
     "HIDDEN_USERNAME": "username hidden",
     "NO_USERNAME": "[No username]",
+    "NO_MAINTENANCES": "No reported maintenances or incidents in **{r}** at the moment!",
+    "MAINTENANCE_HEADER": "Current {t} message in {r}:",
+    "MAINTENANCE_TYPE": "maintenance",
+    "INCIDENT_TYPE": "incident",
+    "LAST_UPDATED": "Last updated <t:{t}:R>",
     "UNHANDLED_COMMAND": "Yer a wizard harry!"
   },
   "battlepass": {

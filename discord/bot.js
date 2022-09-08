@@ -15,7 +15,7 @@ import {
     statsForSkinEmbed,
     allStatsEmbed,
     accountsListEmbed,
-    switchAccountButtons, skinCollectionPageEmbed, skinCollectionSingleEmbed
+    switchAccountButtons, skinCollectionPageEmbed, skinCollectionSingleEmbed, valMaintenancesEmbeds
 } from "./embed.js";
 import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
@@ -39,7 +39,7 @@ import {getOverallStats, getStatsFor} from "../misc/stats.js";
 import {
     canSendMessages,
     defer,
-    fetchChannel,
+    fetchChannel, fetchMaintenances,
     removeAlertActionRow,
     skinNameAndEmoji,
     valNamesToDiscordNames,
@@ -286,6 +286,10 @@ const commands = [
     {
         name: "accounts",
         description: "Show all of your Valorant accounts"
+    },
+    {
+        name: "valstatus",
+        description: "Check the status of your account's VALORANT servers"
     },
     {
         name: "info",
@@ -943,6 +947,14 @@ client.on("interactionCreate", async (interaction) => {
                         case "view": return await handleSettingsViewCommand(interaction);
                         case "set": return await handleSettingsSetCommand(interaction);
                     }
+
+                    break;
+                }
+                case "valstatus": {
+                    await defer(interaction);
+
+                    const json = await fetchMaintenances(valorantUser.region);
+                    await interaction.followUp(valMaintenancesEmbeds(interaction, json));
 
                     break;
                 }

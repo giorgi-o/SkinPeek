@@ -182,6 +182,11 @@ export const formatBundle = async (rawBundle) => {
     return bundle;
 }
 
+export const fetchMaintenances = async (region) => {
+    const req = await fetch(`https://valorant.secure.dyn.riotcdn.net/channels/public/x/status/${region}.json`);
+    return JSON.parse(req.body);
+}
+
 export const formatNightMarket = (rawNightMarket) => {
     if(!rawNightMarket) return null;
 

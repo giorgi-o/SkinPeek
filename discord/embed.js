@@ -17,7 +17,7 @@ import {
     fetchChannel
 } from "../misc/util.js";
 import config from "../misc/config.js";
-import {l, s} from "../misc/languages.js";
+import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
 import {MessageActionRow, MessageButton} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
@@ -892,6 +892,37 @@ export const settingsEmbed = (userSettings, interaction) => {
 
     return {
         embeds: [embed]
+    }
+}
+
+export const valMaintenancesEmbeds = (interaction, {maintenances, incidents, id: regionName}) => {
+    const embeds = [];
+    for(const maintenance of maintenances) {
+        embeds.push(valMaintenanceEmbed(interaction, maintenance, false, regionName));
+    }
+    for(const incident of incidents) {
+        embeds.push(valMaintenanceEmbed(interaction, incident, true, regionName));
+    }
+
+    if(!embeds.length) {
+        embeds.push(basicEmbed(s(interaction).info.NO_MAINTENANCES.f({r: regionName})));
+    }
+
+    return {
+        embeds: embeds
+    }
+}
+
+export const valMaintenanceEmbed = (interaction, target, isIncident, regionName) => {
+    const update = target.updates[0] || {};
+    const strings = update.translations || target.titles;
+    const string = (strings.find(s => s.locale === (discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG)) || strings[0]).content;
+    const lastUpdate = Math.round(new Date(update.created_at || target.created_at) / 1000);
+    const targetType = isIncident ? s(interaction).info.INCIDENT_TYPE : s(interaction).info.MAINTENANCE_TYPE;
+
+    return {
+        title: s(interaction).info.MAINTENANCE_HEADER.f({t: targetType, r: regionName}),
+        description: `> ${string}\n*${s(interaction).info.LAST_UPDATED.f({t: lastUpdate})}*`,
     }
 }
 

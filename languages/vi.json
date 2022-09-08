@@ -110,6 +110,10 @@
       "LOADING": "Đang tải...",
       "HIDDEN_USERNAME": "tên đã ẩn",
       "NO_USERNAME": "[Không có tên]",
+      "NO_MAINTENANCES": "Chưa có thông tin về lần bảo trì tiếp theo tại **{r}** vào thời điểm hiện tại!",
+      "MAINTENANCE_HEADER": "Thông tin {t} hiện tại trong khu vực {r}:",
+      "MAINTENANCE_TYPE": "bảo trì",
+      "INCIDENT_TYPE": "sự cố",
       "UNHANDLED_COMMAND": "Lệnh không tồn tại"
     },
     "battlepass": {
@@ -146,4 +150,4 @@
       "othersCanViewColl": "Cho phép mọi người xem /collection của bạn"
     }
   }
-  
+
