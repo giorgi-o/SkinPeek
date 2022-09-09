@@ -102,6 +102,7 @@ export const l = (names, interaction) => {
 
 const hideUsername = (args, interactionOrId) => {
     if(!args.u) return {...args, u: s(interactionOrId).info.NO_USERNAME};
+    if(!interactionOrId) return args;
 
     const id = typeof interactionOrId === 'string' ? interactionOrId : interactionOrId.user.id;
     const hide = getSetting(id, 'hideIgn');
