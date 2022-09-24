@@ -91,7 +91,7 @@ export const authUser = async (id, account=null) => {
     return await refreshToken(id, account);
 }
 
-const userAgent = "RiotClient/51.0.0.4429735.4381201 rso-auth (Windows;10;;Professional, x64)";
+const userAgent = "RiotClient/56.0.0.4578455.4552318 rso-auth (Windows;10;;Professional, x64)";
 
 export const redeemUsernamePassword = async (id, login, password) => {
 
