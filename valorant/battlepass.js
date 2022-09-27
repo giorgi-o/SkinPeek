@@ -1,3 +1,4 @@
+
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {fetch, isMaintenance, userRegion} from "../misc/util.js";
 import {getBattlepassInfo, getValorantVersion} from "./cache.js";
@@ -44,6 +45,101 @@ const calculate_level_xp = async (level) => {
         return 0
     }
 }
+
+const getNextReward = async (CurrentTier) => {
+    // fetch
+    const request = await fetch(`https://valorant-api.com/v1/contracts`);
+    
+    // convert to json
+    const contracts = JSON.parse(request.body);
+
+    const battlepassInfo = await getBattlepassInfo();
+
+    // find the contract - undefined if doesn't exist
+    const contract = contracts.data.find(contract => contract.uuid === battlepassInfo.uuid);
+    const chapters = contract.content.chapters
+        .map(chapter => chapter.levels) // only premium items
+        .flatMap(levels => levels); // map into single array
+
+        
+    const nextTier = chapters.find((_, i) => i === CurrentTier);
+
+    console.log(nextTier);
+
+    // tier not found, probably completed battle pass
+    if(typeof nextTier === 'undefined')
+        return {
+            tier: 56,
+            rewardName: 'You completed the battle pass.',
+            rewardIcon: 'You completed the battle pass.'
+        };
+    
+    const rewardType = nextTier.reward.type;
+    const rewardUUID = nextTier.reward.uuid;
+    const xpAmount = nextTier.xp;
+
+    switch(rewardType) {
+        case "EquippableSkinLevel": {
+            const req = await fetch(`https://valorant-api.com/v1/weapons/skinlevels/${rewardUUID}`);
+            const json = JSON.parse(req.body);
+
+            return {
+                tier: CurrentTier + 1,
+                rewardName: json.data.displayName,
+                rewardIcon: json.data.displayIcon,
+                rewardType: rewardType,
+                XP: xpAmount
+            };
+        }
+        case "EquippableCharmLevel": {
+            const req = await fetch(`https://valorant-api.com/v1/buddies/levels/${rewardUUID}`);
+            const json = JSON.parse(req.body);
+
+            console.log(json)
+            return {
+                tier: CurrentTier + 1,
+                rewardName: json.data.displayName,
+                rewardIcon: json.data.displayIcon,
+                rewardType: rewardType,
+                XP: xpAmount
+            };
+        }
+        case "Currency":
+            // Always 10 Radianite, no UUID and req needed, return Image Link and "Radianite"
+            return {
+                tier: CurrentTier + 1,
+                rewardName: 'Radianite',
+                rewardIcon: 'https://media.valorant-api.com/currencies/e59aa87c-4cbf-517a-5983-6e81511be9b7/displayicon.png',
+                rewardType: rewardType,
+                XP: xpAmount
+            };
+        case "PlayerCard": {
+            const req = await fetch(`https://valorant-api.com/v1/playercards/${rewardUUID}`);
+            const json = JSON.parse(req.body);
+    
+            return {
+                tier: CurrentTier + 1,
+                rewardName: json.data.displayName,
+                rewardIcon: json.data.displayIcon,
+                rewardType: rewardType,
+                XP: xpAmount
+            };
+        }
+        case "Spray": {
+            const req = await fetch(`https://valorant-api.com/v1/sprays/${rewardUUID}`);
+            const json = JSON.parse(req.body);
+    
+            return {
+                tier: CurrentTier + 1,
+                rewardName: json.data.displayName,
+                rewardIcon: json.data.fullTransparentIcon,
+                rewardType: rewardType,
+                XP: xpAmount
+            };
+        }
+    }
+}
+
 
 export const getBattlepassProgress = async (id, maxlevel) => {
     const authSuccess = await authUser(id);
@@ -116,6 +212,7 @@ export const getBattlepassProgress = async (id, maxlevel) => {
         success: true,
         bpdata: contractData,
         battlepassPurchased: battlepassPurchased,
+        nextReward: await getNextReward(contractData.progressionLevelReached, battlepassInfo.uuid),
         season_days_left: season_days_left,
         totalxp: totalxp.toLocaleString(),
         xpneeded: (await calculate_level_xp(contractData.progressionLevelReached + 1) - contractData.progressionTowardsNextLevel).toLocaleString(),
