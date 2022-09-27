@@ -36,6 +36,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "useEmojisFromServer", "");
     applyConfig(loadedConfig, "refreshSkins", "10 0 0 * * *");
     applyConfig(loadedConfig, "checkGameVersion", "*/15 * * * *");
+    applyConfig(loadedConfig, "updateUserAgent", "*/15 * * * *");
     applyConfig(loadedConfig, "delayBetweenAlerts", 5 * 1000);
     applyConfig(loadedConfig, "alertsPerPage", 10);
     applyConfig(loadedConfig, "emojiCacheExpiration", 10 * 1000);
