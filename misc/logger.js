@@ -25,6 +25,8 @@ export const loadLogger = () => {
 }
 
 export const addMessagesToLog = (messages) => {
+    if(!messages.length) return;
+
     const channel = client.channels.cache.get(config.logToChannel);
     if(!channel) {
         //oldLog("I'm not the right shard for logging! ignoring log messages")

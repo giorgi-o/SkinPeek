@@ -17,7 +17,7 @@ import {
     accountsListEmbed,
     switchAccountButtons, skinCollectionPageEmbed, skinCollectionSingleEmbed, valMaintenancesEmbeds
 } from "./embed.js";
-import {authUser, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
+import {authUser, fetchRiotClientVersion, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
 import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
 import {
@@ -78,6 +78,7 @@ client.on("ready", async () => {
 
     console.log("Loading skins...");
     fetchData().then(() => console.log("Skins loaded!"));
+    fetchRiotClientVersion().then(() => console.log("Fetched latest Riot user-agent!"));
 
     scheduleTasks();
 
@@ -101,6 +102,9 @@ export const scheduleTasks = () => {
 
     // if send console to discord channel is enabled, send console output every 10 seconds
     if(config.logToChannel && config.logFrequency) cronTasks.push(cron.schedule(config.logFrequency, sendConsoleOutput));
+
+    // check for a new riot client version (new user agent) every 15mins
+    if(config.updateUserAgent) cronTasks.push(cron.schedule(config.updateUserAgent, fetchRiotClientVersion));
 }
 
 export const destroyTasks = () => {
@@ -1189,7 +1193,7 @@ client.on("interactionCreate", async (interaction) => {
                     for(const component of actionRow.components) {
                         if(component.customId === interaction.customId) {
                             component.label = s(interaction).info.LOADING;
-                            component.style = "DANGER";
+                            component.style = "PRIMARY";
                             component.emoji = {name: '⏳'};
                         }
                     }
