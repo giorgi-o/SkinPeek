@@ -64,8 +64,6 @@ const getNextReward = async (CurrentTier) => {
         
     const nextTier = chapters.find((_, i) => i === CurrentTier);
 
-    console.log(nextTier);
-
     // tier not found, probably completed battle pass
     if(typeof nextTier === 'undefined')
         return {
@@ -95,7 +93,6 @@ const getNextReward = async (CurrentTier) => {
             const req = await fetch(`https://valorant-api.com/v1/buddies/levels/${rewardUUID}`);
             const json = JSON.parse(req.body);
 
-            console.log(json)
             return {
                 tier: CurrentTier + 1,
                 rewardName: json.data.displayName,
