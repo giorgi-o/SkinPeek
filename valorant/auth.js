@@ -143,7 +143,6 @@ export const redeemUsernamePassword = async (id, login, password) => {
         ...parseSetCookie(req2.headers['set-cookie'])
     };
 
-    console.error(req2)
     const json2 = JSON.parse(req2.body);
     if(json2.type === 'error') {
         if(json2.error === "auth_failure") console.error("Authentication failure!", json2);

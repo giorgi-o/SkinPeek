@@ -32,8 +32,8 @@ import {
 } from "./alerts.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
 import {processShopQueue} from "../valorant/shopQueue.js";
-import {getAuthQueueItemStatus, processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
-import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
+import {processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
+import {login2FA, loginUsernamePassword, retryFailedOperation, waitForAuthQueueResponse} from "./authManager.js";
 import {renderBattlepassProgress} from "../valorant/battlepass.js";
 import {getOverallStats, getStatsFor} from "../misc/stats.js";
 import {
@@ -42,8 +42,7 @@ import {
     fetchChannel, fetchMaintenances,
     removeAlertActionRow,
     skinNameAndEmoji,
-    valNamesToDiscordNames,
-    wait
+    valNamesToDiscordNames
 } from "../misc/util.js";
 import config, {loadConfig, saveConfig} from "../misc/config.js";
 import {sendConsoleOutput} from "../misc/logger.js";
@@ -757,12 +756,7 @@ client.on("interactionCreate", async (interaction) => {
                     const cookies = interaction.options.get("cookies").value;
 
                     let success = await queueCookiesLogin(interaction.user.id, cookies);
-
-                    while(success.inQueue) {
-                        const queueStatus = getAuthQueueItemStatus(success.c);
-                        if(queueStatus.processed) success = queueStatus.result;
-                        else await wait(150);
-                    }
+                    success = await waitForAuthQueueResponse(success);
 
                     const user = getUser(interaction.user.id);
                     let embed;

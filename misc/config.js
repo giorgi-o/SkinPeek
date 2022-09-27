@@ -50,6 +50,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "rateLimitBackoff", 60);
     applyConfig(loadedConfig, "useShopQueue", false);
     applyConfig(loadedConfig, "shopQueue", "*/1 * * * * *");
+    applyConfig(loadedConfig, "useMultiqueue", false);
     applyConfig(loadedConfig, "storePasswords", false);
     applyConfig(loadedConfig, "trackStoreStats", false);
     applyConfig(loadedConfig, "statsExpirationDays", 14);

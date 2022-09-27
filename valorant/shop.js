@@ -13,8 +13,11 @@ import {addBundleData} from "./cache.js";
 import {addStore} from "../misc/stats.js";
 import config from "../misc/config.js";
 import {deleteUser} from "./accountSwitcher.js";
+import {mqGetShop, useMultiqueue} from "../misc/multiqueue.js";
 
-const getShop = async (id, account=null) => {
+export const getShop = async (id, account=null) => {
+    if(useMultiqueue()) return await mqGetShop(id, account);
+
     const authSuccess = await authUser(id, account);
     if(!authSuccess.success) return authSuccess;
 
