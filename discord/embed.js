@@ -243,7 +243,19 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 
 export const renderBattlepass = async (battlepass, targetlevel, interaction) => {
     if(!battlepass.success) return authFailureMessage(interaction, battlepass, s(interaction).error.AUTH_ERROR_BPASS);
-
+    if(battlepass.nextReward.rewardType === "EquippableCharmLevel"){
+        battlepass.nextReward.rewardType = "Gun Buddy"
+      }
+      if(battlepass.nextReward.rewardType === "EquippableSkinLevel"){
+        battlepass.nextReward.rewardType = "Skin"
+      }
+      if(battlepass.nextReward.rewardType === "PlayerCard"){
+        battlepass.nextReward.rewardType = "Card"
+      }
+    
+      if(battlepass.nextReward.rewardName === undefined){
+        battlepass.nextReward.rewardName = "Name not found"
+      }
     const user = getUser(interaction.user.id);
 
     let embeds = []
@@ -313,6 +325,20 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction) => 
                     "inline": true
                 }
             ]
+        },
+        {
+            title: "Next Battlepass Reward:",
+            color: VAL_COLOR_1,
+            fields: [
+                {
+                    "name": `**Type:** \`${battlepass.nextReward.rewardType}\``,
+                    "value": `**Reward:** ${battlepass.nextReward.rewardName}\n**XP:** ${battlepass.xpneeded}/${battlepass.nextReward.XP}`,
+                    "inline": true
+                },
+            ],
+            thumbnail: {
+              url: battlepass.nextReward.rewardIcon,
+            },
         });
     } else {
         embeds.push({
