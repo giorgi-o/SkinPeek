@@ -65,6 +65,7 @@ import {
 import fuzzysort from "fuzzysort";
 import {renderCollection} from "../valorant/inventory.js";
 import {getLoadout} from "../valorant/inventory.js";
+import {spawn} from "child_process";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS], // what intents does the bot need
@@ -456,6 +457,38 @@ client.on("messageCreate", async (message) => {
                 await sendShardMessage({type: "checkAlerts"});
                 await message.reply("Told shard 0 to start checking alerts!");
             }
+        } else if(content === "!stop skinpeek") {
+            return process.exit(0);
+        } else if(content === "!update") {
+            console.log("Starting git pull...")
+            await message.reply("Starting `git pull`... (note that this will only work if you `git clone`d the repo, not if you downloaded a zip)");
+
+            const git = spawn("git", ["pull"]);
+            git.stdout.pipe(process.stdout);
+            git.stderr.pipe(process.stderr);
+
+            // store stdout in string
+            let stdout = "";
+            git.stdout.on('data', (data) => stdout += data);
+
+
+            git.on('close', async (code) => {
+                if(code !== 0) {
+                    console.error(`git pull failed with exit code ${code}!`);
+                    await message.reply("`git pull` failed! Check the console for more info.");
+                }
+
+                if(stdout === "Already up to date.\n") {
+                    console.log("Bot is already up to date!");
+                    await message.reply("Bot is already up to date!");
+                }
+                else {
+                    console.log("Git pull succeded! Stopping the bot...");
+                    await message.reply("`git pull` succeded! Stopping the bot...");
+
+                    process.exit(0);
+                }
+            });
         }
     } catch(e) {
         console.error("Error while processing message!");
