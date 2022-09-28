@@ -41,6 +41,7 @@
       "ALERT_NO_PERMS": "**Bot không có quyền gửi các thông báo vào kênh này!**\nĐảm bảo rằng Bot đã có đủ quyền `VIEW_CHANNELS`, `SEND_MESSAGES`, `EMBED_LINKS` và `USE_EXTERNAL_EMOJIS`",
       "GENERIC_NO_PERMS": "**Bot không có quyền làm điều đó trong kênh này!** \nĐảm bảo rằng Bot đã có đủ quyền `VIEW_CHANNELS`, `SEND_MESSAGES`, `EMBED_LINKS` và `USE_EXTERNAL_EMOJIS`",
       "NO_NMARKET": "**Hiện tại đang không có Chợ Đêm!**",
+      "NO_NMARKET_WITH_DATE": "**Hiện tại không có Chợ đêm!** Chợ đêm tiếp theo sẽ xuất hiện sau <t:{t}:R>.",
       "ACCOUNT_NOT_FOUND": "**Không tìm thấy tài khoản**",
       "ACCOUNT_NUMBER_TOO_HIGH": "**Đã đạt giới hạn số lượng tài khoản tối đa ({n} tài khoản)**",
       "TOO_MANY_ACCOUNTS": "**Đã đạt giới hạn số lượng tài khoản tối đa ({n} tài khoản)** Đăng xuất các tài khoản khác trước khi thử lại.",

@@ -214,7 +214,7 @@ export const redeem2FACode = async (id, code) => {
         return {success: false};
     }
 
-    user = await processAuthResponse(id, {login: user.auth.login, password: atob(user.auth.password), cookies: user.auth.cookies}, json, user);
+    user = await processAuthResponse(id, {login: user.auth.login, password: atob(user.auth.password || ""), cookies: user.auth.cookies}, json, user);
 
     delete user.auth.waiting2FA;
     addUser(user);
