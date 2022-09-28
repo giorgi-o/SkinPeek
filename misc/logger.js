@@ -29,11 +29,11 @@ export const addMessagesToLog = (messages) => {
 
     const channel = client.channels.cache.get(config.logToChannel);
     if(!channel) {
-        //oldLog("I'm not the right shard for logging! ignoring log messages")
+        // localLog("I'm not the right shard for logging! ignoring log messages")
         return;
     }
 
-    localLog(`Adding ${messages.length} messages to log...`);
+    // localLog(`Adding ${messages.length} messages to log...`);
 
     messagesToLog.push(...messages);
 }
@@ -47,7 +47,7 @@ export const sendConsoleOutput = () => {
         if(!channel && client.shard) {
             if(messagesToLog.length > 0) sendShardMessage({
                 type: "logMessages",
-                messages: messagesToLog
+                messages: [...messagesToLog]
             })
         }
         else if(channel) {
