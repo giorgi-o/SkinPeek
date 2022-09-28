@@ -41,6 +41,7 @@
     "ALERT_NO_PERMS": "**I don't have the necessary permissions to send alerts in this channel!** Do I have the right role?\nMake sure I can `View Channel`, `Send Messages`, `Embed Links` and `Use External Emojis` in this channel, then try `/testalerts`.",
     "GENERIC_NO_PERMS": "**I don't have the necessary permissions to do that in this channel!** Do I have the right role?\nMake sure I can `View Channel`, `Send Messages`, `Embed Links` and `Use External Emojis` in this channel.",
     "NO_NMARKET": "**There is no Night Market currently!**",
+    "NO_NMARKET_WITH_DATE": "**There is no Night Market currently!** The next one will be <t:{t}:R>.",
     "ACCOUNT_NOT_FOUND": "**Couldn't find that account in your registered accounts!**",
     "ACCOUNT_NUMBER_TOO_HIGH": "**You only have {n} accounts!**",
     "TOO_MANY_ACCOUNTS": "**You can only have maximum {n} accounts on the bot!** `/forget` some accounts and try again.",

@@ -24,6 +24,7 @@ import {getUser} from "../valorant/auth.js";
 import {readUserJson, removeDupeAccounts, saveUser} from "../valorant/accountSwitcher.js";
 import {getSetting, humanifyValue, settingName} from "../misc/settings.js";
 import {VPEmoji} from "./emoji.js";
+import {getNextNightMarketTimestamp} from "../valorant/shop.js";
 
 
 export const VAL_COLOR_1 = 0xFD4553;
@@ -219,7 +220,11 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
     if(!market.success) return authFailureMessage(interaction, market, s(interaction).error.AUTH_ERROR_NMARKET);
 
-    if(!market.offers) return {embeds: [basicEmbed(s(interaction).error.NO_NMARKET)]};
+    if(!market.offers) {
+        const nextNightMarketTimestamp = await getNextNightMarketTimestamp();
+        const text = nextNightMarketTimestamp ? s(interaction).error.NO_NMARKET_WITH_DATE.f({t: nextNightMarketTimestamp}) : s(interaction).error.NO_NMARKET;
+        return {embeds: [basicEmbed(text)]};
+    }
 
     const embeds = [{
         description: s(interaction).info.NMARKET_HEADER.f({u: valorantUser.username, t: market.expires}, interaction),
