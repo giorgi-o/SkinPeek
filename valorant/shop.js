@@ -136,10 +136,10 @@ export const getNextNightMarketTimestamp = async () => {
     if(nextNMTimestampUpdated > Date.now() - 5 * 60 * 1000) return nextNMTimestamp;
 
     // thx Mistral for maintaining this!
-    const req = await fetch("https://gist.githubusercontent.com/blongnh/17bb10db4bb77df5530024bcb0385042/raw/209f0d414df988716439989e1537b5af5ca1146a/nmdate.txt");
+    const req = await fetch("https://gist.githubusercontent.com/blongnh/17bb10db4bb77df5530024bcb0385042/raw/nmdate.txt");
 
     const [timestamp] = req.body.split("\n");
-    nextNMTimestamp = 1664409600; //parseInt(timestamp);
+    nextNMTimestamp = parseInt(timestamp);
     if(isNaN(nextNMTimestamp) || nextNMTimestamp < Date.now() / 1000) nextNMTimestamp = null;
 
     nextNMTimestampUpdated = Date.now();
