@@ -18,7 +18,7 @@ export const waitForAuthQueueResponse = async (queueResponse, pollRate=150) => {
 
 export const loginUsernamePassword = async (interaction, username, password, operationIndex=null) => {
     let login = await queueUsernamePasswordLogin(interaction.user.id, username, password);
-    login = await waitForAuthQueueResponse(login);
+    if(login.inQueue) login = await waitForAuthQueueResponse(login);
 
     const user = getUser(interaction.user.id);
     if(login.success && user) {
@@ -57,7 +57,7 @@ export const loginUsernamePassword = async (interaction, username, password, ope
 
 export const login2FA = async (interaction, code, operationIndex=null) => {
     let login = await queue2FACodeRedeem(interaction.user.id, code);
-    login = await waitForAuthQueueResponse(login);
+    if(login.inQueue) login = await waitForAuthQueueResponse(login);
 
     const user = getUser(interaction.user.id);
     if(login.success && user) {

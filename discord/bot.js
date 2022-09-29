@@ -789,7 +789,7 @@ client.on("interactionCreate", async (interaction) => {
                     const cookies = interaction.options.get("cookies").value;
 
                     let success = await queueCookiesLogin(interaction.user.id, cookies);
-                    success = await waitForAuthQueueResponse(success);
+                    if(success.inQueue) success = await waitForAuthQueueResponse(success);
 
                     const user = getUser(interaction.user.id);
                     let embed;

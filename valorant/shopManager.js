@@ -19,7 +19,7 @@ export const fetchShop = async (interaction, user, targetId=interaction.user.id)
     const emojiPromise = VPEmoji(interaction, channel);
 
     let shop = await queueItemShop(targetId);
-    shop = await waitForShopQueueResponse(shop);
+    if(shop.inQueue) shop = await waitForShopQueueResponse(shop);
 
     return await renderOffers(shop, interaction, user, await emojiPromise, targetId);
 }
@@ -29,7 +29,7 @@ export const fetchBundles = async (interaction) => {
     const emojiPromise = VPEmoji(interaction, channel);
 
     let bundles = await queueBundles(interaction.user.id);
-    bundles = await waitForShopQueueResponse(bundles);
+    if(bundles.inQueue) bundles = await waitForShopQueueResponse(bundles);
 
     return await renderBundles(bundles, interaction, await emojiPromise);
 }
@@ -39,7 +39,7 @@ export const fetchNightMarket = async (interaction, user) => {
     const emojiPromise = VPEmoji(interaction, channel);
 
     let market = await queueNightMarket(interaction.user.id);
-    market = await waitForShopQueueResponse(market);
+    if(market.inQueue) market = await waitForShopQueueResponse(market);
 
     return await renderNightMarket(market, interaction, user, await emojiPromise);
 }
