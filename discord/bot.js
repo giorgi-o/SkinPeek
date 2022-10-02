@@ -458,7 +458,7 @@ client.on("messageCreate", async (message) => {
                 await message.reply("Told shard 0 to start checking alerts!");
             }
         } else if(content === "!stop skinpeek") {
-            return process.exit(0);
+            return client.destroy();
         } else if(content === "!update") {
             console.log("Starting git pull...")
             await message.reply("Starting `git pull`... (note that this will only work if you `git clone`d the repo, not if you downloaded a zip)");
@@ -486,7 +486,7 @@ client.on("messageCreate", async (message) => {
                     console.log("Git pull succeded! Stopping the bot...");
                     await message.reply("`git pull` succeded! Stopping the bot...");
 
-                    process.exit(0);
+                    client.destroy();
                 }
             });
         }
