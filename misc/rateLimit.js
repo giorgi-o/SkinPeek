@@ -3,14 +3,14 @@ import config from "./config.js";
 const rateLimits = {};
 
 export const checkRateLimit = (req, url) => {
-    let rateLimited = req.statusCode === 429;
+    let rateLimited = req.statusCode === 429 || req.headers.location?.startsWith("/auth-error?error=rate_limited");
     if(!rateLimited) try {
         const json = JSON.parse(req.body);
         rateLimited = json.error === "rate_limited";
     } catch(e) {}
 
     if(rateLimited) {
-        let retryAfter = req.headers['retry-after'] + 1;
+        let retryAfter = parseInt(req.headers['retry-after']) + 1;
         if(retryAfter) console.log(`I am ratelimited at ${url} for ${retryAfter - 1} more seconds!`);
         else {
             retryAfter = config.rateLimitBackoff;
