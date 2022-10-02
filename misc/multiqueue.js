@@ -6,7 +6,6 @@ import {getShop} from "../valorant/shop.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
 import {queue2FACodeRedeem, queueCookiesLogin, queueUsernamePasswordLogin} from "../valorant/authQueue.js";
 import config from "./config.js";
-import {fetchRawShop} from "../valorant/shopManager.js";
 
 export const useMultiqueue = () => config.useMultiqueue && client.shard && client.shard.ids[0] !== 0;
 
@@ -75,7 +74,7 @@ const mqProcessRequest = async ({mqid, mqtype, params}) => {
     switch(mqtype) {
         case "getShop": {
             const {id, account} = params;
-            response = await fetchRawShop(id, account);
+            response = await getShop(id, account);
             break;
         }
 

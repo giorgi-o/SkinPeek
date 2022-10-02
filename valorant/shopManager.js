@@ -2,6 +2,7 @@ import {fetchChannel, wait} from "../misc/util.js";
 import {VPEmoji} from "../discord/emoji.js";
 import {getShopQueueItemStatus, queueBundles, queueItemShop, queueNightMarket, queueShop} from "./shopQueue.js";
 import {renderBundles, renderNightMarket, renderOffers} from "../discord/embed.js";
+import {waitForAuthQueueResponse} from "../discord/authManager.js";
 
 export const waitForShopQueueResponse = async (queueResponse, pollRate=150) => {
     while(true) {
@@ -46,5 +47,6 @@ export const fetchNightMarket = async (interaction, user) => {
 
 export const fetchRawShop = async (id, account=null) => {
     let offers = await queueShop(id, account);
-    return await waitForShopQueueResponse(offers);
+    if(offers.inQueue) offers = await waitForAuthQueueResponse(offers);
+    return offers
 }
