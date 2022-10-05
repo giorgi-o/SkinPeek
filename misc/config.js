@@ -48,8 +48,10 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "authFailureStrikes", 2);
     applyConfig(loadedConfig, "maxAccountsPerUser", 5);
     applyConfig(loadedConfig, "rateLimitBackoff", 60);
+    applyConfig(loadedConfig, "rateLimitCap", 10 * 60);
     applyConfig(loadedConfig, "useShopQueue", false);
     applyConfig(loadedConfig, "shopQueue", "*/1 * * * * *");
+    applyConfig(loadedConfig, "useMultiqueue", false);
     applyConfig(loadedConfig, "storePasswords", false);
     applyConfig(loadedConfig, "trackStoreStats", false);
     applyConfig(loadedConfig, "statsExpirationDays", 14);

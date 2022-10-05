@@ -128,7 +128,10 @@ export const stringifyCookies = (cookies) => {
 
 export const extractTokensFromUri = (uri) => {
     // thx hamper for regex
-    const [, accessToken, idToken] = uri.match(/access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)/);
+    const match = uri.match(/access_token=((?:[a-zA-Z]|\d|\.|-|_)*).*id_token=((?:[a-zA-Z]|\d|\.|-|_)*).*expires_in=(\d*)/);
+    if(!match) return [null, null];
+
+    const [, accessToken, idToken] = match;
     return [accessToken, idToken]
 }
 

@@ -9,4 +9,6 @@ const manager = new ShardingManager('./SkinPeek.js', {
 
 manager.spawn({
     timeout: config.shardReadyTimeout
+}).then(() => {
+    manager.broadcastEval((client) => client.skinPeekShardMessageReceived({type: "shardsReady"}));
 });

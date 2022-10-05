@@ -1,6 +1,7 @@
 import config from "../misc/config.js";
 import {getPuuid, wait} from "../misc/util.js";
 import {getBundles, getNightMarket, getOffers, getShopCache} from "./shop.js";
+import {useMultiqueue} from "../misc/multiqueue.js";
 
 export const Operations = {
     SHOP: "sh",
@@ -11,11 +12,12 @@ export const Operations = {
 
 const queue = [];
 const queueResults = [];
-let queueCounter = 0;
+let queueCounter = 1;
 let processingCount = 0;
 
 export const queueItemShop = async (id) => {
-    if(!config.useShopQueue || shopCached(id, "offers")) return {inQueue: false, ...await getOffers(id)};
+    if(!config.useShopQueue || shopCached(id, "offers") || useMultiqueue()) return {inQueue: false, ...await getOffers(id)};
+
     const c = queueCounter++;
     queue.push({
         operation: Operations.SHOP,
@@ -28,7 +30,7 @@ export const queueItemShop = async (id) => {
 }
 
 export const queueNightMarket = async (id) => {
-    if(!config.useShopQueue || shopCached(id, "night_market")) return {inQueue: false, ...await getNightMarket(id)};
+    if(!config.useShopQueue || shopCached(id, "night_market") || useMultiqueue()) return {inQueue: false, ...await getNightMarket(id)};
     const c = queueCounter++;
     queue.push({
         operation: Operations.NIGHT_MARKET,
@@ -41,13 +43,26 @@ export const queueNightMarket = async (id) => {
 }
 
 export const queueBundles = async (id) => {
-    if(!config.useShopQueue || shopCached(id, "bundles")) return {inQueue: false, ...await getBundles(id)};
+    if(!config.useShopQueue || shopCached(id, "bundles") || useMultiqueue()) return {inQueue: false, ...await getBundles(id)};
     const c = queueCounter++;
     queue.push({
         operation: Operations.BUNDLES,
         c, id
     });
     console.log(`Added bundles fetch to shop queue for user ${id} (c=${c})`);
+
+    if(processingCount === 0) await processShopQueue();
+    return {inQueue: true, c};
+}
+
+export const queueShop = async (id, account=null) => {
+    if(!config.useShopQueue || shopCached(id) || useMultiqueue()) return {inQueue: false, ...await getOffers(id, account)};
+    const c = queueCounter++;
+    queue.push({
+        operation: Operations.BUNDLES,
+        c, id
+    });
+    console.log(`Added raw offers fetch to shop queue for user ${id} (c=${c})`);
 
     if(processingCount === 0) await processShopQueue();
     return {inQueue: true, c};

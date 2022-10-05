@@ -143,7 +143,6 @@ export const redeemUsernamePassword = async (id, login, password) => {
         ...parseSetCookie(req2.headers['set-cookie'])
     };
 
-    console.error(req2)
     const json2 = JSON.parse(req2.body);
     if(json2.type === 'error') {
         if(json2.error === "auth_failure") console.error("Authentication failure!", json2);
@@ -152,7 +151,7 @@ export const redeemUsernamePassword = async (id, login, password) => {
     }
 
     if(json2.type === 'response') {
-        const user = await processAuthResponse(id, {login, password, cookies}, json2);
+        const user = await processAuthResponse(id, {login, password, cookies}, json2.response.parameters.uri);
         addUser(user);
         return {success: true};
     } else if(json2.type === 'multifactor') { // 2FA
@@ -215,7 +214,7 @@ export const redeem2FACode = async (id, code) => {
         return {success: false};
     }
 
-    user = await processAuthResponse(id, {login: user.auth.login, password: atob(user.auth.password || ""), cookies: user.auth.cookies}, json, user);
+    user = await processAuthResponse(id, {login: user.auth.login, password: atob(user.auth.password || ""), cookies: user.auth.cookies}, json.response.parameters.uri, user);
 
     delete user.auth.waiting2FA;
     addUser(user);
@@ -223,9 +222,9 @@ export const redeem2FACode = async (id, code) => {
     return {success: true};
 }
 
-const processAuthResponse = async (id, authData, resp, user=null) => {
+const processAuthResponse = async (id, authData, redirect, user=null) => {
     if(!user) user = new User({id});
-    const [rso, idt] = extractTokensFromUri(resp.response.parameters.uri);
+    const [rso, idt] = extractTokensFromUri(redirect);
     user.auth = {
         ...user.auth,
         rso: rso,
@@ -233,7 +232,7 @@ const processAuthResponse = async (id, authData, resp, user=null) => {
     }
 
     // save either cookies or login/password
-    if(config.storePasswords && !user.auth.waiting2FA) { // don't store login/password for people with 2FA
+    if(authData.login && config.storePasswords && !user.auth.waiting2FA) { // don't store login/password for people with 2FA
         user.auth.login = authData.login;
         user.auth.password = btoa(authData.password);
         delete user.auth.cookies;
@@ -316,8 +315,6 @@ export const redeemCookies = async (id, cookies) => {
     let rateLimit = isRateLimited("auth.riotgames.com");
     if(rateLimit) return {success: false, rateLimit: rateLimit};
 
-    const user = new User({id});
-
     const req = await fetch("https://auth.riotgames.com/authorize?redirect_uri=https%3A%2F%2Fplayvalorant.com%2Fopt_in&client_id=play-valorant-web-prod&response_type=token%20id_token&scope=account%20openid&nonce=1", {
         headers: {
             'user-agent': await getUserAgent(),
@@ -326,30 +323,20 @@ export const redeemCookies = async (id, cookies) => {
     });
     console.assert(req.statusCode === 303, `Cookie Reauth status code is ${req.statusCode}!`, req);
 
-    rateLimit = checkRateLimit(req, "auth.riotgames.com")
+    rateLimit = checkRateLimit(req, "auth.riotgames.com");
     if(rateLimit) return {success: false, rateLimit: rateLimit};
 
-    if(req.headers.location.startsWith("/login")) return false; // invalid cookies
+    if(req.headers.location.startsWith("/login")) return {success: false}; // invalid cookies
 
-    if(!user.auth) user.auth = {};
-    if(!user.auth.login || !user.auth.password) user.auth.cookies = {
-        ...user.auth.cookies,
+    cookies = {
+        ...parseSetCookie(cookies),
         ...parseSetCookie(req.headers['set-cookie'])
-    };
+    }
 
-    const [rso, idt] = extractTokensFromUri(req.headers.location);
-    user.auth.rso = rso;
-    user.auth.idt = idt;
-
-    const userInfo = await getUserInfo(user);
-    user.puuid = userInfo.puuid;
-    user.username = userInfo.username;
-    user.auth.ent = await getEntitlements(user);
-    user.region = await getRegion(user);
-
+    const user = await processAuthResponse(id, {cookies}, req.headers.location);
     addUser(user);
 
-    return true;
+    return {success: true};
 }
 
 export const refreshToken = async (id, account=null) => {
@@ -358,7 +345,7 @@ export const refreshToken = async (id, account=null) => {
     const user = getUser(id, account);
     if(!user) return response;
 
-    if(user.auth.cookies) response.success = await redeemCookies(id, stringifyCookies(user.auth.cookies));
+    if(user.auth.cookies) response = await redeemCookies(id, stringifyCookies(user.auth.cookies));
     if(!response.success && user.auth.login && user.auth.password) response = await redeemUsernamePassword(id, user.auth.login, atob(user.auth.password));
 
     if(!response.success && !response.mfa && !response.rateLimit) deleteUserAuth(user);

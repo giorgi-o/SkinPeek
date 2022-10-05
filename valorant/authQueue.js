@@ -1,6 +1,7 @@
 import {redeem2FACode, redeemCookies, redeemUsernamePassword} from "./auth.js";
 import config from "../misc/config.js";
 import {wait} from "../misc/util.js";
+import {mqLogin2fa, mqLoginCookies, mqLoginUsernamePass, useMultiqueue} from "../misc/multiqueue.js";
 
 export const Operations = {
     USERNAME_PASSWORD: "up",
@@ -11,11 +12,13 @@ export const Operations = {
 
 const queue = [];
 const queueResults = [];
-let queueCounter = 0;
+let queueCounter = 1;
 let processingCount = 0;
 
 export const queueUsernamePasswordLogin = async (id, username, password) => {
     if(!config.useLoginQueue) return {inQueue: false, ...await redeemUsernamePassword(id, username, password)};
+    if(useMultiqueue()) return {inQueue: false, ...await mqLoginUsernamePass(id, username, password)};
+
     const c = queueCounter++;
     queue.push({
         operation: Operations.USERNAME_PASSWORD,
@@ -29,6 +32,8 @@ export const queueUsernamePasswordLogin = async (id, username, password) => {
 
 export const queue2FACodeRedeem = async (id, code) => {
     if(!config.useLoginQueue) return {inQueue: false, ...await redeem2FACode(id, code)};
+    if(useMultiqueue()) return {inQueue: false, ...await mqLogin2fa(id, code)};
+
     const c = queueCounter++;
     queue.push({ // should 2FA redeems be given priority?
         operation: Operations.MFA,
@@ -42,6 +47,8 @@ export const queue2FACodeRedeem = async (id, code) => {
 
 export const queueCookiesLogin = async (id, cookies) => {
     if(!config.useLoginQueue) return {inQueue: false, ...await redeemCookies(id, cookies)};
+    if(useMultiqueue()) return {inQueue: false, ...await mqLoginCookies(id, cookies)};
+
     const c = queueCounter++;
     queue.push({
         operation: Operations.COOKIES,

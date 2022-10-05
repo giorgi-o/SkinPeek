@@ -32,8 +32,8 @@ import {
 } from "./alerts.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
 import {processShopQueue} from "../valorant/shopQueue.js";
-import {getAuthQueueItemStatus, processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
-import {login2FA, loginUsernamePassword, retryFailedOperation} from "./authManager.js";
+import {processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
+import {login2FA, loginUsernamePassword, retryFailedOperation, waitForAuthQueueResponse} from "./authManager.js";
 import {renderBattlepassProgress} from "../valorant/battlepass.js";
 import {getOverallStats, getStatsFor} from "../misc/stats.js";
 import {
@@ -42,8 +42,7 @@ import {
     fetchChannel, fetchMaintenances,
     removeAlertActionRow,
     skinNameAndEmoji,
-    valNamesToDiscordNames,
-    wait
+    valNamesToDiscordNames
 } from "../misc/util.js";
 import config, {loadConfig, saveConfig} from "../misc/config.js";
 import {sendConsoleOutput} from "../misc/logger.js";
@@ -66,6 +65,7 @@ import {
 import fuzzysort from "fuzzysort";
 import {renderCollection} from "../valorant/inventory.js";
 import {getLoadout} from "../valorant/inventory.js";
+import {spawn} from "child_process";
 
 export const client = new Client({
     intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS], // what intents does the bot need
@@ -457,6 +457,38 @@ client.on("messageCreate", async (message) => {
                 await sendShardMessage({type: "checkAlerts"});
                 await message.reply("Told shard 0 to start checking alerts!");
             }
+        } else if(content === "!stop skinpeek") {
+            return client.destroy();
+        } else if(content === "!update") {
+            console.log("Starting git pull...")
+            await message.reply("Starting `git pull`... (note that this will only work if you `git clone`d the repo, not if you downloaded a zip)");
+
+            const git = spawn("git", ["pull"]);
+            git.stdout.pipe(process.stdout);
+            git.stderr.pipe(process.stderr);
+
+            // store stdout in string
+            let stdout = "";
+            git.stdout.on('data', (data) => stdout += data);
+
+
+            git.on('close', async (code) => {
+                if(code !== 0) {
+                    console.error(`git pull failed with exit code ${code}!`);
+                    await message.reply("`git pull` failed! Check the console for more info.");
+                }
+
+                if(stdout === "Already up to date.\n") {
+                    console.log("Bot is already up to date!");
+                    await message.reply("Bot is already up to date!");
+                }
+                else {
+                    console.log("Git pull succeded! Stopping the bot...");
+                    await message.reply("`git pull` succeded! Stopping the bot...");
+
+                    client.destroy();
+                }
+            });
         }
     } catch(e) {
         console.error("Error while processing message!");
@@ -757,12 +789,7 @@ client.on("interactionCreate", async (interaction) => {
                     const cookies = interaction.options.get("cookies").value;
 
                     let success = await queueCookiesLogin(interaction.user.id, cookies);
-
-                    while(success.inQueue) {
-                        const queueStatus = getAuthQueueItemStatus(success.c);
-                        if(queueStatus.processed) success = queueStatus.result;
-                        else await wait(150);
-                    }
+                    if(success.inQueue) success = await waitForAuthQueueResponse(success);
 
                     const user = getUser(interaction.user.id);
                     let embed;
