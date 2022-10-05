@@ -332,7 +332,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction) => 
             fields: [
                 {
                     "name": `**${s(interaction).battlepass.TYPE}:** \`${battlepass.nextReward.rewardType}\``,
-                    "value": `**${s(interaction).battlepass.REWARD}:** ${battlepass.nextReward.rewardName}\n**XP:** ${battlepass.xpneeded}/${battlepass.nextReward.XP}`,
+                    "value": `**${s(interaction).battlepass.REWARD}:** ${battlepass.nextReward.rewardName}\n**XP:** ${battlepass.bpdata.progressionTowardsNextLevel}/${battlepass.nextReward.XP}`,
                     "inline": true
                 },
             ],
