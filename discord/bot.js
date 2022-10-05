@@ -68,7 +68,8 @@ import {getLoadout} from "../valorant/inventory.js";
 import {spawn} from "child_process";
 
 export const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS], // what intents does the bot need
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.DIRECT_MESSAGES],
+    partials: ["CHANNEL"], // required to receive DMs
     //shards: "auto" // uncomment this to use internal sharding instead of sharding.js
 });
 const cronTasks = [];
@@ -305,7 +306,7 @@ client.on("messageCreate", async (message) => {
     try {
         let isAdmin = false;
         if(!config.ownerId) isAdmin = true;
-        else for(const id of config.ownerId.split(",")) {
+        else for(const id of config.ownerId.split(/, ?/)) {
             if(message.author.id === id || message.guildId === id) {
                 isAdmin = true;
                 break;
@@ -318,7 +319,7 @@ client.on("messageCreate", async (message) => {
         }
         if(!isAdmin) return;
 
-        const content = message.content.replace(/<@!?\d+> ?/, ""); // remove @bot mention
+        const content = message.content.replace(new RegExp(`<@!?${client.user.id}+> ?`), ""); // remove @bot mention
         if(!content.startsWith('!')) return;
         console.log(`${message.author.tag} sent admin command ${content}`);
 
