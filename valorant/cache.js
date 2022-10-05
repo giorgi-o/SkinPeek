@@ -7,7 +7,7 @@ import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
 import {client} from "../discord/bot.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
 
-const formatVersion = 7;
+const formatVersion = 8;
 let gameVersion;
 
 let weapons, skins, rarities, buddies, sprays, cards, titles, bundles, battlepass;
