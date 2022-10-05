@@ -1,9 +1,10 @@
 
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {fetch, isMaintenance, userRegion} from "../misc/util.js";
-import {getBattlepassInfo, getValorantVersion} from "./cache.js";
+import {getBattlepassInfo, getBuddy, getCard, getSkin, getSpray, getValorantVersion} from "./cache.js";
 import {renderBattlepass} from "../discord/embed.js";
 import {getEntitlements} from "./inventory.js";
+import {l, s} from "../misc/languages.js";
 
 const AVERAGE_UNRATED_XP_CONSTANT = 4200;
 const SPIKERUSH_XP_CONSTANT = 1000;
@@ -46,57 +47,37 @@ const calculate_level_xp = async (level) => {
     }
 }
 
-const getNextReward = async (CurrentTier) => {
-    // fetch
-    const request = await fetch(`https://valorant-api.com/v1/contracts`);
-    
-    // convert to json
-    const contracts = JSON.parse(request.body);
+const getNextReward = async (interaction, CurrentTier) => {
+    if(CurrentTier === 55) return {
+        tier: 56,
+        rewardName: s(interaction).battlepass.FINISHED
+    };
 
     const battlepassInfo = await getBattlepassInfo();
+    const chapters = battlepassInfo.chapters.flatMap(chapter => chapter.levels) // only premium items
+    const nextTier = chapters[CurrentTier];
 
-    // find the contract - undefined if doesn't exist
-    const contract = contracts.data.find(contract => contract.uuid === battlepassInfo.uuid);
-    const chapters = contract.content.chapters
-        .map(chapter => chapter.levels) // only premium items
-        .flatMap(levels => levels); // map into single array
-
-        
-    const nextTier = chapters.find((_, i) => i === CurrentTier);
-
-    // tier not found, probably completed battle pass
-    if(typeof nextTier === 'undefined')
-        return {
-            tier: 56,
-            rewardName: 'You completed the battle pass.',
-            rewardIcon: 'You completed the battle pass.'
-        };
-    
     const rewardType = nextTier.reward.type;
     const rewardUUID = nextTier.reward.uuid;
     const xpAmount = nextTier.xp;
 
     switch(rewardType) {
         case "EquippableSkinLevel": {
-            const req = await fetch(`https://valorant-api.com/v1/weapons/skinlevels/${rewardUUID}`);
-            const json = JSON.parse(req.body);
-
+            const skin = await getSkin(rewardUUID);
             return {
                 tier: CurrentTier + 1,
-                rewardName: json.data.displayName,
-                rewardIcon: json.data.displayIcon,
+                rewardName: l(skin.names, interaction),
+                rewardIcon: skin.icon,
                 rewardType: rewardType,
                 XP: xpAmount
             };
         }
         case "EquippableCharmLevel": {
-            const req = await fetch(`https://valorant-api.com/v1/buddies/levels/${rewardUUID}`);
-            const json = JSON.parse(req.body);
-
+            const buddy = await getBuddy(rewardUUID)
             return {
                 tier: CurrentTier + 1,
-                rewardName: json.data.displayName,
-                rewardIcon: json.data.displayIcon,
+                rewardName: l(buddy.names, interaction),
+                rewardIcon: buddy.icon,
                 rewardType: rewardType,
                 XP: xpAmount
             };
@@ -105,31 +86,27 @@ const getNextReward = async (CurrentTier) => {
             // Always 10 Radianite, no UUID and req needed, return Image Link and "Radianite"
             return {
                 tier: CurrentTier + 1,
-                rewardName: 'Radianite',
+                rewardName: s(interaction).info.RADIANITE,
                 rewardIcon: 'https://media.valorant-api.com/currencies/e59aa87c-4cbf-517a-5983-6e81511be9b7/displayicon.png',
                 rewardType: rewardType,
                 XP: xpAmount
             };
         case "PlayerCard": {
-            const req = await fetch(`https://valorant-api.com/v1/playercards/${rewardUUID}`);
-            const json = JSON.parse(req.body);
-    
+            const card = await getCard(rewardUUID);
             return {
                 tier: CurrentTier + 1,
-                rewardName: json.data.displayName,
-                rewardIcon: json.data.displayIcon,
+                rewardName: l(card.names, interaction),
+                rewardIcon: card.icons.small,
                 rewardType: rewardType,
                 XP: xpAmount
             };
         }
         case "Spray": {
-            const req = await fetch(`https://valorant-api.com/v1/sprays/${rewardUUID}`);
-            const json = JSON.parse(req.body);
-    
+            const spray = await getSpray(rewardUUID);
             return {
                 tier: CurrentTier + 1,
-                rewardName: json.data.displayName,
-                rewardIcon: json.data.fullTransparentIcon,
+                rewardName: l(spray.names, interaction),
+                rewardIcon: spray.icon,
                 rewardType: rewardType,
                 XP: xpAmount
             };
@@ -138,7 +115,8 @@ const getNextReward = async (CurrentTier) => {
 }
 
 
-export const getBattlepassProgress = async (id, maxlevel) => {
+export const getBattlepassProgress = async (interaction, maxlevel) => {
+    const id = interaction.user.id;
     const authSuccess = await authUser(id);
     if (!authSuccess.success)
         return authSuccess;
@@ -209,7 +187,7 @@ export const getBattlepassProgress = async (id, maxlevel) => {
         success: true,
         bpdata: contractData,
         battlepassPurchased: battlepassPurchased,
-        nextReward: await getNextReward(contractData.progressionLevelReached, battlepassInfo.uuid),
+        nextReward: await getNextReward(interaction, contractData.progressionLevelReached),
         season_days_left: season_days_left,
         totalxp: totalxp.toLocaleString(),
         xpneeded: (await calculate_level_xp(contractData.progressionLevelReached + 1) - contractData.progressionTowardsNextLevel).toLocaleString(),
@@ -282,7 +260,7 @@ const getBattlepassPurchase = async (id) => {
 
 export const renderBattlepassProgress = async (interaction) => {
     const maxlevel = interaction.options && interaction.options.getInteger("maxlevel") || 50;
-    const battlepassProgress = await getBattlepassProgress(interaction.user.id, maxlevel);
+    const battlepassProgress = await getBattlepassProgress(interaction, maxlevel);
 
     return await renderBattlepass(battlepassProgress, maxlevel, interaction);
 }

@@ -411,7 +411,8 @@ export const fetchBattlepassInfo = async (gameVersion) => {
     battlepass = {
         version: gameVersion,
         uuid: currentBattlepass.uuid,
-        end: currentSeason.endTime
+        end: currentSeason.endTime,
+        chapters: currentBattlepass.content.chapters
     }
 
     saveSkinsJSON();
