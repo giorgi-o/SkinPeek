@@ -138,7 +138,12 @@
     "XP_HEADER": "\uD83D\uDCC5 XP needed",
     "AVERAGE_COL": "Average",
     "DAILY_XP_ROW": "Daily XP",
-    "WEEKLY_XP_ROW": "Weekly XP"
+    "WEEKLY_XP_ROW": "Weekly XP",
+    "REWARD": "Reward",
+    "TYPE": "Type",
+    "SKIN": "Skin",
+    "CARD": "Card",
+    "GUN_BUDDY": "Gun Buddy"
   },
   "settings": {
     "TRUE": "Yes",

@@ -137,7 +137,12 @@
       "XP_HEADER": "\uD83D\uDCC5 Số XP cần thêm",
       "AVERAGE_COL": "Trung bình",
       "DAILY_XP_ROW": "XP ngày",
-      "WEEKLY_XP_ROW": "XP tuần"
+      "WEEKLY_XP_ROW": "XP tuần",
+      "REWARD": "Phần thưởng",
+      "TYPE": "Loại",
+      "SKIN": "Skin",
+      "CARD": "Thẻ người chơi",
+      "GUN_BUDDY": "Treo súng"
     },
     "settings": {
       "TRUE": "Có",
