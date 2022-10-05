@@ -11,7 +11,13 @@ export const checkRateLimit = (req, url) => {
 
     if(rateLimited) {
         let retryAfter = parseInt(req.headers['retry-after']) + 1;
-        if(retryAfter) console.log(`I am ratelimited at ${url} for ${retryAfter - 1} more seconds!`);
+        if(retryAfter) {
+            console.log(`I am ratelimited at ${url} for ${retryAfter - 1} more seconds!`);
+            if(retryAfter > config.rateLimitCap) {
+                console.log(`Delay higher than rateLimitCap, setting it to ${config.rateLimitCap} seconds instead`);
+                retryAfter = config.rateLimitCap;
+            }
+        }
         else {
             retryAfter = config.rateLimitBackoff;
             console.log(`I am temporarily ratelimited at ${url} (no ETA given, waiting ${config.rateLimitBackoff}s)`);
