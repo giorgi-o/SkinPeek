@@ -303,10 +303,20 @@ const commands = [
 
 client.on("messageCreate", async (message) => {
     try {
-        if(config.ownerId && message.author.id !== config.ownerId && message.guildId !== config.ownerId) {
-            if(!message.member) return;
-            if(!message.member.roles.resolve(config.ownerId)) return;
+        let isAdmin = false;
+        if(!config.ownerId) isAdmin = true;
+        else for(const id of config.ownerId.split(",")) {
+            if(message.author.id === id || message.guildId === id) {
+                isAdmin = true;
+                break;
+            }
+
+            if(message.member && message.member.roles.resolve(id)) {
+                isAdmin = true;
+                break;
+            }
         }
+        if(!isAdmin) return;
 
         const content = message.content.replace(/<@!?\d+> ?/, ""); // remove @bot mention
         if(!content.startsWith('!')) return;
