@@ -57,6 +57,9 @@ const receiveShardMessage = async (message) => {
         case "logMessages":
             addMessagesToLog(message.messages);
             break;
+        case "processExit":
+            process.exit();
+            break;
     }
 };
 

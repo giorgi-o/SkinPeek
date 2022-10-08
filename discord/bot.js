@@ -45,7 +45,7 @@ import {
     valNamesToDiscordNames
 } from "../misc/util.js";
 import config, {loadConfig, saveConfig} from "../misc/config.js";
-import {sendConsoleOutput} from "../misc/logger.js";
+import {localError, localLog, sendConsoleOutput} from "../misc/logger.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
 import {
     deleteUser,
@@ -487,22 +487,24 @@ client.on("messageCreate", async (message) => {
                 await message.reply('```\n' + stdout + '\n```');
 
                 if(code !== 0) {
-                    console.error(`git pull failed with exit code ${code}!`);
+                    localError(`git pull failed with exit code ${code}!`);
                     await message.channel.send("`git pull` failed! Check the console for more info.");
                 }
 
                 if(stdout === "vAlready up to date.\n") {
-                    console.log("Bot is already up to date!");
+                    localLog("Bot is already up to date!");
                     await message.channel.send("Bot is already up to date!");
                 }
                 else {
-                    console.log("Git pull succeded! Stopping the bot...");
+                    localLog("Git pull succeded! Stopping the bot...");
                     await message.channel.send("`git pull` succeded! Stopping the bot...");
+
+                    await sendShardMessage({type: "processExit"});
 
                     client.destroy();
                     client.destroyed = true;
 
-                    //process.exit(0);
+                    process.exit(0);
                 }
             });
         }
