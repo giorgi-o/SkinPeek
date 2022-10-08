@@ -68,7 +68,7 @@ import {getLoadout} from "../valorant/inventory.js";
 import {spawn} from "child_process";
 
 export const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS, Intents.FLAGS.DIRECT_MESSAGES],
+    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS],
     partials: ["CHANNEL"], // required to receive DMs
     //shards: "auto" // uncomment this to use internal sharding instead of sharding.js
 });
@@ -484,20 +484,25 @@ client.on("messageCreate", async (message) => {
 
 
             git.on('close', async (code) => {
+                await message.reply('```\n' + stdout + '\n```');
+
                 if(code !== 0) {
                     console.error(`git pull failed with exit code ${code}!`);
-                    await message.reply("`git pull` failed! Check the console for more info.");
+                    await message.channel.send("`git pull` failed! Check the console for more info.");
                 }
 
-                if(stdout === "Already up to date.\n") {
+                if(stdout === "vAlready up to date.\n") {
                     console.log("Bot is already up to date!");
-                    await message.reply("Bot is already up to date!");
+                    await message.channel.send("Bot is already up to date!");
                 }
                 else {
                     console.log("Git pull succeded! Stopping the bot...");
-                    await message.reply("`git pull` succeded! Stopping the bot...");
+                    await message.channel.send("`git pull` succeded! Stopping the bot...");
 
                     client.destroy();
+                    client.destroyed = true;
+
+                    //process.exit(0);
                 }
             });
         }

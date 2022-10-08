@@ -40,7 +40,7 @@ export const addMessagesToLog = (messages) => {
 
 export const sendConsoleOutput = () => {
     try {
-        if(!client || !messagesToLog.length) return;
+        if(!client  || !client.destroyed || !messagesToLog.length) return;
 
         const channel = client.channels.cache.get(config.logToChannel);
 

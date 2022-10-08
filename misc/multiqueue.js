@@ -68,7 +68,7 @@ export const mqLoginCookies = async (id, cookies) => await mqSendMessage("loginC
 
 
 const mqProcessRequest = async ({mqid, mqtype, params}) => {
-    console.log("Processing MQ request", mqid, mqtype, params);
+    console.log("Processing MQ request", mqid, mqtype, JSON.stringify(params).substring(0, 200));
 
     let response;
     switch(mqtype) {
