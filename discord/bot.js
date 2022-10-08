@@ -491,7 +491,7 @@ client.on("messageCreate", async (message) => {
                     await message.channel.send("`git pull` failed! Check the console for more info.");
                 }
 
-                if(stdout === "vAlready up to date.\n") {
+                if(stdout === "Already up to date.\n") {
                     localLog("Bot is already up to date!");
                     await message.channel.send("Bot is already up to date!");
                 }
