@@ -6,5 +6,4 @@ echo ------------------
 title SkinPeek
 :SkinPeek
 node SkinPeek.js
-pause
 goto SkinPeek

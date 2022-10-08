@@ -3,5 +3,6 @@ echo     SkinPeek
 echo    Author: Giorgio
 echo ------------------
 npm install
-npm run deploy
+:SkinPeek
 node SkinPeek.js
+goto SkinPeek
