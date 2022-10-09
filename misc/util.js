@@ -7,6 +7,7 @@ import fs from "fs";
 import {DEFAULT_LANG, l, valToDiscLang} from "./languages.js";
 import {client} from "../discord/bot.js";
 import {getUser} from "../valorant/auth.js";
+import config from "./config.js";
 
 const tlsCiphers = [
     'TLS_CHACHA20_POLY1305_SHA256',
@@ -42,7 +43,7 @@ const tlsSigAlgs = [
 
 // all my homies hate node-fetch
 export const fetch = (url, options={}) => {
-    // console.log("Fetching url " + url);
+    if(config.logUrls) console.log("Fetching url " + url.substring(0, 200) + (url.length > 200 ? "..." : ""));
     return new Promise((resolve, reject) => {
         const req = https.request(url, {
             method: options.method || "GET",

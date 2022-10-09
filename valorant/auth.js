@@ -262,6 +262,7 @@ const processAuthResponse = async (id, authData, redirect, user=null) => {
     // get region
     if(!user.region) user.region = await getRegion(user);
 
+    user.authFailures = 0;
     return user;
 }
 
