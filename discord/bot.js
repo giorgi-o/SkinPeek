@@ -489,6 +489,7 @@ client.on("messageCreate", async (message) => {
                 if(code !== 0) {
                     localError(`git pull failed with exit code ${code}!`);
                     await message.channel.send("`git pull` failed! Check the console for more info.");
+                    return;
                 }
 
                 if(stdout === "Already up to date.\n") {
@@ -1188,7 +1189,7 @@ client.on("interactionCreate", async (interaction) => {
                 const loadoutResponse = await getLoadout(user);
                 if(!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
 
-                await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadoutResponse.loadout, parseInt(pageIndex)));
+                await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadoutResponse, parseInt(pageIndex)));
             } else if(interaction.customId.startsWith("clswitch")) {
                 const [, switchTo, id] = interaction.customId.split('/');
                 const switchToPage = switchTo === "p";
@@ -1200,9 +1201,8 @@ client.on("interactionCreate", async (interaction) => {
                 const loadoutResponse = await getLoadout(user);
                 if(!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
 
-                const loadout = loadoutResponse.loadout;
-                if(switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadout));
-                else await interaction.update(await skinCollectionSingleEmbed(interaction, id, user, loadout));
+                if(switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadoutResponse));
+                else await interaction.update(await skinCollectionSingleEmbed(interaction, id, user, loadoutResponse));
             } else if(interaction.customId.startsWith("viewbundle")) {
                 const [, id, uuid] = interaction.customId.split('/');
 

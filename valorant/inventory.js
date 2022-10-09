@@ -50,7 +50,7 @@ export const getLoadout = async (user, account) => {
             delete loadoutCache[user.puuid];
         } else {
             console.log(`Fetched loadout from cache for user ${user.username}! It expires in ${Math.ceil((cached.timestamp - Date.now() + config.loadoutCacheExpiration) / 1000)}s.`);
-            return {success: true, loadout: cached.loadout};
+            return {success: true, loadout: cached.loadout, favorites: cached.favorites};
         }
     }
 
@@ -76,8 +76,25 @@ export const getLoadout = async (user, account) => {
     } else if (isMaintenance(json))
         return { success: false, maintenance: true };
 
+    const req2 = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/favorites/v1/players/${user.puuid}/favorites`, {
+        headers: {
+            "Authorization": "Bearer " + user.auth.rso,
+            "X-Riot-Entitlements-JWT": user.auth.ent
+        }
+    });
+
+    console.assert(req.statusCode === 200, `Valorant favorites fetch code is ${req.statusCode}!`, req);
+
+    const json2 = JSON.parse(req2.body);
+    if (json2.httpStatus === 400 && json2.errorCode === "BAD_CLAIMS") {
+        deleteUserAuth(user);
+        return { success: false };
+    } else if (isMaintenance(json2))
+        return { success: false, maintenance: true };
+
     loadoutCache[user.puuid] = {
         loadout: json,
+        favorites: json2,
         timestamp: Date.now()
     }
 
@@ -85,7 +102,8 @@ export const getLoadout = async (user, account) => {
 
     return {
         success: true,
-        loadout: json
+        loadout: json,
+        favorites: json2
     }
 }
 
@@ -102,5 +120,5 @@ export const renderCollection = async (interaction, targetId=interaction.user.id
         return authFailureMessage(interaction, loadout, errorText);
     }
 
-    return await skinCollectionSingleEmbed(interaction, targetId, user, loadout.loadout);
+    return await skinCollectionSingleEmbed(interaction, targetId, user, loadout);
 }

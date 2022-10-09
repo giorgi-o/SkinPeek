@@ -488,7 +488,7 @@ const Weapons = {
     Knife: "2f59173c-4bed-b6c3-2191-dea9b58be9c7",
 }
 
-export const skinCollectionSingleEmbed = async (interaction, id, user, loadout) => {
+export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout, favorites}) => {
     const someoneElseUsedCommand = interaction.message ?
         interaction.message.interaction && interaction.message.interaction.user.id !== user.id :
         interaction.user.id !== user.id;
@@ -501,9 +501,10 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, loadout) 
 
         totalValue += skin.price;
 
+        const starEmoji = favorites.FavoritedContent[skin.skinUuid] ? "⭐ " : "";
         return {
             name: l(weapon.names, interaction),
-            value: await skinNameAndEmoji(skin, interaction.channel, interaction.locale),
+            value: `${starEmoji}${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}`,
             inline: inline
         }
     }
@@ -572,7 +573,7 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, loadout) 
     }
 }
 
-export const skinCollectionPageEmbed = async (interaction, id, user, loadout, pageIndex=0) => {
+export const skinCollectionPageEmbed = async (interaction, id, user, {loadout, favorites}, pageIndex=0) => {
     const someoneElseUsedCommand = interaction.message ?
         interaction.message.interaction && interaction.message.interaction.user.id !== user.id :
         interaction.user.id !== user.id;
@@ -580,15 +581,17 @@ export const skinCollectionPageEmbed = async (interaction, id, user, loadout, pa
     let totalValue = 0;
     const emoji = await VPEmoji(interaction);
 
+
     const createEmbed = async (weaponUuid) => {
         const weapon = await getWeapon(weaponUuid);
         const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
 
         totalValue += skin.price;
 
+        const starEmoji = favorites.FavoritedContent[skin.skinUuid] ? " ⭐" : "";
         return {
             title: l(weapon.names, interaction),
-            description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}**\n${emoji} ${skin.price || 'N/A'}`,
+            description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}**${starEmoji}\n${emoji} ${skin.price || 'N/A'}`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: skin.icon
