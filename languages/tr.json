@@ -48,7 +48,7 @@
     "GENERIC_ERROR": ":no_entry_sign: **Bunu yapmaya çalışırken bir hata oluştu!** Riot'u suçluyorum.\n`{e}`"
   },
   "info": {
-    "SHOP_HEADER": "**{u}** Günlük mağaza (Yeni mağaza <t:{t}:R>)",
+    "SHOP_HEADER": "**{u}** İçin günlük mağaza (Yeni mağaza <t:{t}:R>)",
     "BUNDLE_HEADER": "Öne Çıkan Koleksiyon: **{b}**",
     "BUNDLES_HEADER": "Öne Çıkan Koleksiyonlar:",
     "BUNDLES_HEADER_DESC": "`/bundle` komutunu kullanarak belirli bir koleksiyonu inceleyebilirsin",
@@ -69,7 +69,7 @@
     "INFO_OWNER": "Sahip",
     "INFO_STATUS": "Durum",
     "INFO_RUNNING": "<t:{t1}:f> (<t:{t2}:R> Çalışmaya başladı)",
-    "NMARKET_HEADER": "**{u}** Gece Pazarı (<t:{t}:R> Sona eriyor)",
+    "NMARKET_HEADER": "**{u}** İçin Gece Pazarı (<t:{t}:R> Sona eriyor)",
     "WALLET_HEADER": "**{u}** Cüzdanı:",
     "VPOINTS": "VALORANT Puanı",
     "RADIANITE": "Radyanit",
@@ -106,7 +106,7 @@
     "ACCOUNT_SWITCHED": "**{n}. {u}** Hesaba geçildi",
     "ACCOUNTS_HEADER": "Botla giriş yaptığınız tüm hesaplarınız:",
     "ACCOUNT_CURRENTLY_SELECTED": "(Şuan seçili)",
-    "SWITCH_ACCOUNT_BUTTON": "#{n} Hesap",
+    "SWITCH_ACCOUNT_BUTTON": "Hesap #{n}",
     "SWITCH_DESIGN_BUTTON": "Tasarımı değiştir",
     "LOADING": "Yükleniyor...",
     "HIDDEN_USERNAME": "Kullanıcı adı gizli",
