@@ -332,7 +332,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction) => 
             ]
         },
         {
-            title: "Next Battlepass Reward:",
+            title: s(interaction).battlepass.NEXT_BP_REWARD,
             color: VAL_COLOR_1,
             fields: [
                 {
