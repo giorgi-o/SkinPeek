@@ -53,7 +53,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "shopQueue", "*/1 * * * * *");
     applyConfig(loadedConfig, "useMultiqueue", false);
     applyConfig(loadedConfig, "storePasswords", false);
-    applyConfig(loadedConfig, "trackStoreStats", false);
+    applyConfig(loadedConfig, "trackStoreStats", true);
     applyConfig(loadedConfig, "statsExpirationDays", 14);
     applyConfig(loadedConfig, "statsPerPage", 8);
     applyConfig(loadedConfig, "shardReadyTimeout", 60 * 1000);

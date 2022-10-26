@@ -421,7 +421,7 @@ client.on("messageCreate", async (message) => {
 
             const guilds = await alertsPerChannelPerGuild();
 
-            await message.reply(`Sending message to ${Object.keys(guilds).length} guilds with alerts setup...`);
+            await message.reply(`Sending message to ${Object.keys(guilds).length} guilds with alerts set up...`);
 
             for(const guildId in guilds) {
                 const guild = client.guilds.cache.get(guildId);
