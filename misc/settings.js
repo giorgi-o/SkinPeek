@@ -31,6 +31,7 @@ for(const setting in settings) defaultSettings[setting] = settings[setting].defa
 
 const getSettings = (id) => {
     const json = readUserJson(id);
+    if(!json) return defaultSettings;
 
     if(!json.settings) {
         json.settings = defaultSettings
