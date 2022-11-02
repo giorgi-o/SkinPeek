@@ -80,7 +80,7 @@ export const authFailureMessage = (interaction, authResponse, message="AUTH_ERRO
 
 export const skinChosenEmbed = async (interaction, skin) => {
     const channel = interaction.channel || await fetchChannel(interaction.channelId);
-    let description = s(interaction).info.ALERT_SET.f({s: await skinNameAndEmoji(skin, channel, interaction.locale)});
+    let description = s(interaction).info.ALERT_SET.f({s: await skinNameAndEmoji(skin, channel, interaction)});
     if(config.fetchSkinPrices && !skin.price) description += s(interaction).info.ALERT_BP_SKIN;
     return {
         description: description,
@@ -406,7 +406,7 @@ const bundleItemEmbed = async (item, interaction, VPemojiString) => {
 const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
     const skin = await getSkin(uuid);
     return {
-        title: await skinNameAndEmoji(skin, interaction.channel, interaction.locale),
+        title: await skinNameAndEmoji(skin, interaction.channel, interaction),
         url: config.linkItemImage ? skin.icon : null,
         description: priceDescription(VPemojiString, price),
         color: VAL_COLOR_2,
@@ -504,7 +504,7 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
         const starEmoji = favorites.FavoritedContent[skin.skinUuid] ? "⭐ " : "";
         return {
             name: l(weapon.names, interaction),
-            value: `${starEmoji}${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}`,
+            value: `${starEmoji}${await skinNameAndEmoji(skin, interaction.channel, interaction)}`,
             inline: inline
         }
     }
@@ -591,7 +591,7 @@ export const skinCollectionPageEmbed = async (interaction, id, user, {loadout, f
         const starEmoji = favorites.FavoritedContent[skin.skinUuid] ? " ⭐" : "";
         return {
             title: l(weapon.names, interaction),
-            description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}**${starEmoji}\n${emoji} ${skin.price || 'N/A'}`,
+            description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction)}**${starEmoji}\n${emoji} ${skin.price || 'N/A'}`,
             color: VAL_COLOR_2,
             thumbnail: {
                 url: skin.icon
@@ -769,7 +769,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
             embeds: [{
                 title: s(interaction).info.ONE_ALERT,
                 color: VAL_COLOR_1,
-                description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}**\n${await alertFieldDescription(interaction, alert.channel_id, emojiString, skin.price)}`,
+                description: `**${await skinNameAndEmoji(skin, interaction.channel, interaction)}**\n${await alertFieldDescription(interaction, alert.channel_id, emojiString, skin.price)}`,
                 thumbnail: {
                     url: skin.icon
                 }
@@ -799,7 +799,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
     for(const alert of alertsToRender) {
         const skin = await getSkin(alert.uuid);
         embed.fields.push({
-            name: `**${n+1}.** ${await skinNameAndEmoji(skin, interaction.channel, interaction.locale)}`,
+            name: `**${n+1}.** ${await skinNameAndEmoji(skin, interaction.channel, interaction)}`,
             value: await alertFieldDescription(interaction, alert.channel_id, emojiString, skin.price),
             inline: alerts.length > 5
         });
@@ -873,7 +873,7 @@ export const statsForSkinEmbed = async (skin, stats, interaction) => {
     }
 
     return {
-        title: await skinNameAndEmoji(skin, interaction.channel, interaction.locale),
+        title: await skinNameAndEmoji(skin, interaction.channel, interaction),
         description: description,
         color: VAL_COLOR_2,
         thumbnail: {

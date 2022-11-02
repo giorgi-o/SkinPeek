@@ -12,9 +12,10 @@ import fs from "fs";
 import {client} from "../discord/bot.js";
 import {addUser, deleteUser, getAccountWithPuuid, getUserJson, saveUser} from "./accountSwitcher.js";
 import {checkRateLimit, isRateLimited} from "../misc/rateLimit.js";
+import {getSetting} from "../misc/settings.js";
 
 class User {
-    constructor({id, puuid, auth, alerts=[], username, region, locale, authFailures}) {
+    constructor({id, puuid, auth, alerts=[], username, region, locale, localeIsManual, authFailures}) {
         this.id = id;
         this.puuid = puuid;
         this.auth = auth;
@@ -22,8 +23,16 @@ class User {
         this.username = username;
         this.region = region;
         this.locale = locale;
+        this.localeIsManual = localeIsManual || false;
         this.authFailures = authFailures || 0;
+
+        const localeSetting = getSetting(this.id, "locale");
+        if(localeSetting !== "Automatic") {
+            this.locale = localeSetting;
+            this.localeIsManual = true;
+        }
     }
+
 }
 
 export const transferUserDataFromOldUsersJson = () => {
@@ -72,12 +81,6 @@ const userFilenameRegex = /\d+\.json/
 export const getUserList = () => {
     ensureUsersFolder();
     return fs.readdirSync("data/users").filter(filename => userFilenameRegex.test(filename)).map(filename => filename.replace(".json", ""));
-}
-
-export const setUserLocale = (user, locale) => {
-    if(user.locale === locale) return;
-    user.locale = locale;
-    saveUser(user);
 }
 
 export const authUser = async (id, account=null) => {

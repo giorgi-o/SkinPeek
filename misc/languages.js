@@ -30,6 +30,25 @@ Object.keys(discToValLang).forEach(discLang => {
     valToDiscLang[discToValLang[discLang]] = discLang;
 });
 
+export const discLanguageNames = {
+    'de'   : '🇳🇱 Deutsch',
+    'en-GB': '🇬🇧 English (UK)',
+    'en-US': '🇺🇸 English (US)',
+    'es-ES': '🇪🇸 Español',
+    'fr'   : '🇫🇷 Français',
+    'it'   : '🇮🇹 Italiano',
+    'pl'   : '🇵🇱 Polski',
+    'pt-BR': '🇧🇷 Português (Brasil)',
+    'vi'   : '🇻🇳 Tiếng Việt',
+    'tr'   : '🇹🇷 Türkçe',
+    'ru'   : '🇷🇺 Русский',
+    'th'   : '🇹🇭 ไทย',
+    'zh-CN': '🇨🇳 简体中文',
+    'ja'   : '🇯🇵 日本語',
+    'zh-TW': '🇹🇼 繁體中文',
+    'ko'   : '🇰🇷 한국어'
+}
+
 export const DEFAULT_LANG = 'en-GB';
 export const DEFAULT_VALORANT_LANG = 'en-US';
 
@@ -72,7 +91,10 @@ importLanguage(DEFAULT_LANG);
 export const s = (interaction) => {
     if(typeof interaction === 'string') return languages[interaction] || languages[DEFAULT_LANG];
     if(!interaction || !interaction.locale) return languages[DEFAULT_LANG];
-    const lang = interaction.locale;
+
+    const userLang = getSetting(interaction.user.id, 'locale');
+    let lang = userLang === "Automatic" ? interaction.locale : userLang;
+
     if(!languages[lang]) importLanguage(lang);
     return languages[lang] || languages[DEFAULT_LANG];
 }
@@ -93,8 +115,11 @@ export const l = (names, interaction) => {
     if(!config.localiseSkinNames) valLocale = DEFAULT_VALORANT_LANG;
 
     else if(typeof interaction === 'string') valLocale = discToValLang[interaction];
-    else if(interaction && interaction.locale) valLocale = discToValLang[interaction.locale];
-
+    else {
+        const userLang = getSetting(interaction.user.id, 'locale');
+        if(userLang !== "Automatic") valLocale = discToValLang[userLang];
+    }
+    if(!valLocale && interaction && interaction.locale) valLocale = discToValLang[interaction.locale];
     if(!valLocale) valLocale = DEFAULT_VALORANT_LANG;
 
     return names[valLocale];

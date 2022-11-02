@@ -17,7 +17,7 @@ import {
     accountsListEmbed,
     switchAccountButtons, skinCollectionPageEmbed, skinCollectionSingleEmbed, valMaintenancesEmbeds
 } from "./embed.js";
-import {authUser, fetchRiotClientVersion, getUser, getUserList, setUserLocale,} from "../valorant/auth.js";
+import {authUser, fetchRiotClientVersion, getUser, getUserList} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
 import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
 import {
@@ -51,7 +51,7 @@ import {
     deleteUser,
     deleteWholeUser, findTargetAccountIndex,
     getNumberOfAccounts,
-    readUserJson,
+    readUserJson, saveUser,
     switchAccount
 } from "../valorant/accountSwitcher.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
@@ -517,7 +517,11 @@ client.on("messageCreate", async (message) => {
 
 client.on("interactionCreate", async (interaction) => {
     const valorantUser = getUser(interaction.user.id);
-    if(valorantUser) setUserLocale(valorantUser, interaction.locale);
+
+    if(valorantUser && valorantUser.locale !== interaction.locale && !valorantUser.localeIsManual) {
+        valorantUser.locale = interaction.locale;
+        saveUser(valorantUser);
+    }
 
     if(interaction.isCommand()) {
         try {
@@ -705,7 +709,7 @@ client.on("interactionCreate", async (interaction) => {
                         const skin = searchResults[0].obj;
                         const otherAlert = alertExists(interaction.user.id, skin.levelUuid);
                         return await interaction.followUp({
-                            embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction.locale), c: otherAlert.channel_id}))],
+                            embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction), c: otherAlert.channel_id}))],
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                             ephemeral: true
                         });
@@ -815,7 +819,6 @@ client.on("interactionCreate", async (interaction) => {
                     if(success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
                         embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
-                        setUserLocale(user, interaction.locale);
                     } else {
                         console.log(`${interaction.user.tag} cookies login failed`);
                         embed = basicEmbed(s(interaction).error.INVALID_COOKIES);
@@ -1055,7 +1058,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     const otherAlert = alertExists(interaction.user.id, chosenSkin);
                     if(otherAlert) return await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction.locale), c: otherAlert.channel_id}))],
+                        embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction), c: otherAlert.channel_id}))],
                         components: [removeAlertActionRow(interaction.user.id, otherAlert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                         ephemeral: true
                     });
@@ -1139,7 +1142,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({s: await skinNameAndEmoji(skin, channel, interaction.locale)}))],
+                        embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({s: await skinNameAndEmoji(skin, channel, interaction)}))],
                         ephemeral: true
                     });
 

@@ -216,13 +216,13 @@ export const sendAlert = async (id, account, alerts, expires, tryOnOtherShard=tr
         await channel.send({
             content: `<@${id}>`,
             embeds: [{
-                description: s(valorantUser.locale).info.ALERT_HAPPENED.f({i: id, u: valorantUser.username, s: await skinNameAndEmoji(skin, channel, valorantUser.locale), t: expires}, id),
+                description: s(valorantUser).info.ALERT_HAPPENED.f({i: id, u: valorantUser.username, s: await skinNameAndEmoji(skin, channel, valorantUser.locale), t: expires}, id),
                 color: VAL_COLOR_1,
                 thumbnail: {
                     url: skin.icon
                 }
             }],
-            components: [removeAlertActionRow(id, alert.uuid, s(valorantUser.locale).info.REMOVE_ALERT_BUTTON)]
+            components: [removeAlertActionRow(id, alert.uuid, s(valorantUser).info.REMOVE_ALERT_BUTTON)]
         }).catch(async e => {
             console.error(`Could not send alert message in #${channel.name}! Do I have the right role?`);
 

@@ -225,8 +225,8 @@ export const defer = async (interaction, ephemeral=false) => {
     interaction.deferred = true;
 }
 
-export const skinNameAndEmoji = async (skin, channel, locale=DEFAULT_LANG) => {
-    const name = l(skin.names, locale);
+export const skinNameAndEmoji = async (skin, channel, localeOrInteraction=DEFAULT_LANG) => {
+    const name = l(skin.names, localeOrInteraction);
     if(!skin.rarity) return name;
 
     const rarity = await getRarity(skin.rarity, channel);
@@ -306,3 +306,5 @@ export const ensureUsersFolder = () => {
     if(!fs.existsSync("data")) fs.mkdirSync("data");
     if(!fs.existsSync("data/users")) fs.mkdirSync("data/users");
 }
+
+export const findKeyOfValue = (obj, value) => Object.keys(obj).find(key => obj[key] === value);

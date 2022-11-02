@@ -149,12 +149,14 @@
   "settings": {
     "TRUE": "Yes",
     "FALSE": "No",
+    "AUTO": "Auto",
     "VIEW_HEADER": "All your current settings:",
     "VIEW_DESCRIPTION": "Use `/settings set` to change them.",
     "SET_QUESTION": "What do you want to set the setting **{s}** to?",
     "CONFIRMATION": "The setting **{s}** is now set to **{v}**.",
     "hideIgn": "Hide in-game name",
     "othersCanViewShop": "Allow others to use /shop with your username",
-    "othersCanViewColl": "Allow others to use /collection with your username"
+    "othersCanViewColl": "Allow others to use /collection with your username",
+    "locale": "Language"
   }
 }

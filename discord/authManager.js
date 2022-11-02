@@ -1,6 +1,6 @@
 import {getAuthQueueItemStatus, Operations, queue2FACodeRedeem, queueUsernamePasswordLogin} from "../valorant/authQueue.js";
 import {actionRow, retryAuthButton, wait} from "../misc/util.js";
-import {getUser, setUserLocale} from "../valorant/auth.js";
+import {getUser} from "../valorant/auth.js";
 import {authFailureMessage, basicEmbed} from "./embed.js";
 import {s} from "../misc/languages.js";
 import config from "../misc/config.js";
@@ -27,7 +27,6 @@ export const loginUsernamePassword = async (interaction, username, password, ope
             embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction))],
             ephemeral: true
         });
-        setUserLocale(user, interaction.locale);
 
         if(operationIndex !== null) {
             const index = failedOperations.findIndex(o => o.index === operationIndex);
@@ -65,7 +64,6 @@ export const login2FA = async (interaction, code, operationIndex=null) => {
         await interaction.followUp({
             embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))]
         });
-        setUserLocale(user, interaction.locale);
     } else if(login.error) {
         console.error(`${interaction.user.tag} 2FA error`);
         console.error(login.error);
