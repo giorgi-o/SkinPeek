@@ -22,7 +22,12 @@ export const discToValLang = {
     'zh-CN': 'zh-CN',
     'ja'   : 'ja-JP',
     'zh-TW': 'zh-TW',
-    'ko'   : 'ko-KR'
+    'ko'   : 'ko-KR',
+
+    // valorant languages, that discord doesn't support
+    'ar-AE': 'ar-AE',
+    'es-MX': 'es-MX',
+    'id-ID': 'id-ID'
 }
 
 export const valToDiscLang = {};
@@ -46,7 +51,12 @@ export const discLanguageNames = {
     'zh-CN': '🇨🇳 简体中文',
     'ja'   : '🇯🇵 日本語',
     'zh-TW': '🇹🇼 繁體中文',
-    'ko'   : '🇰🇷 한국어'
+    'ko'   : '🇰🇷 한국어',
+
+    // valorant languages, that discord doesn't support
+    'ar-AE': '🇸🇦 العربية',
+    'es-MX': '🇲🇽 Español (México)',
+    'id-ID': '🇮🇩 Bahasa Indonesia'
 }
 
 export const DEFAULT_LANG = 'en-GB';

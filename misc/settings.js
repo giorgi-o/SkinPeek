@@ -1,7 +1,7 @@
 import {readUserJson, saveUserJson} from "../valorant/accountSwitcher.js";
 import {basicEmbed, secondaryEmbed, settingsEmbed} from "../discord/embed.js";
 import {MessageActionRow, MessageSelectMenu} from "discord.js";
-import {discLanguageNames, discToValLang, s} from "./languages.js";
+import {discLanguageNames, s} from "./languages.js";
 import {findKeyOfValue} from "./util.js";
 
 export const settings = {
@@ -24,7 +24,7 @@ export const settings = {
 }
 
 // required due to circular dependency
-setTimeout(() => settings.locale.values.push(...Object.keys(discToValLang)))
+setTimeout(() => settings.locale.values.push(...Object.keys(discLanguageNames)))
 
 export const defaultSettings = {};
 for(const setting in settings) defaultSettings[setting] = settings[setting].default;
@@ -94,7 +94,7 @@ export const handleSettingsSetCommand = async (interaction) => {
     const options = settingValues.slice(0, 25).map(value => {
         return {
             label: humanifyValue(value, interaction),
-            value: `${setting}-${value}`
+            value: `${setting}/${value}`
         }
     });
 
@@ -107,7 +107,7 @@ export const handleSettingsSetCommand = async (interaction) => {
 }
 
 export const handleSettingDropdown = async (interaction) => {
-    const [setting, value] = interaction.values[0].split('-');
+    const [setting, value] = interaction.values[0].split('/');
 
     const valueSet = setSetting(interaction.user.id, setting, value);
 
