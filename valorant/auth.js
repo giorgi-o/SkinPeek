@@ -13,6 +13,8 @@ import {client} from "../discord/bot.js";
 import {addUser, deleteUser, getAccountWithPuuid, getUserJson, saveUser} from "./accountSwitcher.js";
 import {checkRateLimit, isRateLimited} from "../misc/rateLimit.js";
 import {getSetting} from "../misc/settings.js";
+import {queueCookiesLogin, queueUsernamePasswordLogin} from "./authQueue.js";
+import {waitForAuthQueueResponse} from "../discord/authManager.js";
 
 class User {
     constructor({id, puuid, auth, alerts=[], username, region, locale, localeIsManual, authFailures}) {
@@ -89,7 +91,7 @@ export const authUser = async (id, account=null) => {
     if(!user || !user.auth || !user.auth.rso) return {success: false};
 
     const rsoExpiry = tokenExpiry(user.auth.rso);
-    if(rsoExpiry - Date.now() > 10_000) return {success: true};
+    if(rsoExpiry - Date.now() > 10_000 && false) return {success: true};
 
     return await refreshToken(id, account);
 }
@@ -349,8 +351,14 @@ export const refreshToken = async (id, account=null) => {
     const user = getUser(id, account);
     if(!user) return response;
 
-    if(user.auth.cookies) response = await redeemCookies(id, stringifyCookies(user.auth.cookies));
-    if(!response.success && user.auth.login && user.auth.password) response = await redeemUsernamePassword(id, user.auth.login, atob(user.auth.password));
+    if(user.auth.cookies) {
+        response = await queueCookiesLogin(id, stringifyCookies(user.auth.cookies));
+        if(response.inQueue) response = await waitForAuthQueueResponse(response);
+    }
+    if(!response.success && user.auth.login && user.auth.password) {
+        response = await queueUsernamePasswordLogin(id, user.auth.login, atob(user.auth.password));
+        if(response.inQueue) response = await waitForAuthQueueResponse(response);
+    }
 
     if(!response.success && !response.mfa && !response.rateLimit) deleteUserAuth(user);
     return response;
