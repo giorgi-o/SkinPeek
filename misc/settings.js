@@ -124,7 +124,7 @@ export const settingName = (setting, interaction) => {
 export const humanifyValue = (value, interaction, emoji=false) => {
     if(value === true) return emoji ? '✅' : s(interaction).settings.TRUE;
     if(value === false) return emoji ? '❌' : s(interaction).settings.FALSE;
-    if(value === "Automatic") return s(interaction).settings.AUTO;
+    if(value === "Automatic" || !value) return s(interaction).settings.AUTO;
     if(Object.keys(discLanguageNames).includes(value)) return discLanguageNames[value];
     return value.toString();
 }

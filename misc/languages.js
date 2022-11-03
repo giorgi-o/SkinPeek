@@ -100,9 +100,9 @@ importLanguage(DEFAULT_LANG);
 // get the strings for a language
 export const s = (interaction) => {
     if(typeof interaction === 'string') return languages[interaction] || languages[DEFAULT_LANG];
-    if(!interaction || !interaction.locale) return languages[DEFAULT_LANG];
+    if(!interaction || !interaction.locale && !interaction.user) return languages[DEFAULT_LANG];
 
-    const userLang = getSetting(interaction.user.id, 'locale');
+    const userLang = interaction.locale || getSetting(interaction.user.id, 'locale');
     let lang = userLang === "Automatic" ? interaction.locale : userLang;
 
     if(!languages[lang]) importLanguage(lang);
@@ -125,7 +125,7 @@ export const l = (names, interaction) => {
     if(!config.localiseSkinNames) valLocale = DEFAULT_VALORANT_LANG;
 
     else if(typeof interaction === 'string') valLocale = discToValLang[interaction];
-    else {
+    else if(interaction) {
         const userLang = getSetting(interaction.user.id, 'locale');
         if(userLang !== "Automatic") valLocale = discToValLang[userLang];
     }
