@@ -149,12 +149,14 @@
   "settings": {
     "TRUE": "Evet",
     "FALSE": "Hayır",
+    "AUTO": "Otomatik",
     "VIEW_HEADER": "Tüm mevcut ayarlarınız:",
     "VIEW_DESCRIPTION": "Ayarları değiştirmek için `/settings set` komutunu kullanabilirsiniz.",
     "SET_QUESTION": "**{s}** ayarını ne yapmak istiyorsunuz?",
     "CONFIRMATION": "**{s}** ayarı artık **{v}** olarak ayarlandı.",
     "hideIgn": "Oyun içi adı gizle",
     "othersCanViewShop": "Başkalarının kullanıcı adınızla /shop kullanmasına izin verin",
-    "othersCanViewColl": "Başkalarının kullanıcı adınızla /collection kullanmasına izin verin"
+    "othersCanViewColl": "Başkalarının kullanıcı adınızla /collection kullanmasına izin verin",
+    "locale": "Dil"
   }
 }
