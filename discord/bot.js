@@ -516,6 +516,12 @@ client.on("messageCreate", async (message) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
+    if(config.maintenanceMode) {
+        const maintenanceMessage = config.status || "The bot is currently under maintenance! Please be patient.";
+        if(interaction.isAutocomplete()) return await interaction.respond([{name: maintenanceMessage, value: maintenanceMessage}]);
+        return await interaction.reply({content: maintenanceMessage, ephemeral: true});
+    }
+
     const valorantUser = getUser(interaction.user.id);
 
     if(valorantUser && valorantUser.locale !== interaction.locale && !valorantUser.localeIsManual) {
