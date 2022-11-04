@@ -1,6 +1,8 @@
 import fs from "fs";
 import config from "./config.js";
 import {getSetting} from "./settings.js";
+import {Interaction} from "discord.js";
+import {User} from "../valorant/auth.js";
 
 // languages valorant doesn't have:
 // danish, croatian, lithuanian, hungarian, dutch, norwegian, romanian, finnish, swedish, czech, greek, bulgarian, ukranian, hindi
@@ -102,8 +104,14 @@ export const s = (interaction) => {
     if(typeof interaction === 'string') return languages[interaction] || languages[DEFAULT_LANG];
     if(!interaction || !interaction.locale && !interaction.user) return languages[DEFAULT_LANG];
 
-    const userLang = interaction.locale || getSetting(interaction.user.id, 'locale');
-    let lang = userLang === "Automatic" ? interaction.locale : userLang;
+    let lang;
+    if(interaction instanceof User) lang = interaction.locale;
+    else if(interaction instanceof Interaction) lang = getSetting(interaction.user.id, 'locale') || interaction.locale;
+    else {
+        console.error("I don't know how to localise this! This is a bug, please tell Giorgio about it.");
+        console.error(interaction);
+        lang = DEFAULT_LANG;
+    }
 
     if(!languages[lang]) importLanguage(lang);
     return languages[lang] || languages[DEFAULT_LANG];

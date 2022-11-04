@@ -16,7 +16,7 @@ import {getSetting} from "../misc/settings.js";
 import {queueCookiesLogin, queueUsernamePasswordLogin} from "./authQueue.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
 
-class User {
+export class User {
     constructor({id, puuid, auth, alerts=[], username, region, locale, localeIsManual, authFailures}) {
         this.id = id;
         this.puuid = puuid;
