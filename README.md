@@ -117,7 +117,7 @@ Special thanks to [Mistral](https://github.com/blongnh), [Jukki](https://github.
 
 If you are fluent in another language and would like help translate the bot, either to a new language or to improve an existing translation, please do!
 
-1. Look up the language code for your language [here](https://discord.com/developers/docs/reference#locales)
+1. Look up the language code for your language [here](https://discord.com/developers/docs/reference#locales) or [here](http://www.lingoes.net/en/translator/langcode.htm)
 2. Look in the bot's `languages` folder
 3. If you're starting from scratch, copy the `en-GB.json` file and rename it to your language code
 4. Open the file and do the thing

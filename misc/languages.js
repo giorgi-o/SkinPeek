@@ -58,7 +58,10 @@ export const discLanguageNames = {
     // valorant languages, that discord doesn't support
     'ar-AE': '🇸🇦 العربية',
     'es-MX': '🇲🇽 Español (México)',
-    'id-ID': '🇮🇩 Bahasa Indonesia'
+    'id-ID': '🇮🇩 Bahasa Indonesia',
+
+    // languages that neither discord nor valorant support
+    'tl-PH': '🇵🇭 Tagalog',
 }
 
 export const DEFAULT_LANG = 'en-GB';
