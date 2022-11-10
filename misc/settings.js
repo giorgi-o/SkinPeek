@@ -20,6 +20,9 @@ export const settings = {
     locale: {
         values: ["Automatic"], // locales will be added after imports finished processing
         default: "Automatic"
+    },
+    localeForced: {
+        hidden: true
     }
 }
 
@@ -64,18 +67,30 @@ export const getSetting = (id, setting) => {
     return getSettings(id)[setting];
 }
 
-const setSetting = (id, setting, value) => {
+export const setSetting = (id, setting, value, force=false) => { // force = whether is set from /settings set
     const json = readUserJson(id);
+    if(!json) return;
 
     if(setting === "locale") {
-        json.settings.localeIsManual = value !== "Automatic";
-        json.settings.locale = json.settings.localeIsManual ? computerifyValue(value) : null;
+        if(force) {
+            json.settings.localeForced = value !== "Automatic";
+            json.settings.locale = json.settings.localeForced ? computerifyValue(value) : "Automatic";
+        }
+        else if(!json.settings.localeForced) {
+            json.settings.locale = value;
+        }
     }
     else json.settings[setting] = computerifyValue(value);
 
     saveUserJson(id, json);
 
     return json.settings[setting];
+}
+
+export const registerInteractionLocale = (interaction) => {
+    const settings = getSettings(interaction.user.id);
+    if(!settings.localeForced && settings.locale !== interaction.locale)
+        setSetting(interaction.user.id, "locale", interaction.locale);
 }
 
 export const handleSettingsViewCommand = async (interaction) => {
@@ -109,7 +124,7 @@ export const handleSettingsSetCommand = async (interaction) => {
 export const handleSettingDropdown = async (interaction) => {
     const [setting, value] = interaction.values[0].split('/');
 
-    const valueSet = setSetting(interaction.user.id, setting, value);
+    const valueSet = setSetting(interaction.user.id, setting, value, true);
 
     await interaction.update({
         embeds: [basicEmbed(s(interaction).settings.CONFIRMATION.f({s: settingName(setting, interaction), v: humanifyValue(valueSet, interaction)}))],
@@ -121,10 +136,14 @@ export const settingName = (setting, interaction) => {
     return s(interaction).settings[setting];
 }
 
+export const settingIsVisible = (setting) => {
+    return !settings[setting].hidden;
+}
+
 export const humanifyValue = (value, interaction, emoji=false) => {
     if(value === true) return emoji ? '✅' : s(interaction).settings.TRUE;
     if(value === false) return emoji ? '❌' : s(interaction).settings.FALSE;
-    if(value === "Automatic" || !value) return s(interaction).settings.AUTO;
+    if(value === "Automatic") return (emoji ? "🌐 " : '') + s(interaction).settings.AUTO;
     if(Object.keys(discLanguageNames).includes(value)) return discLanguageNames[value];
     return value.toString();
 }

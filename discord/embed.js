@@ -22,7 +22,7 @@ import {MessageActionRow, MessageButton} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
 import {readUserJson, removeDupeAccounts, saveUser} from "../valorant/accountSwitcher.js";
-import {getSetting, humanifyValue, settingName} from "../misc/settings.js";
+import {getSetting, humanifyValue, settingIsVisible, settingName} from "../misc/settings.js";
 import {VPEmoji} from "./emoji.js";
 import {getNextNightMarketTimestamp} from "../valorant/shop.js";
 
@@ -917,9 +917,12 @@ export const settingsEmbed = (userSettings, interaction) => {
     }
 
     for(const [setting, value] of Object.entries(userSettings)) {
+        if(!settingIsVisible(setting)) continue;
+
+        const displayValue = humanifyValue(setting === "locale" && !userSettings.localeLocked ? "Automatic" : value, interaction, true);
         embed.fields.push({
             name: settingName(setting, interaction),
-            value: humanifyValue(value, interaction, true),
+            value: displayValue,
             inline: true
         });
     }

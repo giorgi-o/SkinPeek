@@ -12,27 +12,18 @@ import fs from "fs";
 import {client} from "../discord/bot.js";
 import {addUser, deleteUser, getAccountWithPuuid, getUserJson, saveUser} from "./accountSwitcher.js";
 import {checkRateLimit, isRateLimited} from "../misc/rateLimit.js";
-import {getSetting} from "../misc/settings.js";
 import {queueCookiesLogin, queueUsernamePasswordLogin} from "./authQueue.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
 
 export class User {
-    constructor({id, puuid, auth, alerts=[], username, region, locale, localeIsManual, authFailures}) {
+    constructor({id, puuid, auth, alerts=[], username, region, authFailures}) {
         this.id = id;
         this.puuid = puuid;
         this.auth = auth;
         this.alerts = alerts || [];
         this.username = username;
         this.region = region;
-        this.locale = locale;
-        this.localeIsManual = localeIsManual || false;
         this.authFailures = authFailures || 0;
-
-        const localeSetting = getSetting(this.id, "locale");
-        if(localeSetting !== "Automatic") {
-            this.locale = localeSetting;
-            this.localeIsManual = true;
-        }
     }
 
 }
@@ -62,8 +53,7 @@ export const transferUserDataFromOldUsersJson = () => {
             },
             alerts: alertsForUser(id).map(alert => {return {uuid: alert.uuid, channel_id: alert.channel_id}}),
             username: userData.username,
-            region: userData.region,
-            locale: userData.locale
+            region: userData.region
         });
         saveUser(user);
     }

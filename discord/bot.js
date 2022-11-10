@@ -51,7 +51,7 @@ import {
     deleteUser,
     deleteWholeUser, findTargetAccountIndex,
     getNumberOfAccounts,
-    readUserJson, saveUser,
+    readUserJson,
     switchAccount
 } from "../valorant/accountSwitcher.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
@@ -60,7 +60,7 @@ import {
     getSetting,
     handleSettingDropdown,
     handleSettingsSetCommand,
-    handleSettingsViewCommand, settingName, settings
+    handleSettingsViewCommand, registerInteractionLocale, settingIsVisible, settingName, settings
 } from "../misc/settings.js";
 import fuzzysort from "fuzzysort";
 import {renderCollection} from "../valorant/inventory.js";
@@ -225,7 +225,7 @@ const commands = [
                     description: "The name of the setting you want to change",
                     type: "STRING",
                     required: true,
-                    choices: Object.keys(settings).map((setting) => {return {
+                    choices: Object.keys(settings).filter(settingIsVisible).map((setting) => {return {
                         name: settingName(setting),
                         value: setting
                     }})
@@ -522,12 +522,9 @@ client.on("interactionCreate", async (interaction) => {
         return await interaction.reply({content: maintenanceMessage, ephemeral: true});
     }
 
-    const valorantUser = getUser(interaction.user.id);
+    registerInteractionLocale(interaction);
 
-    if(valorantUser && valorantUser.locale !== interaction.locale && !valorantUser.localeIsManual) {
-        valorantUser.locale = interaction.locale;
-        saveUser(valorantUser);
-    }
+    const valorantUser = getUser(interaction.user.id);
 
     if(interaction.isCommand()) {
         try {

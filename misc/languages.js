@@ -1,8 +1,7 @@
 import fs from "fs";
-import config from "./config.js";
 import {getSetting} from "./settings.js";
 import {Interaction} from "discord.js";
-import {User} from "../valorant/auth.js";
+import {getUser, User} from "../valorant/auth.js";
 
 // languages valorant doesn't have:
 // danish, croatian, lithuanian, hungarian, dutch, norwegian, romanian, finnish, swedish, czech, greek, bulgarian, ukranian, hindi
@@ -102,25 +101,6 @@ const importLanguage = (language) => {
 }
 importLanguage(DEFAULT_LANG);
 
-// get the strings for a language
-export const s = (interaction) => {
-    if(typeof interaction === 'string') return languages[interaction] || languages[DEFAULT_LANG];
-    if(!interaction || !interaction.locale && !interaction.user) return languages[DEFAULT_LANG];
-
-    let lang;
-    if(interaction instanceof User) lang = interaction.locale;
-    else if(interaction instanceof Interaction) lang = getSetting(interaction.user.id, 'locale');
-    if(lang === "Automatic") lang = interaction.locale;
-    if(!lang) {
-        console.error("I don't know how to localise this! This is a bug, please tell Giorgio about it.");
-        console.error(interaction);
-        lang = DEFAULT_LANG;
-    }
-
-    if(!languages[lang]) importLanguage(lang);
-    return languages[lang] || languages[DEFAULT_LANG];
-}
-
 // format a string
 String.prototype.f = function(args, interactionOrId=null) {
     args = hideUsername(args, interactionOrId);
@@ -130,21 +110,38 @@ String.prototype.f = function(args, interactionOrId=null) {
     return str;
 }
 
+// get the strings for a language
+export const s = (input) => {
+    const discLang = resolveDiscordLanguage(input);
+
+    if(!languages[discLang]) importLanguage(discLang);
+    return languages[discLang] || languages[DEFAULT_LANG];
+}
+
 // get the skin/bundle name in a language
-export const l = (names, interaction) => {
-    let valLocale;
+export const l = (names, input) => {
+    let discLocale = resolveDiscordLanguage(input);
+    let valLocale = discToValLang[discLocale];
+    return names[valLocale] || names[DEFAULT_VALORANT_LANG];
+}
 
-    if(!config.localiseSkinNames) valLocale = DEFAULT_VALORANT_LANG;
+// input can be a valorant user, an interaction, a discord id, a language code, or null
+const resolveDiscordLanguage = (input) => {
+    let discLang;
 
-    else if(typeof interaction === 'string') valLocale = discToValLang[interaction];
-    else if(interaction) {
-        const userLang = getSetting(interaction.user.id, 'locale');
-        if(userLang !== "Automatic") valLocale = discToValLang[userLang];
+    if(!input) discLang = DEFAULT_LANG;
+    if(typeof input === 'string') {
+        const user = getUser(input);
+        if(user) input = user;
+        else discLang = input;
     }
-    if(!valLocale && interaction && interaction.locale) valLocale = discToValLang[interaction.locale];
-    if(!valLocale) valLocale = DEFAULT_VALORANT_LANG;
+    if(input instanceof User) discLang = getSetting(input.id, 'locale');
+    if(input instanceof Interaction) discLang = getSetting(input.user.id, 'locale');
 
-    return names[valLocale];
+    if(discLang === "Automatic") discLang = input.locale;
+    if(!discLang) discLang = DEFAULT_LANG;
+
+    return discLang;
 }
 
 const hideUsername = (args, interactionOrId) => {

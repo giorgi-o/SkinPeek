@@ -211,12 +211,12 @@ export const sendAlert = async (id, account, alerts, expires, tryOnOtherShard=tr
         console.log(`Sending alert for user ${username}...`);
 
         const skin = await getSkin(alert.uuid);
-        console.log(`User ${valorantUser.username} has the skin ${l(skin.names)} in their shop!`);
+        console.log(`User ${valorantUser.username} has the skin ${l(skin.names, valorantUser)} in their shop!`);
 
         await channel.send({
             content: `<@${id}>`,
             embeds: [{
-                description: s(valorantUser).info.ALERT_HAPPENED.f({i: id, u: valorantUser.username, s: await skinNameAndEmoji(skin, channel, valorantUser.locale), t: expires}, id),
+                description: s(valorantUser).info.ALERT_HAPPENED.f({i: id, u: valorantUser.username, s: await skinNameAndEmoji(skin, channel, valorantUser), t: expires}, id),
                 color: VAL_COLOR_1,
                 thumbnail: {
                     url: skin.icon
@@ -263,7 +263,7 @@ export const sendCredentialsExpired = async (id, alert, tryOnOtherShard=true) =>
     await channel.send({
         content: `<@${id}>`,
         embeds: [{
-            description: s(valorantUser.locale).error.AUTH_ERROR_ALERTS_HAPPENED.f({u: id}),
+            description: s(valorantUser).error.AUTH_ERROR_ALERTS_HAPPENED.f({u: id}),
             color: VAL_COLOR_1,
         }]
     }).catch(async e => {
