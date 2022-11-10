@@ -82,7 +82,7 @@ export const authUser = async (id, account=null) => {
     if(!user || !user.auth || !user.auth.rso) return {success: false};
 
     const rsoExpiry = tokenExpiry(user.auth.rso);
-    if(rsoExpiry - Date.now() > 10_000 && false) return {success: true};
+    if(rsoExpiry - Date.now() > 10_000) return {success: true};
 
     return await refreshToken(id, account);
 }
