@@ -82,7 +82,7 @@ export const authUser = async (id, account=null) => {
     if(!user || !user.auth || !user.auth.rso) return {success: false};
 
     const rsoExpiry = tokenExpiry(user.auth.rso);
-    if(rsoExpiry - Date.now() > 10_000) return {success: true};
+    if(rsoExpiry - Date.now() > 10_000 && false) return {success: true};
 
     return await refreshToken(id, account);
 }
@@ -341,7 +341,7 @@ export const redeemCookies = async (id, cookies) => {
 export const refreshToken = async (id, account=null) => {
     let response = {success: false}
 
-    const user = getUser(id, account);
+    let user = getUser(id, account);
     if(!user) return response;
 
     if(user.auth.cookies) {
@@ -356,6 +356,7 @@ export const refreshToken = async (id, account=null) => {
     if(!response.success && !response.mfa && !response.rateLimit) deleteUserAuth(user);
 
     // refresh username & region every 7 days
+    user = getUser(id, account);
     const lastRefreshedHoursAgo = (Date.now() - user.lastFetchedData) / 1000 / 60 / 60;
     if(response.success && lastRefreshedHoursAgo > config.userDataCacheExpiration) {
         const [userInfo, region] = await Promise.all([
