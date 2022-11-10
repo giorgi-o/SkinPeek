@@ -16,7 +16,7 @@ import {queueCookiesLogin, queueUsernamePasswordLogin} from "./authQueue.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
 
 export class User {
-    constructor({id, puuid, auth, alerts=[], username, region, authFailures}) {
+    constructor({id, puuid, auth, alerts=[], username, region, authFailures, lastFetchedData}) {
         this.id = id;
         this.puuid = puuid;
         this.auth = auth;
@@ -24,6 +24,7 @@ export class User {
         this.username = username;
         this.region = region;
         this.authFailures = authFailures || 0;
+        this.lastFetchedData = lastFetchedData || 0;
     }
 
 }
@@ -257,6 +258,8 @@ const processAuthResponse = async (id, authData, redirect, user=null) => {
     // get region
     if(!user.region) user.region = await getRegion(user);
 
+    user.lastFetchedData = Date.now();
+
     user.authFailures = 0;
     return user;
 }
@@ -351,6 +354,19 @@ export const refreshToken = async (id, account=null) => {
     }
 
     if(!response.success && !response.mfa && !response.rateLimit) deleteUserAuth(user);
+
+    // refresh username & region every 7 days
+    const lastRefreshedHoursAgo = (Date.now() - user.lastFetchedData) / 1000 / 60 / 60;
+    if(response.success && lastRefreshedHoursAgo > config.userDataCacheExpiration) {
+        const [userInfo, region] = await Promise.all([
+            getUserInfo(user),
+            getRegion(user)
+        ]);
+        user.username = userInfo.username;
+        user.region = region;
+        user.lastFetchedData = Date.now();
+    }
+
     return response;
 }
 

@@ -115,6 +115,16 @@ export const destroyTasks = () => {
     cronTasks.length = 0;
 }
 
+const settingsChoices = [];
+setTimeout(() => {
+    for(const setting of Object.keys(settings).filter(settingIsVisible)) {
+        settingsChoices.push({
+            name: settingName(setting),
+            value: setting
+        });
+    }
+});
+
 const commands = [
     {
         name: "shop",
@@ -225,10 +235,7 @@ const commands = [
                     description: "The name of the setting you want to change",
                     type: "STRING",
                     required: true,
-                    choices: Object.keys(settings).filter(settingIsVisible).map((setting) => {return {
-                        name: settingName(setting),
-                        value: setting
-                    }})
+                    choices: settingsChoices
                 }]
             }
         ]
