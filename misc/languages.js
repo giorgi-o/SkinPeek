@@ -109,8 +109,9 @@ export const s = (interaction) => {
 
     let lang;
     if(interaction instanceof User) lang = interaction.locale;
-    else if(interaction instanceof Interaction) lang = getSetting(interaction.user.id, 'locale') || interaction.locale;
-    else {
+    else if(interaction instanceof Interaction) lang = getSetting(interaction.user.id, 'locale');
+    if(lang === "Automatic") lang = interaction.locale;
+    if(!lang) {
         console.error("I don't know how to localise this! This is a bug, please tell Giorgio about it.");
         console.error(interaction);
         lang = DEFAULT_LANG;
