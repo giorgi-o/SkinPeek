@@ -3,6 +3,7 @@ import {VPEmoji} from "../discord/emoji.js";
 import {getShopQueueItemStatus, queueBundles, queueItemShop, queueNightMarket, queueShop} from "./shopQueue.js";
 import {renderBundles, renderNightMarket, renderOffers} from "../discord/embed.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
+import {getUser} from "./auth.js";
 
 export const waitForShopQueueResponse = async (queueResponse, pollRate=150) => {
     while(true) {
@@ -22,6 +23,7 @@ export const fetchShop = async (interaction, user, targetId=interaction.user.id)
     let shop = await queueItemShop(targetId);
     if(shop.inQueue) shop = await waitForShopQueueResponse(shop);
 
+    user = getUser(user);
     return await renderOffers(shop, interaction, user, await emojiPromise, targetId);
 }
 

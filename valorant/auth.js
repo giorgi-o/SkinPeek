@@ -10,7 +10,7 @@ import {
 import config from "../misc/config.js";
 import fs from "fs";
 import {client} from "../discord/bot.js";
-import {addUser, deleteUser, getAccountWithPuuid, getUserJson, saveUser} from "./accountSwitcher.js";
+import {addUser, deleteUser, getAccountWithPuuid, getUserJson, readUserJson, saveUser} from "./accountSwitcher.js";
 import {checkRateLimit, isRateLimited} from "../misc/rateLimit.js";
 import {queueCookiesLogin, queueUsernamePasswordLogin} from "./authQueue.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
@@ -62,6 +62,15 @@ export const transferUserDataFromOldUsersJson = () => {
 }
 
 export const getUser = (id, account=null) => {
+    if(id instanceof User) {
+        const user = id;
+        const userJson = readUserJson(user.id);
+        if(!userJson) return null;
+
+        const userData = userJson.accounts.find(a => a.puuid === user.puuid);
+        return userData && new User(userData);
+    }
+
     try {
         const userData = getUserJson(id, account);
         return userData && new User(userData);
@@ -367,6 +376,8 @@ export const refreshToken = async (id, account=null) => {
         user.username = userInfo.username;
         user.region = region;
         user.lastFetchedData = Date.now();
+
+        saveUser(user);
     }
 
     return response;
