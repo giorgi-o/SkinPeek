@@ -54,7 +54,7 @@ import {
     readUserJson,
     switchAccount
 } from "../valorant/accountSwitcher.js";
-import {sendShardMessage} from "../misc/shardMessage.js";
+import {areAllShardsReady, sendShardMessage} from "../misc/shardMessage.js";
 import {fetchBundles, fetchNightMarket, fetchShop} from "../valorant/shopManager.js";
 import {
     getSetting,
@@ -523,8 +523,11 @@ client.on("messageCreate", async (message) => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-    if(config.maintenanceMode) {
-        const maintenanceMessage = config.status || "The bot is currently under maintenance! Please be patient.";
+
+    let maintenanceMessage;
+    if(config.maintenanceMode) maintenanceMessage = config.status || "The bot is currently under maintenance! Please be patient.";
+    else if(!areAllShardsReady()) maintenanceMessage = "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)";
+    if(maintenanceMessage) {
         if(interaction.isAutocomplete()) return await interaction.respond([{name: maintenanceMessage, value: maintenanceMessage}]);
         return await interaction.reply({content: maintenanceMessage, ephemeral: true});
     }

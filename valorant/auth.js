@@ -359,6 +359,7 @@ export const refreshToken = async (id, account=null) => {
     user = getUser(id, account);
     const lastRefreshedHoursAgo = (Date.now() - user.lastFetchedData) / 1000 / 60 / 60;
     if(response.success && lastRefreshedHoursAgo > config.userDataCacheExpiration) {
+        console.log(`Refreshing username & region for ${user.username}...`);
         const [userInfo, region] = await Promise.all([
             getUserInfo(user),
             getRegion(user)

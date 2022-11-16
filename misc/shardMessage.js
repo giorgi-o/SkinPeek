@@ -8,6 +8,10 @@ import {handleMQRequest, handleMQResponse} from "./multiqueue.js";
 let allShardsReadyCb;
 let allShardsReadyPromise = new Promise(r => allShardsReadyCb = r);
 
+export const areAllShardsReady = () => {
+    return !client.shard || allShardsReadyPromise === null;
+}
+
 export const sendShardMessage = async (message) => {
     if(!client.shard) return;
 
