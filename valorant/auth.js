@@ -273,7 +273,7 @@ const processAuthResponse = async (id, authData, redirect, user=null) => {
     return user;
 }
 
-const getUserInfo = async (user) => {
+export const getUserInfo = async (user) => {
     const req = await fetch("https://auth.riotgames.com/userinfo", {
         headers: {
             'Authorization': "Bearer " + user.auth.rso
@@ -302,7 +302,7 @@ const getEntitlements = async (user) => {
     return json.entitlements_token;
 }
 
-const getRegion = async (user) => {
+export const getRegion = async (user) => {
     const req = await fetch("https://riot-geo.pas.si.riotgames.com/pas/v1/product/valorant", {
         method: "PUT",
         headers: {
@@ -363,21 +363,7 @@ export const refreshToken = async (id, account=null) => {
     }
 
     if(!response.success && !response.mfa && !response.rateLimit) deleteUserAuth(user);
-    // refresh username & region every 7 days
-    user = getUser(id, account);
-    const lastRefreshedHoursAgo = (Date.now() - user.lastFetchedData) / 1000 / 60 / 60;
-    if(response.success && lastRefreshedHoursAgo > config.userDataCacheExpiration) {
-        console.log(`Refreshing username & region for ${user.username}...`);
-        const [userInfo, region] = await Promise.all([
-            getUserInfo(user),
-            getRegion(user)
-        ]);
-        user.username = userInfo.username;
-        user.region = region;
-        user.lastFetchedData = Date.now();
 
-        saveUser(user);
-    }
     return response;
 }
 
