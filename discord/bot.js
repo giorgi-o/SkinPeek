@@ -782,6 +782,12 @@ client.on("interactionCreate", async (interaction) => {
                      embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                      ephemeral: true,
                      });
+                     const id = interaction.user.id;
+                     const authSuccess = await authUser(id);
+                     if (!authSuccess.success)
+                        return authSuccess;
+
+                    let user = getUser(id);
                     let user = getUser(interaction.user.id);
                     console.log(`Refreshing username & region for ${user.username}...`);
                     const [userInfo, region] = await Promise.all([
