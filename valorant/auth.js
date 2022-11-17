@@ -273,7 +273,7 @@ const processAuthResponse = async (id, authData, redirect, user=null) => {
     return user;
 }
 
-const getUserInfo = async (user) => {
+export const getUserInfo = async (user) => {
     const req = await fetch("https://auth.riotgames.com/userinfo", {
         headers: {
             'Authorization': "Bearer " + user.auth.rso
@@ -302,7 +302,7 @@ const getEntitlements = async (user) => {
     return json.entitlements_token;
 }
 
-const getRegion = async (user) => {
+export const getRegion = async (user) => {
     const req = await fetch("https://riot-geo.pas.si.riotgames.com/pas/v1/product/valorant", {
         method: "PUT",
         headers: {
