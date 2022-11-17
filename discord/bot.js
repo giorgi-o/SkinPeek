@@ -777,31 +777,31 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "update": {
-                     if (!valorantUser)
-                     return await interaction.reply({
-                     embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
-                     ephemeral: true,
+                     if (!valorantUser) return await interaction.reply({
+                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                         ephemeral: true,
                      });
+
                      const id = interaction.user.id;
                      const authSuccess = await authUser(id);
-                     if (!authSuccess.success)
-                        return authSuccess;
+                     if (!authSuccess.success) return await interaction.followUp(authFailureMessage(interaction, authSuccess, s(interaction).error.AUTH_ERROR_GENERIC));
 
                     let user = getUser(id);
-                    let user = getUser(interaction.user.id);
                     console.log(`Refreshing username & region for ${user.username}...`);
+
                     const [userInfo, region] = await Promise.all([
-                    getUserInfo(user),
-                    getRegion(user)
-                     ]);
+                        getUserInfo(user),
+                        getRegion(user)
+                    ]);
+
                     user.username = userInfo.username;
                     user.region = region;
                     user.lastFetchedData = Date.now();
                     saveUser(user);
+
                     await interaction.reply({
-                    embeds: [basicEmbed(`Sucessfully updated information for **${user.username}** <t:${parseInt(user.lastFetchedData / 1000, 10)}:R>`)],
-                    ephemeral: true
-                     });
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_UPDATED)]
+                    });
                    break;
                 }
                 case "testalerts": {
