@@ -777,6 +777,11 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "update": {
+                     if (!valorantUser)
+                     return await interaction.reply({
+                     embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                     ephemeral: true,
+                     });
                     let user = getUser(interaction.user.id);
                     console.log(`Refreshing username & region for ${user.username}...`);
                     const [userInfo, region] = await Promise.all([
