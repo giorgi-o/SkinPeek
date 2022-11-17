@@ -17,7 +17,7 @@ import {
     accountsListEmbed,
     switchAccountButtons, skinCollectionPageEmbed, skinCollectionSingleEmbed, valMaintenancesEmbeds
 } from "./embed.js";
-import {authUser, fetchRiotClientVersion, getUser, getUserList} from "../valorant/auth.js";
+import {authUser, fetchRiotClientVersion, getUser, getUserList, getRegion, getUserInfo} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
 import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
 import {
@@ -52,7 +52,8 @@ import {
     deleteWholeUser, findTargetAccountIndex,
     getNumberOfAccounts,
     readUserJson,
-    switchAccount
+    switchAccount,
+    saveUser
 } from "../valorant/accountSwitcher.js";
 import {areAllShardsReady, sendShardMessage} from "../misc/shardMessage.js";
 import {fetchBundles, fetchNightMarket, fetchShop} from "../valorant/shopManager.js";
@@ -195,6 +196,10 @@ const commands = [
                 required: true
             },
         ]
+    },
+    {
+    name: "update",
+    description: "Update your username/region in the bot.",
     },
     {
         name: "2fa",
@@ -770,6 +775,34 @@ client.on("interactionCreate", async (interaction) => {
                     await interaction.followUp(message);
 
                     break;
+                }
+                case "update": {
+                     if (!valorantUser) return await interaction.reply({
+                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                         ephemeral: true,
+                     });
+
+                     const id = interaction.user.id;
+                     const authSuccess = await authUser(id);
+                     if (!authSuccess.success) return await interaction.followUp(authFailureMessage(interaction, authSuccess, s(interaction).error.AUTH_ERROR_GENERIC));
+
+                    let user = getUser(id);
+                    console.log(`Refreshing username & region for ${user.username}...`);
+
+                    const [userInfo, region] = await Promise.all([
+                        getUserInfo(user),
+                        getRegion(user)
+                    ]);
+
+                    user.username = userInfo.username;
+                    user.region = region;
+                    user.lastFetchedData = Date.now();
+                    saveUser(user);
+
+                    await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_UPDATED)]
+                    });
+                   break;
                 }
                 case "testalerts": {
                     if(!valorantUser) return await interaction.reply({
