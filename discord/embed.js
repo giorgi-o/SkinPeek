@@ -953,7 +953,7 @@ export const valMaintenancesEmbeds = (interaction, {maintenances, incidents, id:
 export const valMaintenanceEmbed = (interaction, target, isIncident, regionName) => {
     const update = target.updates[0] || {};
     const strings = update.translations || target.titles;
-    const string = (strings.find(s => s.locale === (discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG)) || strings[0]).content;
+    const string = (strings.find(s => s.locale.replace('_', '-') === (discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG)) || strings[0]).content;
     const lastUpdate = Math.round(new Date(update.created_at || target.created_at) / 1000);
     const targetType = isIncident ? s(interaction).info.INCIDENT_TYPE : s(interaction).info.MAINTENANCE_TYPE;
 
