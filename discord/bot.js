@@ -85,6 +85,28 @@ client.on("ready", async () => {
     scheduleTasks();
 
     await client.user.setActivity("your store!", {type: "WATCHING"});
+
+    // deploy commands if different
+    if(config.autoDeployCommands && (!client.shard || client.shard.ids[0] === 0)) {
+        const currentCommands = await client.application.commands.fetch();
+
+        let shouldDeploy = currentCommands.size !== commands.length;
+        if(!shouldDeploy) for(const command of commands) {
+            try {
+                const correspondingCommand = currentCommands.find(c => c.equals(command));
+                if(!correspondingCommand) shouldDeploy = true;
+            } catch(e) {
+                shouldDeploy = true;
+            }
+            if(shouldDeploy) break;
+        }
+
+        if(shouldDeploy) {
+            console.log("Slash commands are different! Deploying the new ones globally...");
+            await client.application.commands.set(commands);
+            console.log("Slash commands deployed!");
+        }
+    }
 });
 
 export const scheduleTasks = () => {

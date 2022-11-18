@@ -1,7 +1,7 @@
 # SkinPeek
 
-Discord bot to view your Valorant daily shop, set alerts for skins, and much more.  
-Easy to use, powerful, has many features, and used by many small & large bots alike.  
+Discord bot to view your Valorant daily shop, set alerts for specific skins, and much more.  
+Simple to setup, easy to use, and has many useful features and commands.  
 
 <img src="https://user-images.githubusercontent.com/20621396/184029573-588c84aa-e183-409c-9452-e8d13028c228.png" alt="shop" width="504" >  
 <img src="https://user-images.githubusercontent.com/20621396/184029594-18d59bc6-7a54-48c8-89fc-d89aac76b180.png" alt="alert" width="633" >
@@ -50,12 +50,13 @@ Feel free to join the [support server](https://discord.gg/yx5sPJxWth) for any he
 - [Open a command prompt in the same folder](https://www.thewindowsclub.com/how-to-open-command-prompt-from-right-click-menu#:~:text=To%20open%20a%20command%20prompt%20window%20in%20any%20folder%2C%20simply,the%20same%20inside%20any%20folder.) and type `npm i` to install dependencies
 - Run [SkinPeek.js](https://github.com/giorgi-o/SkinPeek/blob/master/SkinPeek.js) using `node SkinPeek.js` in the command prompt
 - Give the bot a [role](https://support.discord.com/hc/en-us/articles/206029707-Setting-Up-Permissions-FAQ) that allows it to send messages and create custom emojis
-- Send `!deploy guild` or `!deploy global` to deploy the commands.
 
 ### Useful Information
 
-- Deploying in the guild happens instantly but the commands can only be used in that guild. Deploying globally can take up to an hour due to Discord's caching.  
-  - If you deployed both globally and in a guild, you will see every command twice. In that case, just send `!undeploy guild`!
+- The bot should automatically deploy the slash commands globally. If they don't appear:
+  - If you're getting `DiscordAPIError: Missing Access`, you probably forgot to add the `applications.commands` scope in step 1
+  - Discord global commands can take up to 1h to update due to caching. If you don't want to wait, send `@bot !deploy guild` in a text channel the bot can see (`@bot` being you @mentionning your bot). This will deploy the commands immediately in that guild.
+  - If you see every command twice, just send `@bot !undeploy guild`!
 
 - By default, the bot doesn't store your username/password, it only uses them to get the cookies that can be used to generate access tokens needed to get your shop.  
   - Your cookies are only stored on your hard drive, and are only ever sent to official Riot servers.

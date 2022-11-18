@@ -58,6 +58,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "statsExpirationDays", 14);
     applyConfig(loadedConfig, "statsPerPage", 8);
     applyConfig(loadedConfig, "shardReadyTimeout", 60 * 1000);
+    applyConfig(loadedConfig, "autoDeployCommands", true);
     applyConfig(loadedConfig, "ownerId", "");
     applyConfig(loadedConfig, "ownerName", "");
     applyConfig(loadedConfig, "status", "Up and running!");
