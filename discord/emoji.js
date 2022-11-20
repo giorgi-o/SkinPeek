@@ -72,7 +72,7 @@ const createEmoji = async (guild, name, filenameOrUrl) => {
     if(!canCreateEmojis(guild)) return console.log(`Don't have permission to create emoji ${name} in guild ${guild.name}!`);
 
     await updateEmojiCache(guild);
-    if(guild.emojis.cache.size >= maxEmojis(guild))
+    if(guild.emojis.cache.filter(e => !e.animated).size >= maxEmojis(guild))
         return console.log(`Emoji limit of ${maxEmojis(guild)} reached for ${guild.name} while uploading ${name}!`);
 
     console.log(`Uploading emoji ${name} in ${guild.name}...`);
