@@ -16,7 +16,4 @@ COPY SkinPeek.js /usr/app/
 
 RUN npm i
 
-RUN adduser -D -u 8877 bot
-USER bot
-
 CMD ["node", "SkinPeek.js"]
