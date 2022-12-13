@@ -395,10 +395,10 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
 const bundleItemEmbed = async (item, interaction, VPemojiString) => {
     switch(item.type) {
         case itemTypes.SKIN: return skinEmbed(item.uuid, item.price, interaction, VPemojiString);
-        case itemTypes.BUDDY: return buddyEmbed(item.uuid, item.price, interaction.locale, VPemojiString);
-        case itemTypes.CARD: return cardEmbed(item.uuid, item.price, interaction.locale, VPemojiString);
-        case itemTypes.SPRAY: return sprayEmbed(item.uuid, item.price, interaction.locale, VPemojiString);
-        case itemTypes.TITLE: return titleEmbed(item.uuid, item.price, interaction.locale, VPemojiString);
+        case itemTypes.BUDDY: return buddyEmbed(item.uuid, item.price, interaction, VPemojiString);
+        case itemTypes.CARD: return cardEmbed(item.uuid, item.price, interaction, VPemojiString);
+        case itemTypes.SPRAY: return sprayEmbed(item.uuid, item.price, interaction, VPemojiString);
+        case itemTypes.TITLE: return titleEmbed(item.uuid, item.price, interaction, VPemojiString);
         default: return basicEmbed(s(interaction).error.UNKNOWN_ITEM_TYPE.f({t: item.type}));
     }
 }
@@ -919,7 +919,7 @@ export const settingsEmbed = (userSettings, interaction) => {
     for(const [setting, value] of Object.entries(userSettings)) {
         if(!settingIsVisible(setting)) continue;
 
-        const displayValue = humanifyValue(setting === "locale" && !userSettings.localeLocked ? "Automatic" : value, interaction, true);
+        const displayValue = humanifyValue(setting === "locale" && !userSettings.localeForced ? "Automatic" : value, interaction, true);
         embed.fields.push({
             name: settingName(setting, interaction),
             value: displayValue,
