@@ -106,6 +106,7 @@
     "COLLECTION_VIEW_IMAGES": "View images",
     "COLLECTION_VIEW_ALL": "View all",
     "ACCOUNT_SWITCHED": "Switched to account number **{n}. {u}**",
+    "ACCOUNT_ALREADY_SELECTED": "**{u}** is already selected!",
     "ACCOUNTS_HEADER": "All your accounts with the bot:",
     "ACCOUNT_CURRENTLY_SELECTED": "(Currently selected)",
     "SWITCH_ACCOUNT_BUTTON": "Account #{n}",
