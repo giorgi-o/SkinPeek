@@ -1026,6 +1026,8 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "account": {
+                    const userJson = readUserJson(interaction.user.id);
+
                     const accountCount = getNumberOfAccounts(interaction.user.id);
                     if(accountCount === 0) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
@@ -1035,17 +1037,23 @@ client.on("interactionCreate", async (interaction) => {
                     const targetAccount = interaction.options.get("account").value;
                     const targetIndex = findTargetAccountIndex(interaction.user.id, targetAccount);
 
+                    const valorantUser = switchAccount(interaction.user.id, targetIndex);
                     if(targetIndex === null) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
                         ephemeral: true
                     });
+
+                   if(targetIndex === userJson.currentAccount) return await interaction.reply({
+                   embeds: [basicEmbed(s(interaction).info.ACCOUNT_ALREADY_SELECTED.f({u: valorantUser.username}, interaction))],
+                   ephemeral: true
+                   });
 
                     if(targetIndex > accountCount) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
                         ephemeral: true
                     });
 
-                    const valorantUser = switchAccount(interaction.user.id, targetIndex);
+                    
 
                     await interaction.reply({
                         embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({n: targetIndex, u: valorantUser.username}, interaction))],
