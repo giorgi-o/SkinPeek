@@ -109,11 +109,15 @@ export const redeemUsernamePassword = async (id, login, password) => {
             'user-agent': await getUserAgent()
         },
         body: JSON.stringify({
-            'client_id': 'play-valorant-web-prod',
-            'response_type': 'token id_token',
-            'redirect_uri': 'https://playvalorant.com/opt_in',
-            'scope': 'account openid',
-            'nonce': '1',
+            "client_id": "riot-client",
+            "code_challenge": "",
+            "code_challenge_method": "",
+            "acr_values": "",
+            "claims": "",
+            "nonce": "69420",
+            "redirect_uri": "http://localhost/redirect",
+            "response_type": "token id_token",
+            "scope": "openid link ban lol_region"
         })
     });
     console.assert(req1.statusCode === 200, `Auth Request Cookies status code is ${req1.statusCode}!`, req1);
