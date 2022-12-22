@@ -194,7 +194,7 @@ const getBundleList = async (gameVersion) => {
     }
 
     // get bundle items from https://docs.valtracker.gg/bundles
-    const req2 = await fetch("https://api.valtracker.gg/bundles");
+    const req2 = await fetch("https://api.valtracker.gg/v0/bundles");
     console.assert(req2.statusCode === 200, `ValTracker bundles items status code is ${req.statusCode}!`, req);
 
     const json2 = JSON.parse(req2.body);
