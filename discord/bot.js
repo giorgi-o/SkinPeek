@@ -747,7 +747,7 @@ client.on("interactionCreate", async (interaction) => {
                         });
 
                         const skin = searchResults[0].obj;
-                        const otherAlert = alertExists(interaction.user.id, skin.levelUuid);
+                        const otherAlert = alertExists(interaction.user.id, skin.uuid);
                         return await interaction.followUp({
                             embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction), c: otherAlert.channel_id}))],
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
