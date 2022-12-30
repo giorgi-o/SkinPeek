@@ -405,11 +405,20 @@ const bundleItemEmbed = async (item, interaction, VPemojiString) => {
 
 const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
     const skin = await getSkin(uuid);
+    const colorMap = {
+      '0cebb8be-46d7-c12a-d306-e9907bfc5a25': '009984', 
+      'e046854e-406c-37f4-6607-19a9ba8426fc': 'f99358',
+      '60bca009-4182-7998-dee7-b8a2558dc369': 'd1538c',
+      '12683d76-48d7-84a3-4e09-6985794f0445': '5a9fe1',
+      '411e4a55-4e59-7757-41f0-86a53f101bb5': 'f9d563'
+    };
+
+    const color = colorMap[skin.rarity] || '000000'; // default to black
     return {
         title: await skinNameAndEmoji(skin, interaction.channel, interaction),
         url: config.linkItemImage ? skin.icon : null,
         description: priceDescription(VPemojiString, price),
-        color: VAL_COLOR_2,
+        color: color,
         thumbnail: {
             url: skin.icon
         }
