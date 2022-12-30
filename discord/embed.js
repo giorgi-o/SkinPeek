@@ -115,7 +115,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     }
     else headerText = s(interaction).info.SHOP_HEADER.f({u: valorantUser.username, t: shop.expires}, interaction);
 
-    const embeds = [basicEmbed(headerText)];
+    const embeds = [headerEmbed(headerText)];
 
     for(const uuid of shop.offers) {
         const skin = await getSkin(uuid);
@@ -978,6 +978,13 @@ export const basicEmbed = (content) => {
         color: VAL_COLOR_1
     }
 }
+
+export const headerEmbed = (content) => {
+  return {
+    description: content,
+    color: 0x202225,
+  };
+};
 
 export const secondaryEmbed = (content) => {
     return {
