@@ -374,7 +374,7 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
         const embed = await bundleItemEmbed(item, interaction, VPemojiString);
 
         if(item.amount !== 1) embed.title = `${item.amount}x ${embed.title}`
-        if(item.type === itemTypes.SKIN) embed.color = VAL_COLOR_1;
+        if(item.type === itemTypes.SKIN);
         if(item.basePrice && item.price !== item.basePrice) {
             embed.description = `${VPemojiString} **${item.price || s(interaction).info.FREE}** ~~${item.basePrice}~~`;
             if(item.type === itemTypes.TITLE) embed.description = "`" + item.item.text + "`\n\n" + embed.description
