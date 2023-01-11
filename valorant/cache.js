@@ -110,7 +110,9 @@ export const getSkinList = async (gameVersion) => {
                 icon = skin.levels[1].displayIcon;
             else if (skin.levels[2].displayIcon)
                 icon = skin.levels[2].displayIcon;
-            else icon = skin.levels[3].displayIcon;
+            else if (skin.levels[3].displayIcon)
+                icon = skin.levels[3].displayIcon;
+            else icon = null
 
 
             skins[levelOne.uuid] = {
