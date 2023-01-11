@@ -104,7 +104,14 @@ export const getSkinList = async (gameVersion) => {
             let icon;
             if(skin.themeUuid === "5a629df4-4765-0214-bd40-fbb96542941f") // default skins don't have displayIcon
                 icon = skin.chromas[0].fullRender;
-            else icon = levelOne.displayIcon;
+            else if (levelOne.displayIcon)
+                icon = levelOne.displayIcon;
+            else if (skin.levels[1].displayIcon)
+                icon = skin.levels[1].displayIcon;
+            else if (skin.levels[2].displayIcon)
+                icon = skin.levels[2].displayIcon;
+            else icon = skin.levels[3].displayIcon;
+
 
             skins[levelOne.uuid] = {
                 uuid: levelOne.uuid,
@@ -194,7 +201,7 @@ const getBundleList = async (gameVersion) => {
     }
 
     // get bundle items from https://docs.valtracker.gg/bundles
-    const req2 = await fetch("https://api.valtracker.gg/v0/bundles");
+    const req2 = await fetch("https://api.valtracker.gg/v1/bundles");
     console.assert(req2.statusCode === 200, `ValTracker bundles items status code is ${req.statusCode}!`, req);
 
     const json2 = JSON.parse(req2.body);
