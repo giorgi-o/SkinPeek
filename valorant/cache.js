@@ -101,18 +101,19 @@ export const getSkinList = async (gameVersion) => {
         for(const skin of weapon.skins) {
             const levelOne = skin.levels[0];
 
-            let icon;
-            if(skin.themeUuid === "5a629df4-4765-0214-bd40-fbb96542941f") // default skins don't have displayIcon
-                icon = skin.chromas[0].fullRender;
-            else if (levelOne.displayIcon)
-                icon = levelOne.displayIcon;
-            else if (skin.levels[1].displayIcon)
-                icon = skin.levels[1].displayIcon;
-            else if (skin.levels[2].displayIcon)
-                icon = skin.levels[2].displayIcon;
-            else if (skin.levels[3].displayIcon)
-                icon = skin.levels[3].displayIcon;
-            else icon = null
+          let icon;
+          if (skin.themeUuid === "5a629df4-4765-0214-bd40-fbb96542941f") {
+              icon = skin.chromas[0] && skin.chromas[0].fullRender;
+          } else {
+              for (let i = 0; i < skin.levels.length; i++) {
+                  if (skin.levels[i] && skin.levels[i].displayIcon) {
+                      icon = skin.levels[i].displayIcon;
+                      break;
+                  }
+              }
+          }
+          
+          if(!icon) icon = null;
 
 
             skins[levelOne.uuid] = {
