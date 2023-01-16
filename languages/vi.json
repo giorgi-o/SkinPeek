@@ -153,7 +153,8 @@
       "CONFIRMATION": "Tùy chọn **{s}** đã được thay đổi thành **{v}**.",
       "hideIgn": "Ẩn tên trong game",
       "othersCanViewShop": "Cho phép mọi người xem /shop của bạn",
-      "othersCanViewColl": "Cho phép mọi người xem /collection của bạn"
+      "othersCanViewColl": "Cho phép mọi người xem /collection của bạn",
+      "locale": "Ngôn ngữ"
     }
   }
 
