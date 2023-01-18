@@ -260,10 +260,8 @@ const processAuthResponse = async (id, authData, redirect, user=null) => {
     }
 
     // get username
-    if(!user.username) {
-        const userInfo = await getUserInfo(user);
-        user.username = userInfo.username;
-    }
+    const userInfo = await getUserInfo(user);
+    user.username = userInfo.username;
 
     // get entitlements token
     if(!user.auth.ent) user.auth.ent = await getEntitlements(user);

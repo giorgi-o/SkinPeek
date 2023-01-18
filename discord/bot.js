@@ -822,7 +822,7 @@ client.on("interactionCreate", async (interaction) => {
                     saveUser(user);
 
                     await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_UPDATED)]
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_UPDATED.f({u: user.username}, interaction))],
                     });
                    break;
                 }
