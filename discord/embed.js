@@ -10,7 +10,6 @@ import {
 } from "../valorant/cache.js";
 import {
     skinNameAndEmoji,
-    escapeMarkdown,
     itemTypes,
     removeAlertActionRow,
     removeAlertButton,
@@ -18,7 +17,7 @@ import {
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
-import {MessageActionRow, MessageButton} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, ButtonStyle, escapeMarkdown} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
 import {readUserJson, removeDupeAccounts, saveUser} from "../valorant/accountSwitcher.js";
@@ -172,13 +171,13 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         embeds.push(embed);
 
         if(buttons.length < 5) {
-            buttons.push(new MessageButton().setCustomId(`viewbundle/${interaction.user.id}/${bundle.uuid}`).setStyle("PRIMARY").setLabel(l(bundle.names, interaction)).setEmoji("🔎"));
+            buttons.push(new ButtonBuilder().setCustomId(`viewbundle/${interaction.user.id}/${bundle.uuid}`).setStyle("PRIMARY").setLabel(l(bundle.names, interaction)).setEmoji("🔎"));
         }
     }
 
     return {
         embeds: embeds,
-        components: [new MessageActionRow().addComponents(...buttons)]
+        components: [new ActionRowBuilder().addComponents(...buttons)]
     };
 }
 
@@ -406,11 +405,11 @@ const bundleItemEmbed = async (item, interaction, VPemojiString) => {
 const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
     const skin = await getSkin(uuid);
     const colorMap = {
-      '0cebb8be-46d7-c12a-d306-e9907bfc5a25': '009984', 
-      'e046854e-406c-37f4-6607-19a9ba8426fc': 'f99358',
-      '60bca009-4182-7998-dee7-b8a2558dc369': 'd1538c',
-      '12683d76-48d7-84a3-4e09-6985794f0445': '5a9fe1',
-      '411e4a55-4e59-7757-41f0-86a53f101bb5': 'f9d563'
+      '0cebb8be-46d7-c12a-d306-e9907bfc5a25': 0x009984,
+      'e046854e-406c-37f4-6607-19a9ba8426fc': 0xf99358,
+      '60bca009-4182-7998-dee7-b8a2558dc369': 0xd1538c,
+      '12683d76-48d7-84a3-4e09-6985794f0445': 0x5a9fe1,
+      '411e4a55-4e59-7757-41f0-86a53f101bb5': 0xf9d563
     };
 
     const color = colorMap[skin.rarity] || '000000'; // default to black
@@ -573,7 +572,7 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
         fields: fields
     }
 
-    const components = [new MessageActionRow().addComponents(collectionSwitchEmbedButton(interaction, true, id)),]
+    const components = [new ActionRowBuilder().addComponents(collectionSwitchEmbedButton(interaction, true, id)),]
     if(!someoneElseUsedCommand) components.push(...switchAccountButtons(interaction, "cl", false, id))
 
     return {
@@ -636,7 +635,7 @@ export const skinCollectionPageEmbed = async (interaction, id, user, {loadout, f
     const firstRowButtons = [collectionSwitchEmbedButton(interaction, false, id)];
     firstRowButtons.push(...(pageButtons("clpage", id, pageIndex, pages.length).components))
 
-    const components = [new MessageActionRow().setComponents(...firstRowButtons)]
+    const components = [new ActionRowBuilder().setComponents(...firstRowButtons)]
     if(!someoneElseUsedCommand) components.push(...switchAccountButtons(interaction, "cl", false, id));
 
     return {embeds, components}
@@ -645,7 +644,7 @@ export const skinCollectionPageEmbed = async (interaction, id, user, {loadout, f
 const collectionSwitchEmbedButton = (interaction, switchToPage, id) => {
     const label = s(interaction).info[switchToPage ? "COLLECTION_VIEW_IMAGES" : "COLLECTION_VIEW_ALL"];
     const customId = `clswitch/${switchToPage ? "p" : "s"}/${id}`;
-    return new MessageButton().setEmoji('🔍').setLabel(label).setStyle("PRIMARY").setCustomId(customId);
+    return new ButtonBuilder().setEmoji('🔍').setLabel(label).setStyle("PRIMARY").setCustomId(customId);
 }
 
 export const botInfoEmbed = (interaction, client, guildCount, userCount, registeredUserCount, ownerString, status) => {
@@ -716,13 +715,13 @@ const priceDescription = (VPemojiString, price) => {
 }
 
 const pageButtons = (pageId, userId, current, max) => {
-    const leftButton = new MessageButton().setStyle("SECONDARY").setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
-    const rightButton = new MessageButton().setStyle("SECONDARY").setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
+    const leftButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
+    const rightButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
 
     if(current === 0) leftButton.setEmoji("⏪");
     if(current === max - 1) rightButton.setEmoji("⏩");
 
-    return new MessageActionRow().setComponents(leftButton, rightButton);
+    return new ActionRowBuilder().setComponents(leftButton, rightButton);
 }
 
 export const switchAccountButtons = (interaction, customId, oneAccountButton=false, id=interaction.user.id) => {
@@ -736,13 +735,13 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
         const username = json.accounts[number - 1].username || s(interaction).info.NO_USERNAME;
         const label = hideIgn ? s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: number.toString()}) : username;
 
-        const button = new MessageButton().setStyle("SECONDARY").setLabel(label).setCustomId(`account/${customId}/${id}/${number}`);
+        const button = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setLabel(label).setCustomId(`account/${customId}/${id}/${number}`);
         button.setDisabled(number === json.currentAccount);
 
         buttons.push(button);
     }
 
-    return [new MessageActionRow().setComponents(...buttons)];
+    return [new ActionRowBuilder().setComponents(...buttons)];
 }
 
 const alertFieldDescription = async (interaction, channel_id, emojiString, price) => {
@@ -818,7 +817,7 @@ export const alertsPageEmbed = async (interaction, alerts, pageIndex, emojiStrin
 
     const actionRows = [];
     for(let i = 0; i < alertsToRender.length; i += 5) {
-        const actionRow = new MessageActionRow();
+        const actionRow = new ActionRowBuilder();
         for(let j = i; j < i + 5 && j < alertsToRender.length; j++) {
             actionRow.addComponents(buttons[j]);
         }

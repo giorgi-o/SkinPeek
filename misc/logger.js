@@ -1,5 +1,5 @@
 import config from "./config.js";
-import {escapeMarkdown} from "./util.js";
+import {escapeMarkdown} from "discord.js";
 import {client} from "../discord/bot.js";
 import {sendShardMessage} from "./shardMessage.js";
 

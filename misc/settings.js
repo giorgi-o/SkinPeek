@@ -1,6 +1,6 @@
 import {readUserJson, saveUserJson} from "../valorant/accountSwitcher.js";
 import {basicEmbed, secondaryEmbed, settingsEmbed} from "../discord/embed.js";
-import {MessageActionRow, MessageSelectMenu} from "discord.js";
+import {ActionRowBuilder, StringSelectMenuBuilder} from "discord.js";
 import {discLanguageNames, s} from "./languages.js";
 import {findKeyOfValue} from "./util.js";
 
@@ -104,7 +104,7 @@ export const handleSettingsSetCommand = async (interaction) => {
 
     const settingValues = settings[setting].values;
 
-    const row = new MessageActionRow();
+    const row = new ActionRowBuilder();
 
     const options = settingValues.slice(0, 25).map(value => {
         return {
@@ -113,7 +113,7 @@ export const handleSettingsSetCommand = async (interaction) => {
         }
     });
 
-    row.addComponents(new MessageSelectMenu().setCustomId("set-setting").addOptions(options));
+    row.addComponents(new StringSelectMenuBuilder().setCustomId("set-setting").addOptions(options));
 
     await interaction.reply({
         embeds: [secondaryEmbed(s(interaction).settings.SET_QUESTION.f({s: settingName(setting, interaction)}))],

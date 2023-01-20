@@ -1,6 +1,6 @@
 import fs from "fs";
+import {BaseInteraction} from "discord.js";
 import {getSetting} from "./settings.js";
-import {Interaction} from "discord.js";
 import {getUser, User} from "../valorant/auth.js";
 
 // languages valorant doesn't have:
@@ -136,7 +136,7 @@ const resolveDiscordLanguage = (input) => {
         else discLang = input;
     }
     if(input instanceof User) discLang = getSetting(input.id, 'locale');
-    if(input instanceof Interaction) discLang = getSetting(input.user.id, 'locale');
+    if(input instanceof BaseInteraction) discLang = getSetting(input.user.id, 'locale');
 
     if(discLang === "Automatic") discLang = input.locale;
     if(!discLang) discLang = DEFAULT_LANG;

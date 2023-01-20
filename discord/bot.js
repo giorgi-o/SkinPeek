@@ -1,4 +1,13 @@
-import {Client, Intents, MessageActionRow, MessageFlags, MessageSelectMenu} from "discord.js";
+import {
+    Client,
+    GatewayIntentBits,
+    ActionRowBuilder,
+    MessageFlagsBitField,
+    StringSelectMenuBuilder,
+    ApplicationCommandOptionType,
+    ButtonBuilder,
+    ButtonStyle
+} from "discord.js";
 import cron from "node-cron";
 
 import {
@@ -69,7 +78,7 @@ import {getLoadout} from "../valorant/inventory.js";
 import {spawn} from "child_process";
 
 export const client = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_EMOJIS_AND_STICKERS],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildEmojisAndStickers],
     partials: ["CHANNEL"], // required to receive DMs
     //shards: "auto" // uncomment this to use internal sharding instead of sharding.js
 });
@@ -153,7 +162,7 @@ const commands = [
         name: "shop",
         description: "Show your current daily shop!",
         options: [{
-            type: "USER",
+            type: ApplicationCommandOptionType.String,
             name: "user",
             description: "Optional: see the daily shop of someone else!",
             required: false
@@ -167,7 +176,7 @@ const commands = [
         name: "bundle",
         description: "Inspect a specific bundle",
         options: [{
-            type: "STRING",
+            type: ApplicationCommandOptionType.String,
             name: "bundle",
             description: "The name of the bundle you want to inspect!",
             required: true,
@@ -186,7 +195,7 @@ const commands = [
         name: "alert",
         description: "Set an alert for when a particular skin is in your shop.",
         options: [{
-            type: "STRING",
+            type: ApplicationCommandOptionType.String,
             name: "skin",
             description: "The name of the skin you want to set an alert for",
             required: true,
@@ -206,13 +215,13 @@ const commands = [
         description: "Log in with your Riot username/password!",
         options: [
             {
-                type: "STRING",
+                type: ApplicationCommandOptionType.String,
                 name: "username",
                 description: "Your Riot username",
                 required: true
             },
             {
-                type: "STRING",
+                type: ApplicationCommandOptionType.String,
                 name: "password",
                 description: "Your Riot password",
                 required: true
@@ -227,7 +236,7 @@ const commands = [
         name: "2fa",
         description: "Enter your 2FA code if needed",
         options: [{
-            type: "INTEGER",
+            type: ApplicationCommandOptionType.Integer,
             name: "code",
             description: "The 2FA Code",
             required: true,
@@ -239,7 +248,7 @@ const commands = [
         name: "cookies",
         description: "Log in with your cookies. Useful if you have 2FA or if you use Google/Facebook to log in.",
         options: [{
-            type: "STRING",
+            type: ApplicationCommandOptionType.String,
             name: "cookies",
             description: "Your auth.riotgames.com cookie header",
             required: true
@@ -251,16 +260,16 @@ const commands = [
         options: [{
                 name: "view",
                 description: "See your current settings",
-                type: 1,
+                type: ApplicationCommandOptionType.Subcommand,
             },
             {
                 name: "set",
                 description: "Change one of your settings with the bot",
-                type: 1,
+                type: ApplicationCommandOptionType.Subcommand,
                 options: [{
                     name: "setting",
                     description: "The name of the setting you want to change",
-                    type: "STRING",
+                    type: ApplicationCommandOptionType.String,
                     required: true,
                     choices: settingsChoices
                 }]
@@ -271,7 +280,7 @@ const commands = [
         name: "forget",
         description: "Forget and permanently delete your account from the bot.",
         options: [{
-            type: "STRING",
+            type: ApplicationCommandOptionType.String,
             name: "account",
             description: "The account you want to forget. Leave blank to forget all accounts.",
             required: false,
@@ -282,7 +291,7 @@ const commands = [
         name: "collection",
         description: "Show off your skin collection!",
         options: [{
-            type: "USER",
+            type: ApplicationCommandOptionType.User,
             name: "user",
             description: "Optional: see someone else's collection!",
             required: false
@@ -292,7 +301,7 @@ const commands = [
         name: "battlepass",
         description: "Calculate battlepass progression.",
         options: [{
-            type: "INTEGER",
+            type: ApplicationCommandOptionType.Integer,
             name: "maxlevel",
             description: "Enter the level you want to reach",
             required: false,
@@ -304,7 +313,7 @@ const commands = [
         name: "stats",
         description: "See the stats for a skin",
         options: [{
-            type: "STRING",
+            type: ApplicationCommandOptionType.String,
             name: "skin",
             description: "The name of the skin you want to see the stats of",
             required: false,
@@ -315,7 +324,7 @@ const commands = [
         name: "account",
         description: "Switch the Valorant account you are currently using",
         options: [{
-            type: "STRING",
+            type: ApplicationCommandOptionType.String,
             name: "account",
             description: "The account you want to switch to",
             required: true,
@@ -636,7 +645,7 @@ client.on("interactionCreate", async (interaction) => {
 
                         return await interaction.followUp(message);
                     } else {
-                        const row = new MessageActionRow();
+                        const row = new ActionRowBuilder();
 
                         const options = searchResults.map(result => {
                             return {
@@ -657,7 +666,7 @@ client.on("interactionCreate", async (interaction) => {
                             if(occurrence > 1) options[i].label += " " + occurrence;
                         }
 
-                        row.addComponents(new MessageSelectMenu().setCustomId("bundle-select").setPlaceholder(s(interaction).info.BUNDLE_CHOICE_PLACEHOLDER).addOptions(options));
+                        row.addComponents(new StringSelectMenuBuilder().setCustomId("bundle-select").setPlaceholder(s(interaction).info.BUNDLE_CHOICE_PLACEHOLDER).addOptions(options));
 
                         await interaction.followUp({
                             embeds: [secondaryEmbed(s(interaction).info.BUNDLE_CHOICE)],
@@ -768,14 +777,14 @@ client.on("interactionCreate", async (interaction) => {
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                         });
                     } else {
-                        const row = new MessageActionRow();
+                        const row = new ActionRowBuilder();
                         const options = filteredResults.splice(0, 25).map(result => {
                             return {
                                 label: l(result.obj.names, interaction),
                                 value: `skin-${result.obj.uuid}`
                             }
                         });
-                        row.addComponents(new MessageSelectMenu().setCustomId("skin-select").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
+                        row.addComponents(new StringSelectMenuBuilder().setCustomId("skin-select").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
 
                         await interaction.followUp({
                             embeds: [secondaryEmbed(s(interaction).info.ALERT_CHOICE)],
@@ -1004,14 +1013,14 @@ client.on("interactionCreate", async (interaction) => {
                                 embeds: [await statsForSkinEmbed(skin, stats, interaction)]
                             });
                         } else {
-                            const row = new MessageActionRow();
+                            const row = new ActionRowBuilder();
                             const options = skins.map(result => {
                                 return {
                                     label: l(result.obj.names, interaction),
                                     value: `skin-${result.obj.uuid}`
                                 }
                             });
-                            row.addComponents(new MessageSelectMenu().setCustomId("skin-select-stats").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
+                            row.addComponents(new StringSelectMenuBuilder().setCustomId("skin-select-stats").setPlaceholder(s(interaction).info.ALERT_CHOICE_PLACEHOLDER).addOptions(options));
 
                             await interaction.followUp({
                                 embeds: [secondaryEmbed(s(interaction).info.STATS_CHOICE)],
@@ -1117,7 +1126,7 @@ client.on("interactionCreate", async (interaction) => {
         } catch(e) {
             await handleError(e, interaction);
         }
-    } else if(interaction.isSelectMenu()) {
+    } else if(interaction.isStringSelectMenu()) {
         try {
             console.log(`${interaction.user.tag} selected an option from the dropdown`);
             switch (interaction.customId) {
@@ -1222,7 +1231,7 @@ client.on("interactionCreate", async (interaction) => {
                         ephemeral: true
                     });
 
-                    if(interaction.message.flags.has(MessageFlags.FLAGS.EPHEMERAL)) return; // message is ephemeral
+                    if(interaction.message.flags.has(MessageFlagsBitField.Flags.Ephemeral)) return; // message is ephemeral
 
                     if(interaction.message.interaction && interaction.message.interaction.commandName === "alert") { // if the message is the response to /alert
                         await interaction.message.delete().catch(() => {});
@@ -1313,19 +1322,28 @@ client.on("interactionCreate", async (interaction) => {
                 const message = await channel.messages.fetch(interaction.message.id);
                 if(!message.components) message.components = switchAccountButtons(interaction, customId, true);
 
+                const newActionRows = [];
                 for(const actionRow of message.components) {
+                    const newActionRow = new ActionRowBuilder();
+
                     for(const component of actionRow.components) {
+                        const newButton = new ButtonBuilder(component.data);
+
                         if(component.customId === interaction.customId) {
-                            component.label = s(interaction).info.LOADING;
-                            component.style = "PRIMARY";
-                            component.emoji = {name: '⏳'};
+                            newButton.setLabel(s(interaction).info.LOADING);
+                            newButton.setStyle(ButtonStyle.Primary);
+                            newButton.setEmoji('⏳');
                         }
+
+                        newActionRow.addComponents(newButton);
                     }
+
+                    newActionRows.push(newActionRow);
                 }
 
                 await interaction.update({
                     embeds: message.embeds,
-                    components: message.components
+                    components: newActionRows
                 });
 
                 const success = switchAccount(interaction.user.id, parseInt(accountIndex));
