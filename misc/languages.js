@@ -2,6 +2,7 @@ import fs from "fs";
 import {getSetting} from "./settings.js";
 import {Interaction} from "discord.js";
 import {getUser, User} from "../valorant/auth.js";
+import config from "./config.js";
 
 // languages valorant doesn't have:
 // danish, croatian, lithuanian, hungarian, dutch, norwegian, romanian, finnish, swedish, czech, greek, bulgarian, ukranian, hindi
@@ -138,7 +139,10 @@ const resolveDiscordLanguage = (input) => {
     if(input instanceof User) discLang = getSetting(input.id, 'locale');
     if(input instanceof Interaction) discLang = getSetting(input.user.id, 'locale');
 
-    if(discLang === "Automatic") discLang = input.locale;
+    if(discLang === "Automatic") {
+        if(config.localiseSkinNames) discLang = input.locale;
+        else discLang = DEFAULT_LANG;
+    }
     if(!discLang) discLang = DEFAULT_LANG;
 
     return discLang;
