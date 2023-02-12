@@ -186,6 +186,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     const subName = bundle.subNames ? l(bundle.subNames, interaction) + "\n" : "";
     const slantedDescription = bundle.descriptions ? "*" + l(bundle.descriptions, interaction) + "*\n" : "";
     const strikedBundleBasePrice = bundle.basePrice ? " ~~" + bundle.basePrice + "~~" : "";
+    const UnixStamp = bundle.last_seen / 1000 ? `\n_Released: <t:${bundle.last_seen / 1000}:R>_\n` : "";
 
     if(!bundle.items) return {embeds: [{
         title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
@@ -201,7 +202,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 
     const bundleTitleEmbed = {
         title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
-        description: `${subName}${slantedDescription}${emoji} **${bundle.price}**${strikedBundleBasePrice}`,
+        description: `${subName}${slantedDescription}${UnixStamp}${emoji} **${bundle.price}**${strikedBundleBasePrice}`,
         color: VAL_COLOR_3,
         image: {
             url: bundle.icon
