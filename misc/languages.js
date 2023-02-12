@@ -1,6 +1,6 @@
 import fs from "fs";
+import {BaseInteraction} from "discord.js";
 import {getSetting} from "./settings.js";
-import {Interaction} from "discord.js";
 import {getUser, User} from "../valorant/auth.js";
 import config from "./config.js";
 
@@ -137,7 +137,7 @@ const resolveDiscordLanguage = (input) => {
         else discLang = input;
     }
     if(input instanceof User) discLang = getSetting(input.id, 'locale');
-    if(input instanceof Interaction) discLang = getSetting(input.user.id, 'locale');
+    if(input instanceof BaseInteraction) discLang = getSetting(input.user.id, 'locale');
 
     if(discLang === "Automatic") {
         if(config.localiseSkinNames) discLang = input.locale;

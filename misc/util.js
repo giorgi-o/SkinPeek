@@ -1,5 +1,5 @@
 import {rarityEmoji} from "../discord/emoji.js";
-import {MessageActionRow, MessageButton, Permissions, Util} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, PermissionsBitField} from "discord.js";
 import {getItem, getRarity} from "../valorant/cache.js";
 
 import https from "https";
@@ -236,21 +236,21 @@ export const skinNameAndEmoji = async (skin, channel, localeOrInteraction=DEFAUL
     return rarityIcon ? `${rarityIcon} ${name}` : name;
 }
 
-export const actionRow = (button) => new MessageActionRow().addComponents(button);
+export const actionRow = (button) => new ActionRowBuilder().addComponents(button);
 
-export const removeAlertButton = (id, uuid, buttonText) => new MessageButton().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 100000)}`).setStyle("DANGER").setLabel(buttonText).setEmoji("✖");
-export const removeAlertActionRow = (id, uuid, buttonText) => new MessageActionRow().addComponents(removeAlertButton(id, uuid, buttonText));
+export const removeAlertButton = (id, uuid, buttonText) => new ButtonBuilder().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 100000)}`).setStyle("DANGER").setLabel(buttonText).setEmoji("✖");
+export const removeAlertActionRow = (id, uuid, buttonText) => new ActionRowBuilder().addComponents(removeAlertButton(id, uuid, buttonText));
 
-export const retryAuthButton = (id, operationId, buttonText) => new MessageButton().setCustomId(`retry_auth/${operationId}`).setStyle("PRIMARY").setLabel(buttonText).setEmoji("🔄");
+export const retryAuthButton = (id, operationId, buttonText) => new ButtonBuilder().setCustomId(`retry_auth/${operationId}`).setStyle("PRIMARY").setLabel(buttonText).setEmoji("🔄");
 
-export const externalEmojisAllowed = (channel) => !channel || !channel.guild || channel.permissionsFor(channel.guild.roles.everyone).has(Permissions.FLAGS.USE_EXTERNAL_EMOJIS);
-export const canCreateEmojis = (guild) => guild && guild.me && guild.me.permissions.has(Permissions.FLAGS.MANAGE_EMOJIS_AND_STICKERS);
+export const externalEmojisAllowed = (channel) => !channel || !channel.guild || channel.permissionsFor(channel.guild.roles.everyone).has(PermissionsBitField.Flags.UseExternalEmojis);
+export const canCreateEmojis = (guild) => guild && guild.members.me && guild.members.me.permissions.has(PermissionsBitField.Flags.ManageEmojisAndStickers);
 export const emojiToString = (emoji) => emoji && `<:${emoji.name}:${emoji.id}>`;
 
 export const canSendMessages = (channel) => {
     if(!channel || !channel.guild) return true;
-    const permissions = channel.permissionsFor(channel.guild.me);
-    return permissions.has(Permissions.FLAGS.VIEW_CHANNEL) && permissions.has(Permissions.FLAGS.SEND_MESSAGES) && permissions.has(Permissions.FLAGS.EMBED_LINKS);
+    const permissions = channel.permissionsFor(channel.guild.members.me);
+    return permissions.has(PermissionsBitField.Flags.ViewChannel) && permissions.has(PermissionsBitField.Flags.SendMessages) && permissions.has(PermissionsBitField.Flags.EmbedLinks);
 }
 
 export const fetchChannel = async (channelId) => {
@@ -289,8 +289,6 @@ export const discordTag = id => {
     const user = client.users.cache.get(id);
     return user ? `${user.username}#${user.discriminator}` : id;
 }
-
-export const escapeMarkdown = Util.escapeMarkdown;
 
 // misc utils
 
