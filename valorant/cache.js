@@ -199,7 +199,8 @@ const getBundleList = async (gameVersion) => {
             items: null,
             price: null,
             basePrice: null,
-            expires: null
+            expires: null,
+            last_seen: null
         }
     }
 
@@ -249,6 +250,7 @@ const getBundleList = async (gameVersion) => {
                 });
 
             bundle.items = items;
+            bundle.last_seen = bundleData.last_seen
             bundle.price = bundleData.price;
         }
     }
