@@ -57,6 +57,7 @@
     "BUNDLE_CHOICE_PLACEHOLDER": "Select bundle:",
     "NO_BUNDLE_DATA": "Riot doesn't provide data for previous/unreleased bundles :(",
     "BUNDLE_NAME": "{b} Collection",
+    "BUNDLE_RELEASED": "Released: <t:{t}:R>",
     "EXPIRES": "expires <t:{t}:R>",
     "EXPIRED": "expired <t:{t}:R>",
     "PRICE": "Price: ",
