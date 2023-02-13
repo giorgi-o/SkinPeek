@@ -1,5 +1,5 @@
 import {rarityEmoji} from "../discord/emoji.js";
-import {ActionRowBuilder, ButtonBuilder, PermissionsBitField} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField} from "discord.js";
 import {getItem, getRarity} from "../valorant/cache.js";
 
 import https from "https";
@@ -238,10 +238,10 @@ export const skinNameAndEmoji = async (skin, channel, localeOrInteraction=DEFAUL
 
 export const actionRow = (button) => new ActionRowBuilder().addComponents(button);
 
-export const removeAlertButton = (id, uuid, buttonText) => new ButtonBuilder().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 100000)}`).setStyle("DANGER").setLabel(buttonText).setEmoji("✖");
+export const removeAlertButton = (id, uuid, buttonText) => new ButtonBuilder().setCustomId(`removealert/${uuid}/${id}/${Math.round(Math.random() * 100000)}`).setStyle(ButtonStyle.Danger).setLabel(buttonText).setEmoji("✖");
 export const removeAlertActionRow = (id, uuid, buttonText) => new ActionRowBuilder().addComponents(removeAlertButton(id, uuid, buttonText));
 
-export const retryAuthButton = (id, operationId, buttonText) => new ButtonBuilder().setCustomId(`retry_auth/${operationId}`).setStyle("PRIMARY").setLabel(buttonText).setEmoji("🔄");
+export const retryAuthButton = (id, operationId, buttonText) => new ButtonBuilder().setCustomId(`retry_auth/${operationId}`).setStyle(ButtonStyle.Danger).setLabel(buttonText).setEmoji("🔄");
 
 export const externalEmojisAllowed = (channel) => !channel || !channel.guild || channel.permissionsFor(channel.guild.roles.everyone).has(PermissionsBitField.Flags.UseExternalEmojis);
 export const canCreateEmojis = (guild) => guild && guild.members.me && guild.members.me.permissions.has(PermissionsBitField.Flags.ManageEmojisAndStickers);

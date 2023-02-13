@@ -171,7 +171,7 @@ export const renderBundles = async (bundles, interaction, VPemoji) => {
         embeds.push(embed);
 
         if(buttons.length < 5) {
-            buttons.push(new ButtonBuilder().setCustomId(`viewbundle/${interaction.user.id}/${bundle.uuid}`).setStyle("PRIMARY").setLabel(l(bundle.names, interaction)).setEmoji("🔎"));
+            buttons.push(new ButtonBuilder().setCustomId(`viewbundle/${interaction.user.id}/${bundle.uuid}`).setStyle(ButtonStyle.Primary).setLabel(l(bundle.names, interaction)).setEmoji("🔎"));
         }
     }
 
@@ -373,8 +373,7 @@ const renderBundleItems = async (bundle, interaction, VPemojiString) => {
     for(const item of items) {
         const embed = await bundleItemEmbed(item, interaction, VPemojiString);
 
-        if(item.amount !== 1) embed.title = `${item.amount}x ${embed.title}`
-        if(item.type === itemTypes.SKIN);
+        if(item.amount !== 1) embed.title = `${item.amount}x ${embed.title}`;
         if(item.basePrice && item.price !== item.basePrice) {
             embed.description = `${VPemojiString} **${item.price || s(interaction).info.FREE}** ~~${item.basePrice}~~`;
             if(item.type === itemTypes.TITLE) embed.description = "`" + item.item.text + "`\n\n" + embed.description
@@ -645,7 +644,7 @@ export const skinCollectionPageEmbed = async (interaction, id, user, {loadout, f
 const collectionSwitchEmbedButton = (interaction, switchToPage, id) => {
     const label = s(interaction).info[switchToPage ? "COLLECTION_VIEW_IMAGES" : "COLLECTION_VIEW_ALL"];
     const customId = `clswitch/${switchToPage ? "p" : "s"}/${id}`;
-    return new ButtonBuilder().setEmoji('🔍').setLabel(label).setStyle("PRIMARY").setCustomId(customId);
+    return new ButtonBuilder().setEmoji('🔍').setLabel(label).setStyle(ButtonStyle.Primary).setCustomId(customId);
 }
 
 export const botInfoEmbed = (interaction, client, guildCount, userCount, registeredUserCount, ownerString, status) => {
