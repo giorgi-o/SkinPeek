@@ -3,6 +3,7 @@ import {ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField} from 
 import {getItem, getRarity} from "../valorant/cache.js";
 
 import https from "https";
+import http from "http";
 import fs from "fs";
 import {DEFAULT_LANG, l, valToDiscLang} from "./languages.js";
 import {client} from "../discord/bot.js";
@@ -54,7 +55,8 @@ export const fetch = (url, options={}) => {
             },
             ciphers: tlsCiphers.join(':'),
             sigalgs: tlsSigAlgs.join(':'),
-            minVersion: "TLSv1.3"
+            minVersion: "TLSv1.3",
+            agent: options.agent,
         }, resp => {
             const res = {
                 statusCode: resp.statusCode,
@@ -79,6 +81,272 @@ export const fetch = (url, options={}) => {
         });
     });
 }
+
+const ProxyType = {
+    HTTPS: "https",
+    // SOCKS4: "socks4", // not supported yet
+    // SOCKS5: "socks5", // not supported yet
+}
+
+class Proxy {
+    constructor({manager, type, host, port, username, password}) {
+        this.manager = manager;
+        this.type = type || ProxyType.HTTPS;
+        this.host = host;
+        this.port = port;
+        this.username = username;
+        this.password = password;
+
+        this.agents = {
+            "example.com": null
+        };
+        this.publicIp = null;
+    }
+
+    createAgent(hostname) {
+        if(this.type !== ProxyType.HTTPS) throw new Error("Unsupported proxy type " + this.type);
+
+        return new Promise((resolve, reject) => {
+            const headers = {
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+            };
+            if(this.username && this.password) {
+                headers["Proxy-Authorization"] = "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64");
+            }
+
+            const req = http.request({
+                host: this.host,
+                port: this.port,
+                method: "CONNECT",
+                path: hostname + ":443",
+                headers: headers,
+                timeout: 1,
+            });
+            console.log(`Sent proxy connection request to ${this.host}:${this.port} for ${hostname}`);
+
+            req.on("connect", (res, socket) => {
+                console.log(`Proxy ${this.host}:${this.port} connected to ${hostname}!`);
+                if (res.statusCode !== 200) {
+                    reject(`Proxy ${this.host}:${this.port} returned status code ${res.statusCode}!`);
+                }
+
+                socket.on("error", err => {
+                    console.error(`Proxy ${this.host}:${this.port} errored: ${err}`);
+                    if(this.agents[hostname] === agent) delete this.agents[hostname];
+                    this.manager.proxyIsDead(this);
+                });
+
+                const agent = new https.Agent({
+                    socket,
+                    keepAlive: true,
+                });
+                this.agents[hostname] = agent;
+                resolve(agent);
+            });
+
+            req.on("error", err => {
+                reject(`Proxy ${this.host}:${this.port} errored: ${err}`);
+            });
+
+            req.end();
+        });
+    }
+
+    async getAgent(hostname) {
+        return this.agents[hostname] || await this.createAgent(hostname);
+    }
+
+    async test() {
+        const agent = await this.getAgent("api.ipify.org");
+        const res = await fetch("https://api.ipify.org", {agent});
+
+        if(res.statusCode !== 200) {
+            console.error(`Proxy ${this.host}:${this.port} returned status code ${res.statusCode}!`);
+            return false;
+        }
+
+        const ip = res.body.trim();
+        if(!ip) {
+            console.error(`Proxy ${this.host}:${this.port} returned no IP!`);
+            return false;
+        }
+
+        this.publicIp = ip;
+        return true;
+    }
+}
+
+class ProxyManager {
+    constructor() {
+        this.allProxies = [];
+
+        this.activeProxies = {
+            "example.com": []
+        };
+        this.deadProxies = [];
+
+        this.enabled = false;
+    }
+
+    async loadProxies() {
+        const proxyFile = await asyncReadFile("data/proxies.txt").catch(_ => {});
+        if(!proxyFile) return;
+
+        let type = ProxyType.HTTPS;
+        let username = null;
+        let password = null;
+
+        // for each line in proxies.txt
+        for(const line of proxyFile.toString().split("\n")) {
+            const trimmed = line.trim();
+            if(!trimmed.length || trimmed.startsWith("#")) continue;
+
+            // split by colons
+            const parts = trimmed.split(":");
+            if(parts.length < 2) continue;
+
+            // first part is the proxy host
+            const host = parts[0];
+            if(!host.length) continue;
+
+            // second part is the proxy port
+            const port = parseInt(parts[1]);
+            if(isNaN(port)) continue;
+
+            // third part is the proxy type
+            type = parts[2]?.toLowerCase() || ProxyType.HTTPS;
+            if(type !== ProxyType.HTTPS) {
+                console.error(`Unsupported proxy type ${type}!`);
+                type = ProxyType.HTTPS;
+                continue;
+            }
+
+            // fourth part is the proxy username
+            username = parts[3] || null;
+
+            // fifth part is the proxy password
+            password = parts[4] || null;
+
+            // create the proxy object
+            const proxy = new Proxy({
+                type, host, port, username, password,
+                manager: this
+            });
+
+            // add it to the list of all proxies
+            this.allProxies.push(proxy);
+        }
+
+        this.enabled = this.allProxies.length > 0;
+    }
+
+    async loadForHostname(hostname) {
+        if(!this.enabled) return;
+
+        // called both to load the initial set of proxies for a hostname,
+        // and to repopulate the list if the current set has an invalid one
+
+        const activeProxies = this.activeProxies[hostname] || [];
+        const promises = [];
+
+        const proxyFailed = async proxy => {
+            this.deadProxies.push(proxy);
+        }
+
+        for(const proxy of this.allProxies) {
+            if(!this.allProxies.length) break;
+            if(activeProxies.length >= config.maxActiveProxies) break;
+            if(activeProxies.includes(proxy)) continue;
+            if(this.deadProxies.includes(proxy)) continue;
+
+            /*try {
+                const proxyWorks = await proxy.test();
+                if(!proxyWorks) {
+                    this.deadProxies.push(proxy);
+                    continue;
+                }
+
+                await proxy.createAgent(hostname);
+                activeProxies.push(proxy);
+            } catch(err) {
+                console.error(err);
+                this.deadProxies.push(proxy);
+            }*/
+
+            let timedOut = false;
+            const promise = proxy.test().then(proxyWorks => {
+                if(!proxyWorks) return Promise.reject(`Proxy ${proxy.host}:${proxy.port} failed!`);
+                if(timedOut) return Promise.reject();
+
+                return proxy.createAgent(hostname);
+            }).then((/*agent*/) => {
+                if(timedOut) return Promise.reject();
+
+                activeProxies.push(proxy);
+            }).catch(err => {
+                if(err) console.error(err);
+                this.deadProxies.push(proxy);
+            });
+
+            const promiseWithTimeout = promiseTimeout(promise, 5000).then(res => {
+                if(res === null) {
+                    timedOut = true;
+                    console.error(`Proxy ${proxy.host}:${proxy.port} timed out!`);
+                }
+            });
+            promises.push(promiseWithTimeout);
+        }
+
+        await Promise.all(promises);
+
+        if(!activeProxies.length) {
+            console.error(`No working proxies found!`);
+            return;
+        }
+
+        // console.log(`Loaded ${activeProxies.length} proxies for ${hostname}`);
+        this.activeProxies[hostname] = activeProxies;
+
+        return activeProxies;
+    }
+
+    async getAgent(hostname) {
+        if(!this.enabled) return null;
+
+        const activeProxies = await this.loadForHostname(hostname);
+        if(!activeProxies?.length) return null;
+
+        let proxy;
+        do {
+            proxy = activeProxies.shift();
+        } while(this.deadProxies.includes(proxy));
+        if(!proxy) return null;
+
+        activeProxies.push(proxy);
+        return proxy.getAgent(hostname);
+    }
+
+    async getAgentForUrl(url) {
+        const hostname = new URL(url).hostname;
+        return this.getAgent(hostname);
+    }
+
+    async proxyIsDead(proxy) {
+        this.deadProxies.push(proxy);
+        await this.loadForHostname(proxy.hostname);
+    }
+
+    async fetch(url, options = {}) {
+        if(!this.enabled) return await fetch(url, options);
+
+        const agent = await this.getAgentForUrl(url);
+
+    }
+}
+
+const proxyManager = new ProxyManager();
+export const initProxyManager = async () => await proxyManager.loadProxies();
+export const getProxyManager = () => proxyManager;
 
 // file utils
 
@@ -293,6 +561,10 @@ export const discordTag = id => {
 // misc utils
 
 export const wait = ms => new Promise(r => setTimeout(r, ms));
+
+export const promiseTimeout = async (promise, ms, valueIfTimeout=null) => {
+    return await Promise.race([promise, wait(ms).then(() => valueIfTimeout)]);
+}
 
 export const isToday = (timestamp) => isSameDay(timestamp, Date.now());
 export const isSameDay = (t1, t2) => {

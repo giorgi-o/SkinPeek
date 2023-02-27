@@ -31,6 +31,9 @@ const receiveShardMessage = async (message) => {
     //oldLog(`Received shard message ${JSON.stringify(message).substring(0, 100)}`);
     switch(message.type) {
         case "shardsReady":
+            // also received when a shard dies and respawns
+            if(allShardsReadyPromise === null) return;
+
             localLog(`All shards are ready!`);
             allShardsReadyPromise = null;
             allShardsReadyCb();

@@ -6,7 +6,8 @@ import {
     StringSelectMenuBuilder,
     ApplicationCommandOptionType,
     ButtonBuilder,
-    ButtonStyle
+    ButtonStyle,
+    ActivityType,
 } from "discord.js";
 import cron from "node-cron";
 
@@ -48,7 +49,7 @@ import {getOverallStats, getStatsFor} from "../misc/stats.js";
 import {
     canSendMessages,
     defer,
-    fetchChannel, fetchMaintenances,
+    fetchChannel, fetchMaintenances, getProxyManager, initProxyManager,
     removeAlertActionRow,
     skinNameAndEmoji,
     valNamesToDiscordNames
@@ -90,10 +91,16 @@ client.on("ready", async () => {
     console.log("Loading skins...");
     fetchData().then(() => console.log("Skins loaded!"));
     fetchRiotClientVersion().then(() => console.log("Fetched latest Riot user-agent!"));
+    initProxyManager().then(() => {
+        if(getProxyManager().enabled) {
+            console.log(`Proxy manager loaded ${getProxyManager().allProxies.length} proxies!`);
+            // getProxyManager().loadForHostname("auth.riotgames.com").then(() => console.log("Loaded proxies for auth.riotgames.com!"));
+        }
+    });
 
     scheduleTasks();
 
-    await client.user.setActivity("your store!", {type: "WATCHING"});
+    await client.user.setActivity("your store!", {type: ActivityType.Watching});
 
     // deploy commands if different
     if(config.autoDeployCommands && (!client.shard || client.shard.ids[0] === 0)) {
@@ -116,6 +123,9 @@ client.on("ready", async () => {
             console.log("Slash commands deployed!");
         }
     }
+
+    // tell sharding manager that we're ready (workaround in case of shard respawn)
+    if(client.shard) client.shard.send("shardReady");
 });
 
 export const scheduleTasks = () => {
@@ -578,6 +588,7 @@ client.on("interactionCreate", async (interaction) => {
             switch (interaction.commandName) {
                 case "skins":
                 case "shop": {
+                    process.exit();
                     let targetUser = interaction.user;
 
                     const otherUser = interaction.options.getUser("user");

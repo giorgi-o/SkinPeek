@@ -5,7 +5,7 @@ import {
     extractTokensFromUri,
     tokenExpiry,
     decodeToken,
-    ensureUsersFolder
+    ensureUsersFolder, wait, getProxyManager
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import fs from "fs";
@@ -101,6 +101,8 @@ export const redeemUsernamePassword = async (id, login, password) => {
     let rateLimit = isRateLimited("auth.riotgames.com");
     if(rateLimit) return {success: false, rateLimit: rateLimit};
 
+    const requestAgent = await getProxyManager()?.getAgent("auth.riotgames.com");
+
     // prepare cookies for auth request
     const req1 = await fetch("https://auth.riotgames.com/api/v1/authorization", {
         method: "POST",
@@ -118,7 +120,8 @@ export const redeemUsernamePassword = async (id, login, password) => {
             "redirect_uri": "http://localhost/redirect",
             "response_type": "token id_token",
             "scope": "openid link ban lol_region"
-        })
+        }),
+        agent: requestAgent
     });
     console.assert(req1.statusCode === 200, `Auth Request Cookies status code is ${req1.statusCode}!`, req1);
 
@@ -140,7 +143,8 @@ export const redeemUsernamePassword = async (id, login, password) => {
             'username': login,
             'password': password,
             'remember': true
-        })
+        }),
+        agent: requestAgent
     });
     console.assert(req2.statusCode === 200, `Auth status code is ${req2.statusCode}!`, req2);
 
@@ -371,7 +375,7 @@ export const refreshToken = async (id, account=null) => {
 
 let riotClientVersion;
 let userAgentFetchPromise;
-export const fetchRiotClientVersion = async () => {
+export const fetchRiotClientVersion = async (attempt=1) => {
     if(userAgentFetchPromise) return userAgentFetchPromise;
 
     let resolve;
@@ -383,9 +387,27 @@ export const fetchRiotClientVersion = async () => {
     const githubReq = await fetch("https://api.github.com/repos/Morilli/riot-manifests/contents/Riot%20Client/KeystoneFoundationLiveWin?ref=master", {
         headers: {"User-Agent": "giorgi-o/skinpeek"}
     });
-    const json = JSON.parse(githubReq.body);
 
-    const versions = json.map(file => file.name.split('_')[0]);
+    let json, versions;
+    try {
+        if(githubReq.statusCode !== 200) throw new Error("Status code is not 200!");
+        json = JSON.parse(githubReq.body);
+        versions = json.map(file => file.name.split('_')[0]);
+    } catch(e) {
+        if(attempt === 3) {
+            console.error("Failed to fetch latest Riot user-agent! (tried 3 times)");
+
+            const fallbackVersion = "63.0.9.4909983";
+            console.error(`Using version number ${fallbackVersion} instead...`);
+        }
+
+        console.error(`Failed to fetch latest Riot user-agent! (try ${attempt}/3`);
+        console.error(githubReq);
+
+        await wait(1000);
+        return fetchRiotClientVersion(attempt + 1);
+    }
+
     const compareVersions = (a, b) => {
         const aSplit = a.split(".");
         const bSplit = b.split(".");
