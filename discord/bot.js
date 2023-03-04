@@ -588,7 +588,6 @@ client.on("interactionCreate", async (interaction) => {
             switch (interaction.commandName) {
                 case "skins":
                 case "shop": {
-                    process.exit();
                     let targetUser = interaction.user;
 
                     const otherUser = interaction.options.getUser("user");

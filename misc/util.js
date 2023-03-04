@@ -9,6 +9,7 @@ import {DEFAULT_LANG, l, valToDiscLang} from "./languages.js";
 import {client} from "../discord/bot.js";
 import {getUser} from "../valorant/auth.js";
 import config from "./config.js";
+import {checkRateLimit} from "./rateLimit.js";
 
 const tlsCiphers = [
     'TLS_CHACHA20_POLY1305_SHA256',
@@ -97,9 +98,6 @@ class Proxy {
         this.username = username;
         this.password = password;
 
-        this.agents = {
-            "example.com": null
-        };
         this.publicIp = null;
     }
 
@@ -132,15 +130,12 @@ class Proxy {
 
                 socket.on("error", err => {
                     console.error(`Proxy ${this.host}:${this.port} errored: ${err}`);
-                    if(this.agents[hostname] === agent) delete this.agents[hostname];
-                    this.manager.proxyIsDead(this);
+                    this.manager.proxyIsDead(this, hostname);
                 });
 
                 const agent = new https.Agent({
-                    socket,
-                    keepAlive: true,
+                    socket
                 });
-                this.agents[hostname] = agent;
                 resolve(agent);
             });
 
@@ -152,12 +147,8 @@ class Proxy {
         });
     }
 
-    async getAgent(hostname) {
-        return this.agents[hostname] || await this.createAgent(hostname);
-    }
-
     async test() {
-        const agent = await this.getAgent("api.ipify.org");
+        const agent = await this.createAgent("api.ipify.org");
         const res = await fetch("https://api.ipify.org", {agent});
 
         if(res.statusCode !== 200) {
@@ -280,12 +271,12 @@ class ProxyManager {
 
                 return proxy.createAgent(hostname);
             }).then((/*agent*/) => {
-                if(timedOut) return Promise.reject();
+                if(timedOut) return;
 
                 activeProxies.push(proxy);
             }).catch(err => {
                 if(err) console.error(err);
-                this.deadProxies.push(proxy);
+                proxyFailed(proxy);
             });
 
             const promiseWithTimeout = promiseTimeout(promise, 5000).then(res => {
@@ -304,13 +295,13 @@ class ProxyManager {
             return;
         }
 
-        // console.log(`Loaded ${activeProxies.length} proxies for ${hostname}`);
+        console.log(`Loaded ${activeProxies.length} proxies for ${hostname}`);
         this.activeProxies[hostname] = activeProxies;
 
         return activeProxies;
     }
 
-    async getAgent(hostname) {
+    async getProxy(hostname) {
         if(!this.enabled) return null;
 
         const activeProxies = await this.loadForHostname(hostname);
@@ -323,24 +314,41 @@ class ProxyManager {
         if(!proxy) return null;
 
         activeProxies.push(proxy);
-        return proxy.getAgent(hostname);
+        return proxy;
     }
 
-    async getAgentForUrl(url) {
+    async getProxyForUrl(url) {
         const hostname = new URL(url).hostname;
-        return this.getAgent(hostname);
+        return this.getProxy(hostname);
     }
 
-    async proxyIsDead(proxy) {
+    async proxyIsDead(proxy, hostname) {
         this.deadProxies.push(proxy);
-        await this.loadForHostname(proxy.hostname);
+        await this.loadForHostname(hostname);
     }
 
     async fetch(url, options = {}) {
-        if(!this.enabled) return await fetch(url, options);
+        // if(!this.enabled) return await fetch(url, options);
+        if(!this.enabled) return;
 
-        const agent = await this.getAgentForUrl(url);
+        const hostname = new URL(url).hostname;
+        const proxy = await this.getProxy(hostname);
+        if(!proxy) return;
 
+        const agent = await proxy.createAgent(hostname);
+        const req = await fetch(url, {
+            ...options,
+            agent
+        });
+
+        // test for 1020 or rate limit
+        const hostnameAndProxy = `${new URL(url).hostname} proxy=${proxy.host}:${proxy.port}`
+        if(req.statusCode === 403 && req.body === "error code: 1020" || checkRateLimit(req, hostnameAndProxy)) {
+            console.error(`Proxy ${proxy.host}:${proxy.port} is dead!`);
+            console.error(req);
+            await this.proxyIsDead(proxy, hostname);
+            return await this.fetch(url, options);
+        }
     }
 }
 
