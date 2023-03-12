@@ -102,9 +102,11 @@ export const redeemUsernamePassword = async (id, login, password) => {
     if(rateLimit) return {success: false, rateLimit: rateLimit};
 
     const proxyManager = getProxyManager();
+    const proxy = await proxyManager.getProxy("auth.riotgames.com");
+    const agent = await proxy.createAgent("auth.riotgames.com");
 
     // prepare cookies for auth request
-    const req1 = await proxyManager.fetch("https://auth.riotgames.com/api/v1/authorization", {
+    const req1 = await fetch("https://auth.riotgames.com/api/v1/authorization", {
         method: "POST",
         headers: {
             'Content-Type': 'application/json',
@@ -121,6 +123,7 @@ export const redeemUsernamePassword = async (id, login, password) => {
             "response_type": "token id_token",
             "scope": "openid link ban lol_region"
         }),
+        proxy: agent
     });
     console.assert(req1.statusCode === 200, `Auth Request Cookies status code is ${req1.statusCode}!`, req1);
 
@@ -130,7 +133,7 @@ export const redeemUsernamePassword = async (id, login, password) => {
     let cookies = parseSetCookie(req1.headers["set-cookie"]);
 
     // get access token
-    const req2 = await proxyManager.fetch("https://auth.riotgames.com/api/v1/authorization", {
+    const req2 = await fetch("https://auth.riotgames.com/api/v1/authorization", {
         method: "PUT",
         headers: {
             'Content-Type': 'application/json',
@@ -143,6 +146,7 @@ export const redeemUsernamePassword = async (id, login, password) => {
             'password': password,
             'remember': true
         }),
+        proxy: agent
     });
     console.assert(req2.statusCode === 200, `Auth status code is ${req2.statusCode}!`, req2);
 

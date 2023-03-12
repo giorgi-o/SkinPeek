@@ -46,8 +46,10 @@ const tlsSigAlgs = [
 // all my homies hate node-fetch
 export const fetch = (url, options={}) => {
     if(config.logUrls) console.log("Fetching url " + url.substring(0, 200) + (url.length > 200 ? "..." : ""));
+
     return new Promise((resolve, reject) => {
         const req = https.request(url, {
+            agent: options.proxy,
             method: options.method || "GET",
             headers: {
                 cookie: "dummy=cookie", // set dummy cookie, helps with cloudflare 1020
@@ -57,7 +59,6 @@ export const fetch = (url, options={}) => {
             ciphers: tlsCiphers.join(':'),
             sigalgs: tlsSigAlgs.join(':'),
             minVersion: "TLSv1.3",
-            agent: options.agent,
         }, resp => {
             const res = {
                 statusCode: resp.statusCode,
@@ -105,51 +106,52 @@ class Proxy {
         if(this.type !== ProxyType.HTTPS) throw new Error("Unsupported proxy type " + this.type);
 
         return new Promise((resolve, reject) => {
-            const headers = {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
-            };
-            if(this.username && this.password) {
-                headers["Proxy-Authorization"] = "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64");
+        const headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+            "Host": hostname,
+        };
+        if(this.username && this.password) {
+            headers["Proxy-Authorization"] = "Basic " + Buffer.from(this.username + ":" + this.password).toString("base64");
+        }
+
+        const req = http.request({
+            host: this.host,
+            port: this.port,
+            method: "CONNECT",
+            path: hostname + ":443",
+            headers: headers,
+            timeout: 10,
+        });
+        console.log(`Sent proxy connection request to ${this.host}:${this.port} for ${hostname}`);
+
+        req.on("connect", (res, socket) => {
+            console.log(`Proxy ${this.host}:${this.port} connected to ${hostname}!`);
+            if (res.statusCode !== 200) {
+                reject(`Proxy ${this.host}:${this.port} returned status code ${res.statusCode}!`);
             }
 
-            const req = http.request({
-                host: this.host,
-                port: this.port,
-                method: "CONNECT",
-                path: hostname + ":443",
-                headers: headers,
-                timeout: 1,
-            });
-            console.log(`Sent proxy connection request to ${this.host}:${this.port} for ${hostname}`);
-
-            req.on("connect", (res, socket) => {
-                console.log(`Proxy ${this.host}:${this.port} connected to ${hostname}!`);
-                if (res.statusCode !== 200) {
-                    reject(`Proxy ${this.host}:${this.port} returned status code ${res.statusCode}!`);
-                }
-
-                socket.on("error", err => {
-                    console.error(`Proxy ${this.host}:${this.port} errored: ${err}`);
-                    this.manager.proxyIsDead(this, hostname);
-                });
-
-                const agent = new https.Agent({
-                    socket
-                });
-                resolve(agent);
+            socket.on("error", err => {
+                console.error(`Proxy ${this.host}:${this.port} socket errored: ${err}`);
+                this.manager.proxyIsDead(this, hostname);
             });
 
-            req.on("error", err => {
-                reject(`Proxy ${this.host}:${this.port} errored: ${err}`);
-            });
+            const agent = new https.Agent({ socket });
+            agent.on("keylog", (line) => {
+                fs.appendFileSync("C:\\Users\\giorg\\not_sslkeylogfile.txt", line);
+            })
+            resolve(agent);
+        });
 
-            req.end();
+        req.on("error", err => {
+            reject(`Proxy ${this.host}:${this.port} errored: ${err}`);
+        });
+
+        req.end();
         });
     }
 
     async test() {
-        const agent = await this.createAgent("api.ipify.org");
-        const res = await fetch("https://api.ipify.org", {agent});
+        const res = await fetch("https://api.ipify.org", {proxy: await this.createAgent("api.ipify.org")});
 
         if(res.statusCode !== 200) {
             console.error(`Proxy ${this.host}:${this.port} returned status code ${res.statusCode}!`);
@@ -333,12 +335,12 @@ class ProxyManager {
 
         const hostname = new URL(url).hostname;
         const proxy = await this.getProxy(hostname);
-        if(!proxy) return;
+        if(!proxy) return await fetch(url, options);
 
         const agent = await proxy.createAgent(hostname);
         const req = await fetch(url, {
             ...options,
-            agent
+            proxy: agent.createConnection
         });
 
         // test for 1020 or rate limit

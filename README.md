@@ -70,8 +70,8 @@ Feel free to join the [support server](https://discord.gg/yx5sPJxWth) for any he
 ### Replit
 
 [![Run on Repl.it](https://replit.com/badge/github/Gam3rBoy57/SkinPeekReplit)](https://replit.com/github/Gam3rBoy57/SkinPeekReplit)  
-Thanks to [Gam3rBoy57](https://replit.com/badge/github/Gam3rBoy57) for maintaining the Replit version!  
-**Note:** You will probably have to `/login` every day, and your alerts most likely won't work. Read more [here](https://github.com/giorgi-o/SkinPeek/pull/46#issuecomment-1213579690).
+Thanks to [Gam3rBoy57](https://github.com/Gam3rBoy57) for maintaining the Replit version! For setup instructions and Replit-specific support, read the top of [this readme](https://github.com/Gam3rBoy57/SkinPeekReplit#readme).  
+**Note:** You will probably have to `/login` every day on the free version, and your alerts most likely won't work. Read more [here](https://github.com/giorgi-o/SkinPeek/pull/46#issuecomment-1213579690).
 
 
 ### Docker

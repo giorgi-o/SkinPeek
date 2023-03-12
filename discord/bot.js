@@ -172,7 +172,7 @@ const commands = [
         name: "shop",
         description: "Show your current daily shop!",
         options: [{
-            type: ApplicationCommandOptionType.String,
+            type: ApplicationCommandOptionType.User,
             name: "user",
             description: "Optional: see the daily shop of someone else!",
             required: false
