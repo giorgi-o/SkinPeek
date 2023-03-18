@@ -39,7 +39,7 @@ manager.on("shardCreate", (shard) => {
     shard.on("disconnect", () => console.log(`[Shard ${shard.id}] Disconnected`));
     shard.on("reconnecting", () => console.log(`[Shard ${shard.id}] Reconnecting`));
     shard.on("message", (message) => {
-        console.log(`[Shard ${shard.id}] Message: ${JSON.stringify(message)}`);
+        // console.log(`[Shard ${shard.id}] Message: ${JSON.stringify(message)}`);
         if(message === "shardReady" && allShardsReady) sendAllShardsReady();
     });
 });
