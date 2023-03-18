@@ -16,7 +16,7 @@ import {queueCookiesLogin, queueUsernamePasswordLogin} from "./authQueue.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
 
 export class User {
-    constructor({id, puuid, auth, alerts=[], username, region, authFailures, lastFetchedData, lastNoticeSeen}) {
+    constructor({id, puuid, auth, alerts=[], username, region, authFailures, lastFetchedData, lastNoticeSeen, lastSawEasterEgg}) {
         this.id = id;
         this.puuid = puuid;
         this.auth = auth;
@@ -26,8 +26,8 @@ export class User {
         this.authFailures = authFailures || 0;
         this.lastFetchedData = lastFetchedData || 0;
         this.lastNoticeSeen =  lastNoticeSeen || "";
+        this.lastSawEasterEgg = lastSawEasterEgg || 0;
     }
-
 }
 
 export const transferUserDataFromOldUsersJson = () => {
@@ -391,12 +391,18 @@ export const fetchRiotClientVersion = async (attempt=1) => {
         headers: {"User-Agent": "giorgi-o/skinpeek"}
     });
 
-    let json, versions;
+    let json, versions, error = false;
     try {
-        if(githubReq.statusCode !== 200) throw new Error("Status code is not 200!");
-        json = JSON.parse(githubReq.body);
-        versions = json.map(file => file.name.split('_')[0]);
+        if(githubReq.statusCode !== 200) error = true;
+        else {
+            json = JSON.parse(githubReq.body);
+            versions = json.map(file => file.name.split('_')[0]);
+        }
     } catch(e) {
+        error = true
+    }
+
+    if(error) {
         if(attempt === 3) {
             console.error("Failed to fetch latest Riot user-agent! (tried 3 times)");
 
