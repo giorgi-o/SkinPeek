@@ -12,6 +12,7 @@ export const loadConfig = (filename="config.json") => {
         try {
             fs.readFileSync(filename + ".example", 'utf-8');
             console.error(`You forgot to rename ${filename}.example to ${filename}!`);
+            console.error(`(Hint: If you can only see ${filename}, try enabling "file name extensions" in file explorer)`)
         } catch(e1) {
             console.error(`Could not find ${filename}!`, e);
         }
@@ -62,6 +63,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "ownerId", "");
     applyConfig(loadedConfig, "ownerName", "");
     applyConfig(loadedConfig, "status", "Up and running!");
+    applyConfig(loadedConfig, "notice", "");
     applyConfig(loadedConfig, "maintenanceMode", false);
     applyConfig(loadedConfig, "logToChannel", "");
     applyConfig(loadedConfig, "logFrequency", "*/10 * * * * *");

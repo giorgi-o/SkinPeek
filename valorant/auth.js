@@ -16,7 +16,7 @@ import {queueCookiesLogin, queueUsernamePasswordLogin} from "./authQueue.js";
 import {waitForAuthQueueResponse} from "../discord/authManager.js";
 
 export class User {
-    constructor({id, puuid, auth, alerts=[], username, region, authFailures, lastFetchedData}) {
+    constructor({id, puuid, auth, alerts=[], username, region, authFailures, lastFetchedData, lastNoticeSeen}) {
         this.id = id;
         this.puuid = puuid;
         this.auth = auth;
@@ -25,6 +25,7 @@ export class User {
         this.region = region;
         this.authFailures = authFailures || 0;
         this.lastFetchedData = lastFetchedData || 0;
+        this.lastNoticeSeen =  lastNoticeSeen || "";
     }
 
 }
@@ -103,7 +104,7 @@ export const redeemUsernamePassword = async (id, login, password) => {
 
     const proxyManager = getProxyManager();
     const proxy = await proxyManager.getProxy("auth.riotgames.com");
-    const agent = await proxy.createAgent("auth.riotgames.com");
+    const agent = await proxy?.createAgent("auth.riotgames.com");
 
     // prepare cookies for auth request
     const req1 = await fetch("https://auth.riotgames.com/api/v1/authorization", {

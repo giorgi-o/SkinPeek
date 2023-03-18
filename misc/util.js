@@ -136,9 +136,6 @@ class Proxy {
             });
 
             const agent = new https.Agent({ socket });
-            agent.on("keylog", (line) => {
-                fs.appendFileSync("C:\\Users\\giorg\\not_sslkeylogfile.txt", line);
-            })
             resolve(agent);
         });
 

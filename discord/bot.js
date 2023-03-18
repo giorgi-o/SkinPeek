@@ -586,7 +586,6 @@ client.on("interactionCreate", async (interaction) => {
         try {
             console.log(`${interaction.user.tag} used /${interaction.commandName}`);
             switch (interaction.commandName) {
-                case "skins":
                 case "shop": {
                     let targetUser = interaction.user;
 

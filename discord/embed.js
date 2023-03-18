@@ -17,7 +17,7 @@ import {
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
-import {ActionRowBuilder, ButtonBuilder, ButtonStyle, escapeMarkdown} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, ButtonStyle, escapeMarkdown, EmbedBuilder} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
 import {readUserJson, removeDupeAccounts, saveUser} from "../valorant/accountSwitcher.js";
@@ -120,6 +120,24 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
         const skin = await getSkin(uuid);
         const embed = await skinEmbed(skin.uuid, skin.price, interaction, VPemoji);
         embeds.push(embed);
+    }
+
+    // show notice if there is one
+    if(config.notice) {
+        // users shouldn't see the same notice twice
+        const user = getUser(interaction.user.id);
+        if(user.lastNoticeSeen !== config.notice) {
+
+            // the notice can either be just a simple string, or a raw JSON embed data object
+            if(typeof config.notice === "string") {
+                if(config.notice.startsWith('{')) embeds.push(EmbedBuilder.from(JSON.parse(config.notice)).toJSON());
+                else embeds.push(basicEmbed(config.notice));
+            }
+            else embeds.push(EmbedBuilder.from(config.notice).toJSON());
+
+            user.lastNoticeSeen = config.notice;
+            saveUser(user);
+        }
     }
 
     let components;
