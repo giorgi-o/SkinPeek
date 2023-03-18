@@ -5,7 +5,7 @@ const config = loadConfig();
 
 const manager = new ShardingManager('./SkinPeek.js', {
     token: config.token,
-    totalShards: 2
+    mode: "worker"
 });
 
 let allShardsReady = false;
