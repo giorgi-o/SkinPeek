@@ -3,8 +3,12 @@
 import {sendShardMessage} from "./shardMessage.js";
 import {client} from "../discord/bot.js";
 import {getShop} from "../valorant/shop.js";
-import {waitForAuthQueueResponse} from "../discord/authManager.js";
-import {queue2FACodeRedeem, queueCookiesLogin, queueUsernamePasswordLogin} from "../valorant/authQueue.js";
+import {
+    getAuthQueueItemStatus,
+    queue2FACodeRedeem,
+    queueCookiesLogin, queueNullOperation,
+    queueUsernamePasswordLogin
+} from "../valorant/authQueue.js";
 import config from "./config.js";
 
 export const useMultiqueue = () => config.useMultiqueue && client.shard && client.shard.ids[0] !== 0;
@@ -65,6 +69,8 @@ export const mqGetShop = async (id, account=null) => await mqSendMessage("getSho
 export const mqLoginUsernamePass = async (id, username, password) => await mqSendMessage("loginUsernamePass", {id, username, password});
 export const mqLogin2fa = async (id, code) => await mqSendMessage("login2fa", {id, code});
 export const mqLoginCookies = async (id, cookies) => await mqSendMessage("loginCookies", {id, cookies});
+export const mqNullOperation = async (timeout) => await mqSendMessage("nullOperation", {timeout});
+export const mqGetAuthQueueItemStatus = async (c) => await mqSendMessage("getAuthQueueItemStatus", {c});
 
 
 const mqProcessRequest = async ({mqid, mqtype, params}) => {
@@ -80,19 +86,31 @@ const mqProcessRequest = async ({mqid, mqtype, params}) => {
 
         case "loginUsernamePass": {
             const {id, username, password} = params;
-            response = await waitForAuthQueueResponse(await queueUsernamePasswordLogin(id, username, password));
+            response = await queueUsernamePasswordLogin(id, username, password);
             break;
         }
 
         case "login2fa": {
             const {id, code} = params;
-            response = await waitForAuthQueueResponse(await queue2FACodeRedeem(id, code));
+            response = await queue2FACodeRedeem(id, code);
             break;
         }
 
         case "loginCookies": {
             const {id, cookies} = params;
-            response = await waitForAuthQueueResponse(await queueCookiesLogin(id, cookies));
+            response = await queueCookiesLogin(id, cookies);
+            break;
+        }
+
+        case "nullOperation": {
+            const {timeout} = params;
+            response = await queueNullOperation(timeout);
+            break;
+        }
+
+        case "getAuthQueueItemStatus": {
+            const {c} = params;
+            response = await getAuthQueueItemStatus(c);
             break;
         }
     }

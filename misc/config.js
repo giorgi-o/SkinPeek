@@ -29,6 +29,8 @@ export const loadConfig = (filename="config.json") => {
     loadedConfig.fetchSkinPrices = loadedConfig.showSkinPrices;
     loadedConfig.fetchSkinRarities = loadedConfig.showSkinRarities;
 
+
+
     applyConfig(loadedConfig, "token", "token goes here");
     applyConfig(loadedConfig, "fetchSkinPrices", true);
     applyConfig(loadedConfig, "fetchSkinRarities", true);
@@ -44,15 +46,14 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "loadoutCacheExpiration", 10 * 60 * 1000);
     applyConfig(loadedConfig, "useShopCache", true);
     applyConfig(loadedConfig, "useLoginQueue", false);
-    applyConfig(loadedConfig, "loginQueue", "*/3 * * * * *");
+    applyConfig(loadedConfig, "loginQueueInterval", 3000);
+    applyConfig(loadedConfig, "loginQueuePollRate", 2000);
     applyConfig(loadedConfig, "loginRetryTimeout", 10 * 60 * 1000);
     applyConfig(loadedConfig, "authFailureStrikes", 2);
     applyConfig(loadedConfig, "maxAccountsPerUser", 5);
     applyConfig(loadedConfig, "userDataCacheExpiration", 168);
     applyConfig(loadedConfig, "rateLimitBackoff", 60);
     applyConfig(loadedConfig, "rateLimitCap", 10 * 60);
-    applyConfig(loadedConfig, "useShopQueue", false);
-    applyConfig(loadedConfig, "shopQueue", "*/1 * * * * *");
     applyConfig(loadedConfig, "useMultiqueue", false);
     applyConfig(loadedConfig, "storePasswords", false);
     applyConfig(loadedConfig, "trackStoreStats", true);

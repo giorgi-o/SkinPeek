@@ -1,7 +1,13 @@
 import {redeem2FACode, redeemCookies, redeemUsernamePassword} from "./auth.js";
 import config from "../misc/config.js";
 import {wait} from "../misc/util.js";
-import {mqLogin2fa, mqLoginCookies, mqLoginUsernamePass, useMultiqueue} from "../misc/multiqueue.js";
+import {
+    mqGetAuthQueueItemStatus,
+    mqLogin2fa,
+    mqLoginCookies,
+    mqLoginUsernamePass, mqNullOperation,
+    useMultiqueue
+} from "../misc/multiqueue.js";
 
 export const Operations = {
     USERNAME_PASSWORD: "up",
@@ -15,9 +21,17 @@ const queueResults = [];
 let queueCounter = 1;
 let processingCount = 0;
 
+let authQueueInterval;
+let lastQueueProcess = 0; // timestamp
+
+export const startAuthQueue = () => {
+    clearInterval(authQueueInterval);
+    if(config.useLoginQueue) authQueueInterval = setInterval(processAuthQueue, config.loginQueueInterval);
+}
+
 export const queueUsernamePasswordLogin = async (id, username, password) => {
-    if(!config.useLoginQueue) return {inQueue: false, ...await redeemUsernamePassword(id, username, password)};
-    if(useMultiqueue()) return {inQueue: false, ...await mqLoginUsernamePass(id, username, password)};
+    if(!config.useLoginQueue) return await redeemUsernamePassword(id, username, password);
+    if(useMultiqueue()) return await mqLoginUsernamePass(id, username, password);
 
     const c = queueCounter++;
     queue.push({
@@ -31,7 +45,7 @@ export const queueUsernamePasswordLogin = async (id, username, password) => {
 }
 
 export const queue2FACodeRedeem = async (id, code) => {
-    if(!config.useLoginQueue) return {inQueue: false, ...await redeem2FACode(id, code)};
+    if(!config.useLoginQueue) return await redeem2FACode(id, code);
     if(useMultiqueue()) return {inQueue: false, ...await mqLogin2fa(id, code)};
 
     const c = queueCounter++;
@@ -46,7 +60,7 @@ export const queue2FACodeRedeem = async (id, code) => {
 }
 
 export const queueCookiesLogin = async (id, cookies) => {
-    if(!config.useLoginQueue) return {inQueue: false, ...await redeemCookies(id, cookies)};
+    if(!config.useLoginQueue) await redeemCookies(id, cookies);
     if(useMultiqueue()) return {inQueue: false, ...await mqLoginCookies(id, cookies)};
 
     const c = queueCounter++;
@@ -61,7 +75,9 @@ export const queueCookiesLogin = async (id, cookies) => {
 }
 
 export const queueNullOperation = async (timeout) => {  // used for stress-testing the auth queue
-    if(!config.useLoginQueue) return {inQueue: false, ...await wait(timeout)};
+    if(!config.useLoginQueue) await wait(timeout);
+    if(useMultiqueue()) return {inQueue: false, ...await mqNullOperation(timeout)}
+
     const c = queueCounter++;
     queue.push({
         operation: Operations.NULL,
@@ -74,10 +90,12 @@ export const queueNullOperation = async (timeout) => {  // used for stress-testi
 }
 
 export const processAuthQueue = async () => {
+    lastQueueProcess = Date.now();
     if(!config.useLoginQueue || !queue.length) return;
+    if(useMultiqueue()) return;
 
     const item = queue.shift();
-    console.log(`Processing auth queue item "${item.operation}" for ${item.id} (c=${item.c})`);
+    console.log(`Processing auth queue item "${item.operation}" for ${item.id} (c=${item.c}, left=${queue.length})`);
     processingCount++;
 
     let result;
@@ -110,16 +128,31 @@ export const processAuthQueue = async () => {
     processingCount--;
 }
 
-export const getAuthQueueItemStatus = (c) => {
+export const getAuthQueueItemStatus = async (c) => {
+    if(useMultiqueue()) return await mqGetAuthQueueItemStatus(c);
+
+    // check if in queue
     let item = queue.find(i => i.c === c);
-    if(item) return {processed: false, remaining: queue[0].c - c};
+    if(item) return {processed: false, ...remainingAndEstimatedTimestamp(c)};
 
+    // check if currenty processing
     const index = queueResults.findIndex(i => i.c === c);
-    if(index === -1) { // currently processing
-        return {processed: false, remaining: 0};
-    }
+    if(index === -1) return {processed: false, remaining: 0};
 
+    // get result
     item = queueResults[index];
     queueResults.splice(index, 1);
     return {processed: true, result: item.result};
+}
+
+const remainingAndEstimatedTimestamp = (c) => {
+    const remaining = c - queue[0].c;
+    let timestamp = lastQueueProcess + ((remaining + 1) * config.loginQueueInterval);
+
+    // UX: if the timestamp is late, even by half a second, the user gets impatient.
+    // on the other hand, if it happens early, the user is happy.
+    timestamp += 2000;
+    timestamp = Math.round(timestamp / 1000);
+
+    return {remaining, timestamp};
 }

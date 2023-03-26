@@ -41,8 +41,7 @@ import {
     testAlerts
 } from "./alerts.js";
 import {RadEmoji, VPEmoji} from "./emoji.js";
-import {processShopQueue} from "../valorant/shopQueue.js";
-import {processAuthQueue, queueCookiesLogin,} from "../valorant/authQueue.js";
+import {queueCookiesLogin, startAuthQueue,} from "../valorant/authQueue.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation, waitForAuthQueueResponse} from "./authManager.js";
 import {renderBattlepassProgress} from "../valorant/battlepass.js";
 import {getOverallStats, getStatsFor} from "../misc/stats.js";
@@ -138,10 +137,7 @@ export const scheduleTasks = () => {
     if(config.checkGameVersion) cronTasks.push(cron.schedule(config.checkGameVersion, () => fetchData(null, true)));
 
     // if login queue is enabled, process an item every 3 seconds
-    if(config.useLoginQueue && config.loginQueue) cronTasks.push(cron.schedule(config.loginQueue, processAuthQueue));
-
-    // if shop queue is enabled, process an item every second
-    if(config.useShopQueue && config.shopQueue) cronTasks.push(cron.schedule(config.shopQueue, processShopQueue));
+    if(config.useLoginQueue && config.loginQueueInterval) startAuthQueue();
 
     // if send console to discord channel is enabled, send console output every 10 seconds
     if(config.logToChannel && config.logFrequency) cronTasks.push(cron.schedule(config.logFrequency, sendConsoleOutput));
