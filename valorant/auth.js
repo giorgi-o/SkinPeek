@@ -387,8 +387,14 @@ export const fetchRiotClientVersion = async (attempt=1) => {
         userAgentFetchPromise = new Promise(r => resolve = r);
     }
 
+    const headers = {
+        "User-Agent": "giorgi-o/skinpeek",
+        "X-GitHub-Api-Version": "2022-11-28",
+    };
+    if(config.githubToken) headers["Authorization"] = `Bearer ${config.githubToken}`;
+
     const githubReq = await fetch("https://api.github.com/repos/Morilli/riot-manifests/contents/Riot%20Client/KeystoneFoundationLiveWin?ref=master", {
-        headers: {"User-Agent": "giorgi-o/skinpeek"}
+        headers
     });
 
     let json, versions, error = false;
