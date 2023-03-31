@@ -29,7 +29,7 @@ import {
 } from "./embed.js";
 import {authUser, fetchRiotClientVersion, getUser, getUserList, getRegion, getUserInfo} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
-import {getSkin, fetchData, searchSkin, searchBundle, getBundle} from "../valorant/cache.js";
+import {getSkin, fetchData, searchSkin, searchBundle, getBundle, clearCache} from "../valorant/cache.js";
 import {
     addAlert,
     alertExists,
@@ -76,9 +76,10 @@ import fuzzysort from "fuzzysort";
 import {renderCollection} from "../valorant/inventory.js";
 import {getLoadout} from "../valorant/inventory.js";
 import {spawn} from "child_process";
+import * as fs from "fs";
 
 export const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildEmojisAndStickers],
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildEmojisAndStickers, GatewayIntentBits.MessageContent],
     partials: ["CHANNEL"], // required to receive DMs
     //shards: "auto" // uncomment this to use internal sharding instead of sharding.js
 });
@@ -435,8 +436,24 @@ client.on("messageCreate", async (message) => {
                     s += "\nI noticed you changed the token. You'll have to restart the bot for that to happen."
                 await message.reply(s);
             } else if(splits[1] === "read") {
-                const s = "Here is the config.json the bot currently has loaded:```json\n" + JSON.stringify({...config, token: "[redacted]"}, null, 2) + "```";
+                const s = "Here is the config.json the bot currently has loaded:```json\n" + JSON.stringify({
+                    ...config,
+                    token: "[redacted]",
+                    "githubToken": config.githubToken ? "[redacted]" : config.githubToken
+                }, null, 2) + "```";
                 await message.reply(s);
+            } else if(splits[1] === "clearcache") {
+                await message.channel.send("Deleting all files in data/shopCache...");
+                fs.rmSync("data/shopCache", {force: true, recursive: true});
+                fs.mkdirSync("data/shopCache");
+
+                // delete skins.json and reset skin cache
+                await message.channel.send("Deleting skins.json and resetting skin cache...");
+                fs.rmSync("data/skins.json");
+                clearCache();
+                await fetchData();
+
+                await message.reply("Successfully cleared shop and skin cache!");
             } else {
                 const target = splits[1];
                 const value = splits.slice(2).join(' ');

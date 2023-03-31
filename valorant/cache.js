@@ -13,6 +13,11 @@ let gameVersion;
 let weapons, skins, rarities, buddies, sprays, cards, titles, bundles, battlepass;
 let prices = {timestamp: null};
 
+export const clearCache = () => {
+    weapons = skins = rarities = buddies = sprays = cards = titles = bundles = battlepass = null;
+    prices = {timestamp: null};
+}
+
 export const getValorantVersion = async () => {
     console.log("Fetching current valorant version...");
 
