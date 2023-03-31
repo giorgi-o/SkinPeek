@@ -15,7 +15,7 @@ export const useMultiqueue = () => config.useMultiqueue && client.shard && clien
 
 let mqMessageId = 0;
 const callbacks = {};
-const setCallback = (mqid, callback) => callbacks[mqid] = callback;
+const setCallback = (mqid, callback) => callbacks[parseInt(mqid)] = callback;
 
 export const sendMQRequest = async (type, params={}, callback=()=>{}) => {
     const message = {
@@ -25,8 +25,8 @@ export const sendMQRequest = async (type, params={}, callback=()=>{}) => {
         params
     }
 
-    await sendShardMessage(message);
     setCallback(mqMessageId, callback);
+    await sendShardMessage(message);
 }
 
 export const sendMQResponse = async (mqid, params={}) => {
@@ -48,9 +48,15 @@ export const handleMQRequest = async (message) => {
 export const handleMQResponse = async (message) => {
     const [shardId, mqid] = message.mqid.split(":");
 
+    // check the response is intended for this shard
     if(!client.shard.ids.includes(parseInt(shardId))) return;
-    if(!callbacks[mqid]) return;
+
+    // check we have a callback registered
+    if(!callbacks[mqid]) return console.error(`No callback registered for MQ response ${message.mqid}!`);
+
+    // do the thing
     callbacks[mqid](message);
+    delete callbacks[mqid];
 }
 
 
