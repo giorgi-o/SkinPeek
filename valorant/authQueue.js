@@ -60,7 +60,7 @@ export const queue2FACodeRedeem = async (id, code) => {
 }
 
 export const queueCookiesLogin = async (id, cookies) => {
-    if(!config.useLoginQueue) await redeemCookies(id, cookies);
+    if(!config.useLoginQueue) return await redeemCookies(id, cookies);
     if(useMultiqueue()) return {inQueue: false, ...await mqLoginCookies(id, cookies)};
 
     const c = queueCounter++;
