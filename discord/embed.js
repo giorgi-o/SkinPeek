@@ -126,8 +126,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     // show notice if there is one
     if(config.notice) {
         // users shouldn't see the same notice twice
-        const user = getUser(interaction.user.id);
-        if(user.lastNoticeSeen !== config.notice) {
+        if(valorantUser.lastNoticeSeen !== config.notice) {
 
             // the notice can either be just a simple string, or a raw JSON embed data object
             if(typeof config.notice === "string") {
@@ -136,8 +135,8 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
             }
             else embeds.push(EmbedBuilder.from(config.notice).toJSON());
 
-            user.lastNoticeSeen = config.notice;
-            saveUser(user);
+            valorantUser.lastNoticeSeen = config.notice;
+            saveUser(valorantUser);
         }
     }
 
