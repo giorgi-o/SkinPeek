@@ -76,7 +76,7 @@ export const addUser = (user) => {
                 userJson.currentAccount = i + 1;
 
                 // copy over data from old account
-                user.alerts = removeDupeAlerts(user.alerts.concat(userJson.accounts[i].alerts));
+                user.alerts = removeDupeAlerts(oldUser.alerts.concat(userJson.accounts[i].alerts));
                 user.lastFetchedData = oldUser.lastFetchedData;
                 user.lastNoticeSeen = oldUser.lastNoticeSeen;
                 user.lastSawEasterEgg = oldUser.lastSawEasterEgg;
