@@ -10,13 +10,14 @@ import {
 import {authUser, deleteUserAuth, getUser, getUserList} from "../valorant/auth.js";
 import {getOffers} from "../valorant/shop.js";
 import {getSkin} from "../valorant/cache.js";
-import {alertsPageEmbed, authFailureMessage, basicEmbed, VAL_COLOR_1} from "./embed.js";
+import {alertsPageEmbed, authFailureMessage, basicEmbed, renderOffers, VAL_COLOR_1} from "./embed.js";
 import {client} from "./bot.js";
 import config from "../misc/config.js";
 import {l, s} from "../misc/languages.js";
 import {readUserJson, saveUser} from "../valorant/accountSwitcher.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
 import {VPEmoji} from "./emoji.js";
+import {getSetting} from "../misc/settings.js";
 
 
 /* Alert format: {
@@ -108,7 +109,8 @@ export const checkAlerts = async () => {
                 for(let i = 1; i <= accountCount; i++) {
 
                     const rawUserAlerts = alertsForUser(id, i);
-                    if(!rawUserAlerts || !rawUserAlerts.length) continue;
+                    const dailyShopChannel = getSetting(id, "dailyShop");
+                    if(!rawUserAlerts?.length && !dailyShopChannel) continue;
 
                     if(shouldWait) {
                         await wait(config.delayBetweenAlerts); // to prevent being ratelimited
@@ -159,6 +161,8 @@ export const checkAlerts = async () => {
                     } while(!offers.success);
 
                     if(offers.success && offers.offers) {
+                        if(dailyShopChannel && i === userJson.currentAccount) await sendDailyShop(id, offers, dailyShopChannel, valorantUser);
+
                         const positiveAlerts = userAlerts.filter(alert => offers.offers.includes(alert.uuid));
                         if(positiveAlerts.length) await sendAlert(id, i, positiveAlerts, offers.expires);
                     }
@@ -275,6 +279,17 @@ export const sendCredentialsExpired = async (id, alert, tryOnOtherShard=true) =>
         } catch(e) {}
 
         console.error(e);
+    });
+}
+
+export const sendDailyShop = async (id, shop, channelId, valorantUser) => {
+    const channel = await fetchChannel(channelId);
+    if(!channel) return; // channel was deleted, or we were kicked from server, or on other shard
+
+    const rendered = await renderOffers(shop, id, valorantUser, await VPEmoji(id, channel));
+    await channel.send({
+        content: `<@${id}>`,
+        ...rendered
     });
 }
 

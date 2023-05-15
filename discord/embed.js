@@ -43,28 +43,30 @@ const thumbnails = [
     "https://media.valorant-api.com/sprays/40ff9251-4c11-b729-1f27-088ee032e7ce/fulltransparenticon.png"
 ];
 
-export const authFailureMessage = (interaction, authResponse, message="AUTH_ERROR", isEphemeral=false) => {
+export const authFailureMessage = (interactionOrId, authResponse, message="AUTH_ERROR", isEphemeral=false) => {
+    const id = interactionOrId?.user?.id || interactionOrId;
+    const tag = interactionOrId?.user?.tag || id;
     let embed;
 
-    if(authResponse.maintenance) embed = basicEmbed(s(interaction).error.MAINTENANCE);
+    if(authResponse.maintenance) embed = basicEmbed(s(interactionOrId).error.MAINTENANCE);
     else if(authResponse.mfa) {
-        console.log(`${interaction.user.tag} needs 2FA code`);
+        console.log(`${tag} needs 2FA code`);
         if(authResponse.method === "email") {
-            if(isEphemeral) embed = basicEmbed(s(interaction).info.MFA_EMAIL.f({e: escapeMarkdown(authResponse.email)}));
-            else embed = basicEmbed(s(interaction).info.MFA_EMAIL_HIDDEN);
+            if(isEphemeral) embed = basicEmbed(s(interactionOrId).info.MFA_EMAIL.f({e: escapeMarkdown(authResponse.email)}));
+            else embed = basicEmbed(s(interactionOrId).info.MFA_EMAIL_HIDDEN);
         }
-        else embed = basicEmbed(s(interaction).info.MFA_GENERIC);
+        else embed = basicEmbed(s(interactionOrId).info.MFA_GENERIC);
     }
     else if(authResponse.rateLimit) {
-        console.log(`${interaction.user.tag} got rate-limited`);
-        if(typeof authResponse.rateLimit === "number") embed = basicEmbed(s(interaction).error.LOGIN_RATELIMIT_UNTIL.f({t: Math.ceil(authResponse.rateLimit / 1000)}));
-        else embed = basicEmbed(s(interaction).error.LOGIN_RATELIMIT);
+        console.log(`${tag} got rate-limited`);
+        if(typeof authResponse.rateLimit === "number") embed = basicEmbed(s(interactionOrId).error.LOGIN_RATELIMIT_UNTIL.f({t: Math.ceil(authResponse.rateLimit / 1000)}));
+        else embed = basicEmbed(s(interactionOrId).error.LOGIN_RATELIMIT);
     }
     else {
         embed = basicEmbed(message);
 
         // two-strike system
-        const user = getUser(interaction.user.id);
+        const user = getUser(id);
         if(user) {
             user.authFailures++;
             saveUser(user);
@@ -718,7 +720,7 @@ const pageButtons = (pageId, userId, current, max) => {
     return new ActionRowBuilder().setComponents(leftButton, rightButton);
 }
 
-export const switchAccountButtons = (interaction, customId, oneAccountButton=false, id=interaction.user.id) => {
+export const switchAccountButtons = (interaction, customId, oneAccountButton=false, id=interaction?.user?.id || interaction) => {
     const json = removeDupeAccounts(id);
     if(!json || json.accounts.length === 1 && !oneAccountButton) return [];
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
@@ -921,7 +923,11 @@ export const settingsEmbed = (userSettings, interaction) => {
     for(const [setting, value] of Object.entries(userSettings)) {
         if(!settingIsVisible(setting)) continue;
 
-        const displayValue = humanifyValue(setting === "locale" && !userSettings.localeForced ? "Automatic" : value, interaction, true);
+        let displayValue = humanifyValue(
+            setting === "locale" && !userSettings.localeForced ? "Automatic" : value,
+            setting, interaction, true
+        );
+
         embed.fields.push({
             name: settingName(setting, interaction),
             value: displayValue,

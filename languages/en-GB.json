@@ -158,6 +158,7 @@
     "VIEW_DESCRIPTION": "Use `/settings set` to change them.",
     "SET_QUESTION": "What do you want to set the setting **{s}** to?",
     "CONFIRMATION": "The setting **{s}** is now set to **{v}**.",
+    "dailyShop": "Send your shop every day",
     "hideIgn": "Hide in-game name",
     "othersCanViewShop": "Allow others to use /shop with your username",
     "othersCanViewColl": "Allow others to use /collection with your username",

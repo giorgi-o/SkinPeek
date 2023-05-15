@@ -5,6 +5,16 @@ import {discLanguageNames, s} from "./languages.js";
 import {findKeyOfValue} from "./util.js";
 
 export const settings = {
+    dailyShop: { // stores false or channel id
+        set: (value, interaction) => value ? interaction.channelId : false,
+        render: (value) => {
+            if(value?.startsWith?.('#')) return value;
+            return value ? `<#${value}>` : false;
+        },
+        choices: (interaction) => [`#${interaction.channel.name}`, false],
+        values: [true, false],
+        default: false
+    },
     hideIgn: {
         values: [true, false],
         default: false
@@ -67,7 +77,8 @@ export const getSetting = (id, setting) => {
     return getSettings(id)[setting];
 }
 
-export const setSetting = (id, setting, value, force=false) => { // force = whether is set from /settings set
+export const setSetting = (interaction, setting, value, force=false) => { // force = whether is set from /settings set
+    const id = interaction.user.id;
     const json = readUserJson(id);
     if(!json) return;
 
@@ -80,7 +91,10 @@ export const setSetting = (id, setting, value, force=false) => { // force = whet
             json.settings.locale = value;
         }
     }
-    else json.settings[setting] = computerifyValue(value);
+    else {
+        let setValue = settings[setting].set ? settings[setting].set(value, interaction) : value;
+        json.settings[setting] = computerifyValue(setValue);
+    }
 
     saveUserJson(id, json);
 
@@ -90,7 +104,7 @@ export const setSetting = (id, setting, value, force=false) => { // force = whet
 export const registerInteractionLocale = (interaction) => {
     const settings = getSettings(interaction.user.id);
     if(!settings.localeForced && settings.locale !== interaction.locale)
-        setSetting(interaction.user.id, "locale", interaction.locale);
+        setSetting(interaction, "locale", interaction.locale);
 }
 
 export const handleSettingsViewCommand = async (interaction) => {
@@ -103,12 +117,13 @@ export const handleSettingsSetCommand = async (interaction) => {
     const setting = interaction.options.getString("setting");
 
     const settingValues = settings[setting].values;
+    const choices = settings[setting].choices?.(interaction) || [];
 
     const row = new ActionRowBuilder();
 
     const options = settingValues.slice(0, 25).map(value => {
         return {
-            label: humanifyValue(value, interaction),
+            label: humanifyValue(choices.shift() || value, setting, interaction),
             value: `${setting}/${value}`
         }
     });
@@ -124,10 +139,10 @@ export const handleSettingsSetCommand = async (interaction) => {
 export const handleSettingDropdown = async (interaction) => {
     const [setting, value] = interaction.values[0].split('/');
 
-    const valueSet = setSetting(interaction.user.id, setting, value, true);
+    const valueSet = setSetting(interaction, setting, value, true);
 
     await interaction.update({
-        embeds: [basicEmbed(s(interaction).settings.CONFIRMATION.f({s: settingName(setting, interaction), v: humanifyValue(valueSet, interaction)}))],
+        embeds: [basicEmbed(s(interaction).settings.CONFIRMATION.f({s: settingName(setting, interaction), v: humanifyValue(valueSet, setting, interaction)}))],
         components: []
     });
 }
@@ -140,7 +155,8 @@ export const settingIsVisible = (setting) => {
     return !settings[setting].hidden;
 }
 
-export const humanifyValue = (value, interaction, emoji=false) => {
+export const humanifyValue = (value, setting, interaction, emoji=false) => {
+    if(settings[setting].render) value = settings[setting].render(value, interaction);
     if(value === true) return emoji ? '✅' : s(interaction).settings.TRUE;
     if(value === false) return emoji ? '❌' : s(interaction).settings.FALSE;
     if(value === "Automatic") return (emoji ? "🌐 " : '') + s(interaction).settings.AUTO;
@@ -150,7 +166,7 @@ export const humanifyValue = (value, interaction, emoji=false) => {
 
 const computerifyValue = (value) => {
     if(["true", "false"].includes(value)) return value === "true";
-    if(!isNaN(parseInt(value))) return parseInt(value);
+    if(!isNaN(parseInt(value)) && value.length < 15) return parseInt(value); // do not parse discord IDs
     if(Object.values(discLanguageNames).includes(value)) return findKeyOfValue(discLanguageNames, value);
     return value;
 }
