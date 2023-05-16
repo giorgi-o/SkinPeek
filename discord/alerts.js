@@ -282,9 +282,21 @@ export const sendCredentialsExpired = async (id, alert, tryOnOtherShard=true) =>
     });
 }
 
-export const sendDailyShop = async (id, shop, channelId, valorantUser) => {
+export const sendDailyShop = async (id, shop, channelId, valorantUser, tryOnOtherShard=true) => {
     const channel = await fetchChannel(channelId);
-    if(!channel) return; // channel was deleted, or we were kicked from server, or on other shard
+    if(!channel) {
+        if(client.shard && tryOnOtherShard) {
+            sendShardMessage({
+                type: "dailyShop",
+                id, shop, channelId, valorantUser
+            });
+            return;
+        }
+
+        const user = await client.users.fetch(id).catch(() => {});
+        if(user) console.error(`Please tell ${user.tag} that the daily shop is out! (I can't find the channel where the alert was set up)`);
+        return;
+    }
 
     const rendered = await renderOffers(shop, id, valorantUser, await VPEmoji(id, channel));
     await channel.send({
