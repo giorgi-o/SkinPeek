@@ -11,7 +11,7 @@ export const settings = {
             if(value?.startsWith?.('#')) return value;
             return value ? `<#${value}>` : false;
         },
-        choices: (interaction) => [`#${interaction.channel.name}`, false],
+        choices: (interaction) => [`#${interaction.channel?.name || "DMs"}`, false],
         values: [true, false],
         default: false
     },
