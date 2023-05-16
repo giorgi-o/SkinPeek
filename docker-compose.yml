@@ -5,6 +5,6 @@ services:
     image: ghcr.io/giorgi-o/skinpeek/skinpeek
     restart: unless-stopped
     volumes:
-      - ./configs:/usr/app/config.json
+      - ./config.json:/usr/app/config.json
       - ./data:/usr/app/data
     container_name: skinpeek_bot
