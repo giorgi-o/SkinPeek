@@ -71,6 +71,7 @@
     "INFO_OWNER": "Owner",
     "INFO_STATUS": "Status",
     "INFO_RUNNING": "Started running on <t:{t1}:f> (<t:{t2}:R>)",
+    "INFO_SOURCE": "Source code",
     "NMARKET_HEADER": "Night Market for **{u}** (ends <t:{t}:R>)",
     "WALLET_HEADER": "**{u}**'s Wallet:",
     "VPOINTS": "VALORANT Points",

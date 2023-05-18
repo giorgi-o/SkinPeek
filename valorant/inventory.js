@@ -6,7 +6,7 @@ import {s} from "../misc/languages.js";
 
 
 export const getEntitlements = async (user, itemTypeId, itemType="item") => {
-    // https://github.com/techchrism/valorant-api-docs/blob/trunk/docs/Store/GET%20Store_GetEntitlements.md
+    // https://valapidocs.techchrism.me/endpoint/owned-items
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/entitlements/${user.puuid}/${itemTypeId}`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
