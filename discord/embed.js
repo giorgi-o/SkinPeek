@@ -128,7 +128,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     // show notice if there is one
     if(config.notice) {
         // users shouldn't see the same notice twice
-        if(valorantUser.lastNoticeSeen !== config.notice) {
+        if(!config.onlyShowNoticeOnce || valorantUser.lastNoticeSeen !== config.notice) {
 
             // the notice can either be just a simple string, or a raw JSON embed data object
             if(typeof config.notice === "string") {

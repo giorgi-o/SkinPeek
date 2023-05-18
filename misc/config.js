@@ -63,6 +63,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "ownerName", "");
     applyConfig(loadedConfig, "status", "Up and running!");
     applyConfig(loadedConfig, "notice", "");
+    applyConfig(loadedConfig, "onlyShowNoticeOnce", true);
     applyConfig(loadedConfig, "maintenanceMode", false);
     applyConfig(loadedConfig, "githubToken", "");
     applyConfig(loadedConfig, "logToChannel", "");
