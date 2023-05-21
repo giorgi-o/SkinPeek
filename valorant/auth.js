@@ -382,7 +382,7 @@ export const fetchRiotClientVersion = async (attempt=1) => {
     if(userAgentFetchPromise) return userAgentFetchPromise;
 
     let resolve;
-    if(userAgentFetchPromise !== null) {
+    if(!userAgentFetchPromise) {
         console.log("Fetching latest Riot user-agent..."); // only log it the first time
         userAgentFetchPromise = new Promise(r => resolve = r);
     }
@@ -412,7 +412,7 @@ export const fetchRiotClientVersion = async (attempt=1) => {
         if(attempt === 3) {
             console.error("Failed to fetch latest Riot user-agent! (tried 3 times)");
 
-            const fallbackVersion = "63.0.9.4909983";
+            const fallbackVersion = "65.0.2.5073401";
             console.error(`Using version number ${fallbackVersion} instead...`);
         }
 
@@ -436,7 +436,7 @@ export const fetchRiotClientVersion = async (attempt=1) => {
 
     riotClientVersion = versions[0];
     userAgentFetchPromise = null;
-    resolve();
+    resolve?.();
 }
 
 const getUserAgent = async () => {
