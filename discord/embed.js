@@ -667,7 +667,8 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
         },
         {
             name: s(interaction).info.INFO_SOURCE,
-            value: "[SkinPeek](https://github.com/giorgi-o/skinpeek) by Giorgio"
+            value: "[SkinPeek](https://github.com/giorgi-o/SkinPeek) by [Giorgio](https://github.com/giorgi-o)",
+            inline: true
         }
     ];
     if(ownerString) fields.push({
