@@ -25,7 +25,11 @@ import {
     statsForSkinEmbed,
     allStatsEmbed,
     accountsListEmbed,
-    switchAccountButtons, skinCollectionPageEmbed, skinCollectionSingleEmbed, valMaintenancesEmbeds
+    switchAccountButtons,
+    skinCollectionPageEmbed,
+    skinCollectionSingleEmbed,
+    valMaintenancesEmbeds,
+    collectionOfWeaponEmbed
 } from "./embed.js";
 import {authUser, fetchRiotClientVersion, getUser, getUserList, getRegion, getUserInfo} from "../valorant/auth.js";
 import {getBalance} from "../valorant/shop.js";
@@ -51,7 +55,8 @@ import {
     fetchChannel, fetchMaintenances, getProxyManager, initProxyManager,
     removeAlertActionRow,
     skinNameAndEmoji,
-    valNamesToDiscordNames
+    valNamesToDiscordNames, WeaponTypeUuid,
+    WeaponType
 } from "../misc/util.js";
 import config, {loadConfig, saveConfig} from "../misc/config.js";
 import {localError, localLog, sendConsoleOutput} from "../misc/logger.js";
@@ -73,7 +78,7 @@ import {
     handleSettingsViewCommand, registerInteractionLocale, settingIsVisible, settingName, settings
 } from "../misc/settings.js";
 import fuzzysort from "fuzzysort";
-import {renderCollection} from "../valorant/inventory.js";
+import {renderCollection, getSkins} from "../valorant/inventory.js";
 import {getLoadout} from "../valorant/inventory.js";
 import {spawn} from "child_process";
 import * as fs from "fs";
@@ -298,6 +303,16 @@ const commands = [
         name: "collection",
         description: "Show off your skin collection!",
         options: [{
+            type: ApplicationCommandOptionType.String,
+            name: "weapon",
+            description: "Optional: see all your skins for a specific weapon",
+            required: false,
+            choices: Object.values(WeaponType).map(weaponName => ({
+                name: weaponName,
+                value: weaponName,
+            })),
+        },
+        {
             type: ApplicationCommandOptionType.User,
             name: "user",
             description: "Optional: see someone else's collection!",
@@ -990,7 +1005,8 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
 
-                    const message = await renderCollection(interaction, targetUser.id);
+                    const weaponName = interaction.options.getString("weapon");
+                    const message = await renderCollection(interaction, targetUser.id, weaponName);
                     await interaction.followUp(message);
 
                     console.log(`Sent ${targetUser.tag}'s collection!`);
@@ -1313,6 +1329,32 @@ client.on("interactionCreate", async (interaction) => {
 
                 if(switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadoutResponse));
                 else await interaction.update(await skinCollectionSingleEmbed(interaction, id, user, loadoutResponse));
+            } else if(interaction.customId.startsWith("clwpage")) {
+                const [, weaponTypeIndex, id, pageIndex] = interaction.customId.split('/');
+                const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
+
+                let user;
+                if(id !== interaction.user.id) user = getUser(id);
+                else user = valorantUser;
+
+                const skinsResponse = await getSkins(user);
+                if(!skinsResponse.success) return await interaction.reply(authFailureMessage(interaction, skinsResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
+
+                await interaction.update(await collectionOfWeaponEmbed(interaction, id, user, weaponType, skinsResponse.skins, parseInt(pageIndex)));
+            } else if(interaction.customId.startsWith("clwswitch")) {
+                const [, weaponTypeIndex, switchTo, id] = interaction.customId.split('/');
+                const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
+                const switchToPage = switchTo === "p";
+
+                let user;
+                if(id !== interaction.user.id) user = getUser(id);
+                else user = valorantUser;
+
+                const skinsResponse = await getSkins(user);
+                if(!skinsResponse.success) return await interaction.reply(authFailureMessage(interaction, skinsResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
+
+                if(switchToPage) await interaction.update(await collectionOfWeaponEmbed(interaction, id, user, weaponType, skinsResponse.skins));
+                else await interaction.update(await singleWeaponEmbed(interaction, id, user, weaponType, skinsResponse.skins));
             } else if(interaction.customId.startsWith("viewbundle")) {
                 const [, id, uuid] = interaction.customId.split('/');
 
@@ -1381,6 +1423,12 @@ client.on("interactionCreate", async (interaction) => {
                     case "bp": newMessage = await renderBattlepassProgress(interaction); break;
                     case "alerts": newMessage = await fetchAlerts(interaction); break;
                     case "cl": newMessage = await renderCollection(interaction); break;
+                }
+                /* else */ if(customId.startsWith("clw")) {
+                    let valorantUser = getUser(interaction.user.id);
+                    const [, weaponTypeIndex] = interaction.customId.split('/')[1].split('-');
+                    const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
+                    newMessage = await collectionOfWeaponEmbed(interaction, interaction.user.id, valorantUser, weaponType, (await getSkins(valorantUser)).skins);
                 }
 
                 if(!newMessage.components) newMessage.components = switchAccountButtons(interaction, customId, true);

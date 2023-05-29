@@ -13,7 +13,7 @@ import {
     itemTypes,
     removeAlertActionRow,
     removeAlertButton,
-    fetchChannel, Weapons, isDefaultSkin
+    fetchChannel, isDefaultSkin, WeaponTypeUuid
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
@@ -520,29 +520,29 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
     }
 
     const fields = [
-        await createField(Weapons.Vandal),
-        await createField(Weapons.Phantom),
-        await createField(Weapons.Operator),
+        await createField(WeaponTypeUuid.Vandal),
+        await createField(WeaponTypeUuid.Phantom),
+        await createField(WeaponTypeUuid.Operator),
 
-        await createField(Weapons.Knife),
-        await createField(Weapons.Sheriff),
-        await createField(Weapons.Spectre),
+        await createField(WeaponTypeUuid.Knife),
+        await createField(WeaponTypeUuid.Sheriff),
+        await createField(WeaponTypeUuid.Spectre),
 
-        await createField(Weapons.Classic),
-        await createField(Weapons.Ghost),
-        await createField(Weapons.Frenzy),
+        await createField(WeaponTypeUuid.Classic),
+        await createField(WeaponTypeUuid.Ghost),
+        await createField(WeaponTypeUuid.Frenzy),
 
-        await createField(Weapons.Bulldog),
-        await createField(Weapons.Guardian),
-        await createField(Weapons.Marshal),
+        await createField(WeaponTypeUuid.Bulldog),
+        await createField(WeaponTypeUuid.Guardian),
+        await createField(WeaponTypeUuid.Marshal),
 
-        await createField(Weapons.Stinger),
-        await createField(Weapons.Ares),
-        await createField(Weapons.Odin),
+        await createField(WeaponTypeUuid.Stinger),
+        await createField(WeaponTypeUuid.Ares),
+        await createField(WeaponTypeUuid.Odin),
 
-        await createField(Weapons.Shorty),
-        await createField(Weapons.Bucky),
-        await createField(Weapons.Judge),
+        await createField(WeaponTypeUuid.Shorty),
+        await createField(WeaponTypeUuid.Bucky),
+        await createField(WeaponTypeUuid.Judge),
     ]
 
     const emoji = await VPEmoji(interaction);
@@ -604,11 +604,11 @@ export const skinCollectionPageEmbed = async (interaction, id, user, {loadout, f
     }
 
     const pages = [
-        [Weapons.Vandal, Weapons.Phantom, Weapons.Operator, Weapons.Knife],
-        [Weapons.Classic, Weapons.Sheriff, Weapons.Spectre, Weapons.Marshal],
-        [Weapons.Frenzy, Weapons.Ghost, Weapons.Bulldog, Weapons.Guardian],
-        [Weapons.Shorty, Weapons.Bucky, Weapons.Judge],
-        [Weapons.Stinger, Weapons.Ares, Weapons.Odin],
+        [WeaponTypeUuid.Vandal, WeaponTypeUuid.Phantom, WeaponTypeUuid.Operator, WeaponTypeUuid.Knife],
+        [WeaponTypeUuid.Classic, WeaponTypeUuid.Sheriff, WeaponTypeUuid.Spectre, WeaponTypeUuid.Marshal],
+        [WeaponTypeUuid.Frenzy, WeaponTypeUuid.Ghost, WeaponTypeUuid.Bulldog, WeaponTypeUuid.Guardian],
+        [WeaponTypeUuid.Shorty, WeaponTypeUuid.Bucky, WeaponTypeUuid.Judge],
+        [WeaponTypeUuid.Stinger, WeaponTypeUuid.Ares, WeaponTypeUuid.Odin],
     ];
 
     if(pageIndex < 0) pageIndex = pages.length - 1;
@@ -641,6 +641,73 @@ const collectionSwitchEmbedButton = (interaction, switchToPage, id) => {
     const label = s(interaction).info[switchToPage ? "COLLECTION_VIEW_IMAGES" : "COLLECTION_VIEW_ALL"];
     const customId = `clswitch/${switchToPage ? "p" : "s"}/${id}`;
     return new ButtonBuilder().setEmoji('🔍').setLabel(label).setStyle(ButtonStyle.Primary).setCustomId(customId);
+}
+
+export const collectionOfWeaponEmbed = async (interaction, id, user, weaponTypeUuid, skins, pageIndex=0) => {
+    const someoneElseUsedCommand = interaction.message ?
+        interaction.message.interaction && interaction.message.interaction.user.id !== user.id :
+        interaction.user.id !== user.id;
+
+    const emoji = await VPEmoji(interaction);
+
+    let usernameText;
+    if(someoneElseUsedCommand) {
+        usernameText = `<@${id}>`;
+
+        const json = readUserJson(id);
+        if(json.accounts.length > 1) usernameText += ' ' + s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: json.currentAccount});
+    }
+    else usernameText = user.username;
+
+    // note: some of these are null for some reason
+    const skinsData = await Promise.all(skins.map(skinUuid => getSkin(skinUuid, false)));
+    const filteredSkins = skinsData.filter(skin => skin?.weapon === weaponTypeUuid);
+    filteredSkins.sort((a, b) => { // sort by price, then rarity
+        const priceDiff = (b.price || 0) - (a.price || 0);
+        if(priceDiff !== 0) return priceDiff;
+
+        const rarityOrder = [
+            "12683d76-48d7-84a3-4e09-6985794f0445", // select
+            "0cebb8be-46d7-c12a-d306-e9907bfc5a25", // deluxe
+            "60bca009-4182-7998-dee7-b8a2558dc369", // premium
+            "411e4a55-4e59-7757-41f0-86a53f101bb5", // ultra
+            "e046854e-406c-37f4-6607-19a9ba8426fc", // exclusive
+        ];
+        return rarityOrder.indexOf(b.rarity) - rarityOrder.indexOf(a.rarity);
+    });
+
+    const embedsPerPage = 5;
+    const maxPages = Math.ceil(filteredSkins.length / embedsPerPage);
+
+    if(pageIndex < 0) pageIndex = maxPages - 1;
+    if(pageIndex >= maxPages) pageIndex = 0;
+
+    const weaponName = await getWeapon(weaponTypeUuid).then(weapon => l(weapon.names, interaction));
+    const embeds = [basicEmbed(s(interaction).info.COLLECTION_WEAPON_HEADER.f({u: usernameText, w: weaponName, p: pageIndex + 1, t: maxPages}, id))];
+    const skinEmbed = async (skin) => ({
+        title: await skinNameAndEmoji(skin, interaction.channel, interaction),
+        description: `${emoji} ${skin.price || 'N/A'}`,
+        color: VAL_COLOR_2,
+        thumbnail: {
+            url: skin.icon
+        }
+    })
+    if(filteredSkins.length === 0) {
+        const weapon = await getWeapon(weaponTypeUuid);
+        const skin = await getSkinFromSkinUuid(weapon.defaultSkinUuid);
+        embeds.push(await skinEmbed(skin));
+    }
+    else for(const skin of filteredSkins.slice(pageIndex * embedsPerPage, (pageIndex + 1) * embedsPerPage)) {
+        embeds.push(await skinEmbed(skin));
+    }
+
+    const weaponTypeIndex = Object.values(WeaponTypeUuid).indexOf(weaponTypeUuid);
+
+    const actionRows = [];
+    if(maxPages > 1) actionRows.push(pageButtons(`clwpage/${weaponTypeIndex}`, id, pageIndex, maxPages));
+    if(!someoneElseUsedCommand) actionRows.push(...switchAccountButtons(interaction, `clw-${weaponTypeIndex}`, false, id));
+
+    return {embeds, components: actionRows}
 }
 
 export const botInfoEmbed = (interaction, client, guildCount, userCount, registeredUserCount, ownerString, status) => {

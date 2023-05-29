@@ -7,7 +7,7 @@ import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
 import {client} from "../discord/bot.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
 
-const formatVersion = 10;
+const formatVersion = 11;
 let gameVersion;
 
 let weapons, skins, rarities, buddies, sprays, cards, titles, bundles, battlepass;
@@ -102,6 +102,7 @@ export const getSkinList = async (gameVersion) => {
             uuid: weapon.uuid,
             names: weapon.displayName,
             icon: weapon.displayIcon,
+            defaultSkinUuid: weapon.defaultSkinUuid,
         }
         for(const skin of weapon.skins) {
             const levelOne = skin.levels[0];
@@ -121,6 +122,7 @@ export const getSkinList = async (gameVersion) => {
             skins[levelOne.uuid] = {
                 uuid: levelOne.uuid,
                 skinUuid: skin.uuid,
+                weapon: weapon.uuid,
                 names: skin.displayName,
                 icon: icon,
                 rarity: skin.contentTierUuid,
