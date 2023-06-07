@@ -534,11 +534,11 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
         interaction.user.id !== user.id;
 
     let totalValue = 0;
-
+    const skinsUuid = [];
     const createField = async (weaponUuid, inline=true) => {
         const weapon = await getWeapon(weaponUuid);
         const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
-
+        skinsUuid.push(skin);
         totalValue += skin.price;
 
         const starEmoji = favorites.FavoritedContent[skin.skinUuid] ? "⭐ " : "";
@@ -606,6 +606,9 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
 
     const components = [new ActionRowBuilder().addComponents(collectionSwitchEmbedButton(interaction, true, id)),]
     if(!someoneElseUsedCommand) components.push(...switchAccountButtons(interaction, "cl", false, id))
+    
+    const levels = await getSkinLevels(skinsUuid.map(item=>item.uuid), interaction);
+    if(levels) components.unshift(levels);
 
     return {
         embeds: [embed],
@@ -742,6 +745,9 @@ export const collectionOfWeaponEmbed = async (interaction, id, user, weaponTypeU
     const actionRows = [];
     if(maxPages > 1) actionRows.push(pageButtons(`clwpage/${weaponTypeIndex}`, id, pageIndex, maxPages));
     if(!someoneElseUsedCommand) actionRows.push(...switchAccountButtons(interaction, `clw-${weaponTypeIndex}`, false, id));
+
+    const levels = await getSkinLevels(filteredSkins.map(item=>item.uuid), interaction);
+    if(levels) actionRows.unshift(levels);
 
     return {embeds, components: actionRows}
 }
