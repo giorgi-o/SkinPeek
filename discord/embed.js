@@ -13,11 +13,11 @@ import {
     itemTypes,
     removeAlertActionRow,
     removeAlertButton,
-    fetchChannel, isDefaultSkin, WeaponTypeUuid
+    fetchChannel, isDefaultSkin, WeaponTypeUuid, fetch
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
-import {ActionRowBuilder, ButtonBuilder, ButtonStyle, escapeMarkdown, EmbedBuilder} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, ButtonStyle, escapeMarkdown, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
 import {readUserJson, removeDupeAccounts, saveUser} from "../valorant/accountSwitcher.js";
@@ -143,12 +143,46 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     }
 
     let components;
-    if(forOtherUser) components = null;
-    else components = switchAccountButtons(interaction, "shop", true);
+    if(forOtherUser){
+        components = null;
+    } else {
+        components = switchAccountButtons(interaction, "shop", true);
+    }
+
+    const levels = await getSkinLevels(shop.offers, interaction);
+    if(levels) components === null ? components = [levels] : components.unshift(levels)
 
     return {
         embeds, components
     };
+}
+
+export const getSkinLevels = async (offers, interaction) => {
+    const skinSelector = new StringSelectMenuBuilder()
+        .setCustomId("select-skin-with-level")
+        .setPlaceholder(s(interaction).info.SELECT_SKIN_WITH_LEVEL)
+
+    for (const uuid of offers) {
+        let skin = await getSkin(uuid);
+        if(!skin) continue;
+        const req = await fetch(`https://valorant-api.com/v1/weapons/skins/${skin.skinUuid}`);
+        const json = JSON.parse(req.body);
+
+        for (let i = 0; i < json.data.levels.length; i++) {
+            const level = json.data.levels[i];
+            if(level.streamedVideo){
+                skinSelector.addOptions(
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel(`${l(skin.names, interaction)}`)
+                        .setValue(`${skin.skinUuid}`)
+                )
+                break;
+            }
+        }
+    }
+
+    if(skinSelector.options.length===0) return false;
+    return new ActionRowBuilder().addComponents(skinSelector);
 }
 
 export const renderBundles = async (bundles, interaction, VPemoji) => {

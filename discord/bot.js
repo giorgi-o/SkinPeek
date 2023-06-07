@@ -4,6 +4,7 @@ import {
     ActionRowBuilder,
     MessageFlagsBitField,
     StringSelectMenuBuilder,
+    StringSelectMenuOptionBuilder,
     ApplicationCommandOptionType,
     ButtonBuilder,
     ButtonStyle,
@@ -56,7 +57,8 @@ import {
     removeAlertActionRow,
     skinNameAndEmoji,
     valNamesToDiscordNames, WeaponTypeUuid,
-    WeaponType
+    WeaponType,
+    fetch
 } from "../misc/util.js";
 import config, {loadConfig, saveConfig} from "../misc/config.js";
 import {localError, localLog, sendConsoleOutput} from "../misc/logger.js";
@@ -1166,8 +1168,10 @@ client.on("interactionCreate", async (interaction) => {
         }
     } else if(interaction.isStringSelectMenu()) {
         try {
-            console.log(`${interaction.user.tag} selected an option from the dropdown`);
-            switch (interaction.customId) {
+            console.log(`${interaction.user.tag} selected an option from the dropdown with id ${interaction.customId}`);
+            let selectType = interaction.customId;
+            if(interaction.values[0].startsWith("skinlevels") || interaction.values[0].startsWith("skinchromas")) selectType = "get-level-video"
+            switch (selectType) {
                 case "skin-select": {
                     if(interaction.message.interaction.user.id !== interaction.user.id) {
                         return await interaction.reply({
@@ -1243,6 +1247,47 @@ client.on("interactionCreate", async (interaction) => {
                 case "set-setting": {
                     await handleSettingDropdown(interaction);
                     break;
+                }
+                case "select-skin-with-level":{
+                    const skinUuid = interaction.values[0];
+                    const levelSelector = new StringSelectMenuBuilder()
+                        .setCustomId(`select-skin-level`)
+                        .setPlaceholder(s(interaction).info.SELECT_LEVEL_OF_SKIN)
+
+
+                    const req = await fetch(`https://valorant-api.com/v1/weapons/skins/${skinUuid}`);
+                    const json = JSON.parse(req.body);
+
+                    for (let i = 0; i < json.data.levels.length; i++) {
+                        const level = json.data.levels[i];
+                        if(level.streamedVideo){
+                            levelSelector.addOptions(
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel(`${level.displayName}`)
+                                    .setValue(`skinlevels/${level.uuid}`))
+                            
+                        }
+                    }
+
+                    for (let i = 0; i < json.data.chromas.length; i++) {
+                        const chromas = json.data.chromas[i];
+                        if(chromas.streamedVideo){
+                            levelSelector.addOptions(
+                                new StringSelectMenuOptionBuilder()
+                                    .setLabel(`${chromas.displayName}`)
+                                    .setValue(`skinchromas/${chromas.uuid}`))
+                        }
+                    }
+
+                    await interaction.reply({components:[new ActionRowBuilder().addComponents(levelSelector)], ephemeral:true})
+                    break;
+                }
+                case "get-level-video":{
+                    const [type, uuid] = interaction.values[0].split('/');
+                    const name = interaction.component.data.options.find(item => item.value.startsWith(`${type}/${uuid}`)).label;
+                    const req = await fetch(`https://valorant-api.com/v1/weapons/${type}/${uuid}`);
+                    const json = JSON.parse(req.body);
+                    await interaction.reply({content:`[${name}](${json.data.streamedVideo})`, ephemeral:true})
                 }
             }
         } catch(e) {
