@@ -292,8 +292,11 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 
         embeds.push(embed);
     }
-
+    
     const components = switchAccountButtons(interaction, "nm", true);
+
+    const levels = await getSkinLevels(market.offers, interaction);
+    if(levels) components.unshift(levels);
     return {
         embeds, components
     };
