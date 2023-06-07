@@ -266,9 +266,8 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
         s(interaction).info.EXPIRES : s(interaction).info.EXPIRED).f({t: bundle.expires})})`;
 
     const itemEmbeds = await renderBundleItems(bundle, interaction, emoji);
-    return {
-        embeds: [bundleTitleEmbed, ...itemEmbeds]
-    }
+    const levels = await getSkinLevels(bundle.items.map(i=>i.uuid), interaction);
+    return levels ? {embeds: [bundleTitleEmbed, ...itemEmbeds], components: [levels]} : {embeds: [bundleTitleEmbed, ...itemEmbeds]};
 }
 
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
