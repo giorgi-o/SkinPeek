@@ -13,11 +13,11 @@ import {
     itemTypes,
     removeAlertActionRow,
     removeAlertButton,
-    fetchChannel, isDefaultSkin, WeaponTypeUuid
+    fetchChannel, isDefaultSkin, WeaponTypeUuid, fetch
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
-import {ActionRowBuilder, ButtonBuilder, ButtonStyle, escapeMarkdown, EmbedBuilder} from "discord.js";
+import {ActionRowBuilder, ButtonBuilder, ButtonStyle, escapeMarkdown, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
 import {readUserJson, removeDupeAccounts, saveUser} from "../valorant/accountSwitcher.js";
@@ -143,12 +143,46 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     }
 
     let components;
-    if(forOtherUser) components = null;
-    else components = switchAccountButtons(interaction, "shop", true);
+    if(forOtherUser){
+        components = null;
+    } else {
+        components = switchAccountButtons(interaction, "shop", true);
+    }
+
+    const levels = await getSkinLevels(shop.offers, interaction);
+    if(levels) components === null ? components = [levels] : components.unshift(levels)
 
     return {
         embeds, components
     };
+}
+
+export const getSkinLevels = async (offers, interaction) => {
+    const skinSelector = new StringSelectMenuBuilder()
+        .setCustomId("select-skin-with-level")
+        .setPlaceholder(s(interaction).info.SELECT_SKIN_WITH_LEVEL)
+
+    for (const uuid of offers) {
+        let skin = await getSkin(uuid);
+        if(!skin) continue;
+        const req = await fetch(`https://valorant-api.com/v1/weapons/skins/${skin.skinUuid}`);
+        const json = JSON.parse(req.body);
+
+        for (let i = 0; i < json.data.levels.length; i++) {
+            const level = json.data.levels[i];
+            if(level.streamedVideo){
+                skinSelector.addOptions(
+                    new StringSelectMenuOptionBuilder()
+                        .setLabel(`${l(skin.names, interaction)}`)
+                        .setValue(`${skin.skinUuid}`)
+                )
+                break;
+            }
+        }
+    }
+
+    if(skinSelector.options.length===0) return false;
+    return new ActionRowBuilder().addComponents(skinSelector);
 }
 
 export const renderBundles = async (bundles, interaction, VPemoji) => {
@@ -232,9 +266,8 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
         s(interaction).info.EXPIRES : s(interaction).info.EXPIRED).f({t: bundle.expires})})`;
 
     const itemEmbeds = await renderBundleItems(bundle, interaction, emoji);
-    return {
-        embeds: [bundleTitleEmbed, ...itemEmbeds]
-    }
+    const levels = await getSkinLevels(bundle.items.map(i=>i.uuid), interaction);
+    return levels ? {embeds: [bundleTitleEmbed, ...itemEmbeds], components: [levels]} : {embeds: [bundleTitleEmbed, ...itemEmbeds]};
 }
 
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
@@ -259,8 +292,11 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 
         embeds.push(embed);
     }
-
+    
     const components = switchAccountButtons(interaction, "nm", true);
+
+    const levels = await getSkinLevels(market.offers, interaction);
+    if(levels) components.unshift(levels);
     return {
         embeds, components
     };
@@ -498,11 +534,11 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
         interaction.user.id !== user.id;
 
     let totalValue = 0;
-
+    const skinsUuid = [];
     const createField = async (weaponUuid, inline=true) => {
         const weapon = await getWeapon(weaponUuid);
         const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
-
+        skinsUuid.push(skin);
         totalValue += skin.price;
 
         const starEmoji = favorites.FavoritedContent[skin.skinUuid] ? "⭐ " : "";
@@ -570,6 +606,9 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
 
     const components = [new ActionRowBuilder().addComponents(collectionSwitchEmbedButton(interaction, true, id)),]
     if(!someoneElseUsedCommand) components.push(...switchAccountButtons(interaction, "cl", false, id))
+    
+    const levels = await getSkinLevels(skinsUuid.map(item=>item.uuid), interaction);
+    if(levels) components.unshift(levels);
 
     return {
         embeds: [embed],
@@ -706,6 +745,9 @@ export const collectionOfWeaponEmbed = async (interaction, id, user, weaponTypeU
     const actionRows = [];
     if(maxPages > 1) actionRows.push(pageButtons(`clwpage/${weaponTypeIndex}`, id, pageIndex, maxPages));
     if(!someoneElseUsedCommand) actionRows.push(...switchAccountButtons(interaction, `clw-${weaponTypeIndex}`, false, id));
+
+    const levels = await getSkinLevels(filteredSkins.map(item=>item.uuid), interaction);
+    if(levels) actionRows.unshift(levels);
 
     return {embeds, components: actionRows}
 }
