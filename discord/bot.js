@@ -1431,28 +1431,20 @@ client.on("interactionCreate", async (interaction) => {
                 const message = await channel.messages.fetch(interaction.message.id);
                 if(!message.components) message.components = switchAccountButtons(interaction, customId, true);
 
-                const newActionRows = [];
                 for(const actionRow of message.components) {
-                    const newActionRow = new ActionRowBuilder();
-
                     for(const component of actionRow.components) {
-                        const newButton = new ButtonBuilder(component.data);
-
-                        if(component.customId === interaction.customId) {
-                            newButton.setLabel(s(interaction).info.LOADING);
-                            newButton.setStyle(ButtonStyle.Primary);
-                            newButton.setEmoji('⏳');
+                        if(component.data.custom_id === interaction.customId) {
+                            component.data.label = `${s(interaction).info.LOADING}`;
+                            component.data.style = ButtonStyle.Primary;
+                            component.data.disabled = true;
+                            component.data.emoji = { name: '⏳'};
                         }
-
-                        newActionRow.addComponents(newButton);
                     }
-
-                    newActionRows.push(newActionRow);
                 }
 
                 await interaction.update({
                     embeds: message.embeds,
-                    components: newActionRows
+                    components: message.components
                 });
 
                 const success = switchAccount(interaction.user.id, parseInt(accountIndex));
