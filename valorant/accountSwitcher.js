@@ -125,7 +125,9 @@ export const deleteWholeUser = (id) => {
     if(data) {
         const puuids = data.accounts.map(a => a.puuid);
         for(const puuid of puuids) {
-            fs.unlinkSync(`data/shopCache/${puuid}.json`);
+            try {
+                fs.unlinkSync(`data/shopCache/${puuid}.json`);
+            } catch(e) {}
         }
     }
 
