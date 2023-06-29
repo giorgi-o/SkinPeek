@@ -602,7 +602,7 @@ client.on("interactionCreate", async (interaction) => {
 
     let maintenanceMessage;
     if(config.maintenanceMode) maintenanceMessage = config.status || "The bot is currently under maintenance! Please be patient.";
-    else if(!areAllShardsReady()) maintenanceMessage = "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)";
+    else if(!areAllShardsReady()) maintenanceMessage = s(interaction).info.SHARDS_LOADING;
     if(maintenanceMessage) {
         if(interaction.isAutocomplete()) return await interaction.respond([{name: maintenanceMessage, value: maintenanceMessage}]);
         return await interaction.reply({content: maintenanceMessage, ephemeral: true});
@@ -1132,6 +1132,10 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "valstatus": {
+                    if (!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
                     await defer(interaction);
 
                     const json = await fetchMaintenances(valorantUser.region);
@@ -1240,10 +1244,7 @@ client.on("interactionCreate", async (interaction) => {
                     const emoji = await VPEmoji(interaction, channel);
                     const message = await renderBundle(bundle, interaction, emoji);
 
-                    await interaction.update({
-                        embeds: message.embeds,
-                        components: []
-                    });
+                    await interaction.update(message);
 
                     break;
                 }
@@ -1264,6 +1265,7 @@ client.on("interactionCreate", async (interaction) => {
                     for (let i = 0; i < json.data.levels.length; i++) {
                         const level = json.data.levels[i];
                         if(level.streamedVideo){
+                            if(level.displayName.length > 100) level.displayName = level.displayName.slice(0, 96) + " ...";
                             levelSelector.addOptions(
                                 new StringSelectMenuOptionBuilder()
                                     .setLabel(`${level.displayName}`)
@@ -1275,6 +1277,7 @@ client.on("interactionCreate", async (interaction) => {
                     for (let i = 0; i < json.data.chromas.length; i++) {
                         const chromas = json.data.chromas[i];
                         if(chromas.streamedVideo){
+                            if(chromas.displayName.length > 100) chromas.displayName = chromas.displayName.slice(0, 96) + " ...";
                             levelSelector.addOptions(
                                 new StringSelectMenuOptionBuilder()
                                     .setLabel(`${chromas.displayName}`)

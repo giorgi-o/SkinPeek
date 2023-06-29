@@ -46,7 +46,8 @@
     "ACCOUNT_NOT_FOUND": "**Kayıtlı hesaplarınızda bu hesap bulunamadı!**",
     "ACCOUNT_NUMBER_TOO_HIGH": "**{n} tane hesaba sahipsin!**",
     "TOO_MANY_ACCOUNTS": "**Botta maksimum {n} hesabınız olabilir!** `/forget` komutuyla bazı hesaplarınızı sildikten sonra tekrar deneyin.",
-    "GENERIC_ERROR": ":no_entry_sign: **Bunu yapmaya çalışırken bir hata oluştu!** Riot'u suçluyorum.\n`{e}`"
+    "GENERIC_ERROR": ":no_entry_sign: **Bunu yapmaya çalışırken bir hata oluştu!** Riot'u suçluyorum.\n`{e}`",
+    "SHARDS_LOADING": "Bot hala başlatılıyor! Lütfen birkaç saniye bekleyin ve tekrar deneyin. ( Shard yükleniyor...)"
   },
   "info": {
     "SHOP_HEADER": "**{u}** için günlük mağaza (Yeni mağaza <t:{t}:R>)",

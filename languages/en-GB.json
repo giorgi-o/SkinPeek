@@ -128,7 +128,8 @@
     "LAST_UPDATED": "Last updated <t:{t}:R>",
     "UNHANDLED_COMMAND": "Yer a wizard harry!",
     "SELECT_SKIN_WITH_LEVEL":"Select skin to show:",
-    "SELECT_LEVEL_OF_SKIN":"Select level of skin:"
+    "SELECT_LEVEL_OF_SKIN":"Select level of skin:",
+    "SHARDS_LOADING": "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Battlepass Calculation",

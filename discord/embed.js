@@ -214,13 +214,13 @@ export const renderAccessoryOffers = async (shop, interaction, valorantUser, KCe
     };
 }
 
-export const getSkinLevels = async (offers, interaction) => {
+export const getSkinLevels = async (offers, interaction, nightmarket = false) => {
     const skinSelector = new StringSelectMenuBuilder()
         .setCustomId("select-skin-with-level")
         .setPlaceholder(s(interaction).info.SELECT_SKIN_WITH_LEVEL)
 
     for (const uuid of offers) {
-        let skin = await getSkin(uuid);
+        let skin = await getSkin(nightmarket ? uuid.uuid : uuid);
         if(!skin) continue;
         const req = await fetch(`https://valorant-api.com/v1/weapons/skins/${skin.skinUuid}`);
         const json = JSON.parse(req.body);
@@ -324,7 +324,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 
     const itemEmbeds = await renderBundleItems(bundle, interaction, emoji);
     const levels = await getSkinLevels(bundle.items.map(i=>i.uuid), interaction);
-    return levels ? {embeds: [bundleTitleEmbed, ...itemEmbeds], components: [levels]} : {embeds: [bundleTitleEmbed, ...itemEmbeds]};
+    return levels ? {embeds: [bundleTitleEmbed, ...itemEmbeds], components: [levels]} : {embeds: [bundleTitleEmbed, ...itemEmbeds], components: []};
 }
 
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
@@ -352,7 +352,7 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
     
     const components = switchAccountButtons(interaction, "nm", true);
 
-    const levels = await getSkinLevels(market.offers, interaction);
+    const levels = await getSkinLevels(market.offers, interaction, true);
     if(levels) components.unshift(levels);
     return {
         embeds, components
@@ -1168,15 +1168,16 @@ export const secondaryEmbed = (content) => {
 }
 
 const createProgressBar = (totalxpneeded, currentxp, level) => {
-    const length = 14;
-    const totalxp = Number(totalxpneeded.replace(',', '')) + Number(currentxp)
+    const totalxp = parseFloat(totalxpneeded.replace(/[,\.]/g, '')) + parseFloat(String(currentxp).replace(/[,\.]/g, '')); // I don't know why, but in the country I was in, the data had "." instead of ","
 
-    const index = Math.min(Math.round(currentxp / totalxp * length), length);
+    const totalBars = 14; // Total number of bars and circles
+    const filledBars = Math.floor((currentxp / totalxp) * totalBars);
+    const emptyBars = totalBars - filledBars;
 
     const line = '▬';
     const circle = '⬤';
 
-    const bar = line.repeat(Math.max(index, 0)) + circle + line.repeat(Math.max(length - index, 0));
+    const bar = line.repeat(filledBars) + circle + line.repeat(emptyBars);
 
-    return level + '┃' + bar + '┃' + (Number(level) + 1);
+    return level + '┃' + bar + '┃' + (parseInt(level) + 1);
 }
