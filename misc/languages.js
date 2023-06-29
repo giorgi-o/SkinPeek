@@ -103,8 +103,8 @@ const importLanguage = (language) => {
 importLanguage(DEFAULT_LANG);
 
 // format a string
-String.prototype.f = function(args, interactionOrId=null) {
-    args = hideUsername(args, interactionOrId);
+String.prototype.f = function(args, interactionOrId=null, hideName=true) {
+    args = hideUsername(args, interactionOrId, hideName);
     let str = this;
     for(let i in args)
         str = str.replace(`{${i}}`, args[i]);

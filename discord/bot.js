@@ -974,7 +974,7 @@ client.on("interactionCreate", async (interaction) => {
                         const usernameOfDeleted = deleteUser(interaction.user.id, targetIndex);
 
                         await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: targetIndex, u: usernameOfDeleted}, interaction, false))],
+                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: targetIndex, u: usernameOfDeleted}, interaction))],
                         });
                     } else {
                         deleteWholeUser(interaction.user.id);
