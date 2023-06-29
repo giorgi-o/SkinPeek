@@ -1,5 +1,5 @@
 {
-  "translation_by": "Arthur Morgan#9999 @mustafa383",
+  "translation_by": "Discord: 'kgbt' @mustafa383",
   "error": {
     "NOT_REGISTERED": "**Botla giriş yapmamışsın!** `/login` komutu ile giriş yap.",
     "NOT_REGISTERED_OTHER": "**Bu kullanıcı botla giriş yapmamış!**",
@@ -50,6 +50,7 @@
   },
   "info": {
     "SHOP_HEADER": "**{u}** için günlük mağaza (Yeni mağaza <t:{t}:R>)",
+    "ACCESSORY_SHOP_HEADER": "**{u}** için aksesuar mağazası (Yeni mağaza <t:{t}:R>)",
     "BUNDLE_HEADER": "Öne Çıkan Koleksiyon: **{b}**",
     "BUNDLES_HEADER": "Öne Çıkan Koleksiyonlar:",
     "BUNDLES_HEADER_DESC": "`/bundle` komutunu kullanarak belirli bir koleksiyonu inceleyebilirsin",
@@ -114,6 +115,8 @@
     "ACCOUNT_CURRENTLY_SELECTED": "(Şuan seçili)",
     "SWITCH_ACCOUNT_BUTTON": "Hesap #{n}",
     "SWITCH_DESIGN_BUTTON": "Tasarımı değiştir",
+    "ACCESSORY_SHOP_SWITCH_BUTTON": "Aksesuar mağazası",
+    "DAILY_SHOP_SWITCH_BUTTON": "Günlük mağaza",
     "LOADING": "Yükleniyor...",
     "HIDDEN_USERNAME": "Kullanıcı adı gizli",
     "NO_USERNAME": "[Kullanıcı adı yok]",

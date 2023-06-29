@@ -50,6 +50,7 @@
   },
   "info":{
     "SHOP_HEADER": "Daily shop for **{u}** (new shop <t:{t}:R>)",
+    "ACCESSORY_SHOP_HEADER": "Accessory shop for **{u}** (new shop <t:{t}:R>)",
     "BUNDLE_HEADER": "Featured bundle: **{b}**",
     "BUNDLES_HEADER": "Currently featured bundles:",
     "BUNDLES_HEADER_DESC": "Use `/bundle` to inspect a specific bundle",
@@ -115,6 +116,8 @@
     "ACCOUNT_CURRENTLY_SELECTED": "(Currently selected)",
     "SWITCH_ACCOUNT_BUTTON": "Account #{n}",
     "SWITCH_DESIGN_BUTTON": "Switch design",
+    "ACCESSORY_SHOP_SWITCH_BUTTON": "Accessory shop",
+    "DAILY_SHOP_SWITCH_BUTTON": "Daily shop",
     "LOADING": "Loading...",
     "HIDDEN_USERNAME": "username hidden",
     "NO_USERNAME": "[No username]",

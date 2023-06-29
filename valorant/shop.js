@@ -70,7 +70,17 @@ export const getOffers = async (id, account=null) => {
     return await easterEggOffers(id, account, {
         success: true,
         offers: resp.shop.SkinsPanelLayout.SingleItemOffers,
-        expires: Math.floor(Date.now() / 1000) + resp.shop.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds
+        expires: Math.floor(Date.now() / 1000) + resp.shop.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds,
+        accessory: {
+            offers: resp.shop.AccessoryStore.AccessoryStoreOffers.map(rawAccessory => {
+                return {
+                    cost: rawAccessory.Offer.Cost["85ca954a-41f2-ce94-9b45-8ca3dd39a00d"],
+                    rewards: rawAccessory.Offer.Rewards,
+                    contractID: rawAccessory.ContractID
+                }
+            }),
+            expires: Math.floor(Date.now() / 1000) + resp.shop.AccessoryStore.AccessoryStoreRemainingDurationInSeconds
+        }
     });
 }
 
@@ -198,7 +208,17 @@ const addShopCache = (puuid, shopJson) => {
     const shopCache = {
         offers: {
             offers: shopJson.SkinsPanelLayout.SingleItemOffers,
-            expires: Math.floor(now / 1000) + shopJson.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds
+            expires: Math.floor(now / 1000) + shopJson.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds,
+            accessory: {
+                offers: shopJson.AccessoryStore.AccessoryStoreOffers.map(rawAccessory => {
+                    return {
+                        cost: rawAccessory.Offer.Cost["85ca954a-41f2-ce94-9b45-8ca3dd39a00d"],
+                        rewards: rawAccessory.Offer.Rewards,
+                        contractID: rawAccessory.ContractID
+                    }
+                }),
+                expires: Math.floor(now / 1000) + shopJson.AccessoryStore.AccessoryStoreRemainingDurationInSeconds
+            }
         },
         bundles: shopJson.FeaturedBundle.Bundles.map(rawBundle => {
             return {

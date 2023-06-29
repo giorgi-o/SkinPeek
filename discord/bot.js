@@ -1450,15 +1450,18 @@ client.on("interactionCreate", async (interaction) => {
                     components: message.components
                 });
 
-                const success = switchAccount(interaction.user.id, parseInt(accountIndex));
-                if(!success) return await interaction.followUp({
+                if(accountIndex !== "a" && accountIndex !== "d"){
+                    const success = switchAccount(interaction.user.id, parseInt(accountIndex));
+                    if(!success) return await interaction.followUp({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
                         ephemeral: true
-                });
+                    });
+                }
 
                 let newMessage;
                 switch(customId) {
-                    case "shop": newMessage = await fetchShop(interaction, getUser(interaction.user.id)); break;
+                    case "shop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "d"); break;
+                    case "accessoryshop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "a"); break;
                     case "nm": newMessage = await fetchNightMarket(interaction, getUser(interaction.user.id)); break;
                     case "bp": newMessage = await renderBattlepassProgress(interaction); break;
                     case "alerts": newMessage = await fetchAlerts(interaction); break;
