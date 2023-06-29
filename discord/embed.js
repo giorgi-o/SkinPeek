@@ -912,7 +912,17 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
 
         buttons.push(button);
     }
-    return [new ActionRowBuilder().setComponents(new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel(accessory === "a" ? s(interaction).info.ACCESSORY_SHOP_SWITCH_BUTTON : s(interaction).info.DAILY_SHOP_SWITCH_BUTTON).setCustomId(`account/${accessory === "a" ? "accessoryshop" : "shop"}/${id}/${accessory === "a" ? "a" : "d"}`)), new ActionRowBuilder().setComponents(...buttons)];
+    let label;
+    let custom;
+    if(accessory === "a") {
+        label = s(interaction).info.ACCESSORY_SHOP_SWITCH_BUTTON;
+        custom = `account/accessoryshop/${id}/a`;
+    } else if(accessory === "d"){
+        label = s(interaction).info.DAILY_SHOP_SWITCH_BUTTON;
+        custom = `account/shop/${id}/d`;
+    }
+
+    return label && custom ? [new ActionRowBuilder().setComponents(new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel(label).setCustomId(custom)), new ActionRowBuilder().setComponents(...buttons)] : [new ActionRowBuilder().setComponents(...buttons)]
 }
 
 const alertFieldDescription = async (interaction, channel_id, emojiString, price) => {
