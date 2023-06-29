@@ -44,7 +44,7 @@ export const loginUsernamePassword = async (interaction, username, password, ope
     if(login.success && user) {
         console.log(`${interaction.user.tag} logged in as ${user.username}`);
         await interaction.editReply({
-            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction))],
+            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction, false))],
             ephemeral: true
         });
 
@@ -82,7 +82,7 @@ export const login2FA = async (interaction, code, operationIndex=null) => {
     if(login.success && user) {
         console.log(`${interaction.user.tag} logged in as ${user.username} with 2FA code`);
         await interaction.followUp({
-            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}))]
+            embeds: [basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}, interaction, false))]
         });
     } else if(login.error) {
         console.error(`${interaction.user.tag} 2FA error`);

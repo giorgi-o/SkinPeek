@@ -148,12 +148,12 @@ const resolveDiscordLanguage = (input) => {
     return discLang;
 }
 
-const hideUsername = (args, interactionOrId) => {
+const hideUsername = (args, interactionOrId, hideName = true) => {
     if(!args.u) return {...args, u: s(interactionOrId).info.NO_USERNAME};
     if(!interactionOrId) return args;
 
     const id = typeof interactionOrId === 'string' ? interactionOrId : interactionOrId.user.id;
-    const hide = getSetting(id, 'hideIgn');
+    const hide = hideName ? getSetting(id, 'hideIgn') : false;
     if(!hide) return args;
 
     return {...args, u: `||*${s(interactionOrId).info.HIDDEN_USERNAME}*||`};
