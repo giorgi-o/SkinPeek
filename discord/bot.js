@@ -45,7 +45,7 @@ import {
     removeAlert,
     testAlerts
 } from "./alerts.js";
-import {RadEmoji, VPEmoji} from "./emoji.js";
+import {RadEmoji, VPEmoji, KCEmoji} from "./emoji.js";
 import {queueCookiesLogin, startAuthQueue,} from "../valorant/authQueue.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation, waitForAuthQueueResponse} from "./authManager.js";
 import {renderBattlepassProgress} from "../valorant/battlepass.js";
@@ -741,6 +741,7 @@ client.on("interactionCreate", async (interaction) => {
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const VPEmojiPromise = VPEmoji(interaction, channel);
                     const RadEmojiPromise = RadEmoji(interaction, channel);
+                    const KCEmojiPromise = KCEmoji(interaction, channel);
 
                     const balance = await getBalance(interaction.user.id);
 
@@ -748,14 +749,16 @@ client.on("interactionCreate", async (interaction) => {
 
                     const theVPEmoji = await VPEmojiPromise;
                     const theRadEmoji = await RadEmojiPromise || "";
+                    const theKCEmoji = await KCEmojiPromise || "";
 
                     await interaction.followUp({
                         embeds: [{ // move this to embed.js?
-                            title: s(interaction).info.WALLET_HEADER.f({u: valorantUser.username}, interaction),
+                            title: s(interaction).info.WALLET_HEADER.f({ u: valorantUser.username }, interaction),
                             color: VAL_COLOR_1,
                             fields: [
-                                {name: s(interaction).info.VPOINTS, value: `${theVPEmoji} ${balance.vp}`, inline: true},
-                                {name: s(interaction).info.RADIANITE, value: `${theRadEmoji} ${balance.rad}`, inline: true}
+                                { name: s(interaction).info.VPOINTS, value: `${theVPEmoji} ${balance.vp}`, inline: true },
+                                { name: s(interaction).info.RADIANITE, value: `${theRadEmoji} ${balance.rad}`, inline: true },
+                                { name: s(interaction).info.KCREDIT, value: `${theKCEmoji} ${balance.kc}`, inline: true }
                             ]
                         }]
                     });
