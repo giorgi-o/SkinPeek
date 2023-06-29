@@ -156,7 +156,9 @@
     "TYPE": "Type",
     "SKIN": "Skin",
     "CARD": "Card",
-    "GUN_BUDDY": "Gun Buddy"
+    "GUN_BUDDY": "Gun Buddy",
+    "CURRENCY": "Currency",
+    "SPRAY": "Spray"
   },
   "settings": {
     "TRUE": "Yes",

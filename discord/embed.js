@@ -362,18 +362,23 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 export const renderBattlepass = async (battlepass, targetlevel, interaction) => {
     if(!battlepass.success) return authFailureMessage(interaction, battlepass, s(interaction).error.AUTH_ERROR_BPASS);
     if(battlepass.nextReward.rewardType === "EquippableCharmLevel"){
-          battlepass.nextReward.rewardType = s(interaction).battlepass.GUN_BUDDY;
-      }
-      if(battlepass.nextReward.rewardType === "EquippableSkinLevel"){
-          battlepass.nextReward.rewardType = s(interaction).battlepass.SKIN;
-      }
-      if(battlepass.nextReward.rewardType === "PlayerCard"){
-          battlepass.nextReward.rewardType = s(interaction).battlepass.CARD;
-      }
-
-      if(battlepass.nextReward.rewardName === undefined) {
-          battlepass.nextReward.rewardName = "Name not found"
-      }
+        battlepass.nextReward.rewardType = s(interaction).battlepass.GUN_BUDDY;
+    }
+    if(battlepass.nextReward.rewardType === "EquippableSkinLevel"){
+        battlepass.nextReward.rewardType = s(interaction).battlepass.SKIN;
+    }
+    if(battlepass.nextReward.rewardType === "PlayerCard"){
+        battlepass.nextReward.rewardType = s(interaction).battlepass.CARD;
+    }
+    if(battlepass.nextReward.rewardType === "Currency") {
+        battlepass.nextReward.rewardType = s(interaction).battlepass.CURRENCY;
+    }
+    if(battlepass.nextReward.rewardType === "Spray") {
+        battlepass.nextReward.rewardType = s(interaction).battlepass.SPRAY;
+    }
+    if(battlepass.nextReward.rewardName === undefined) {
+        battlepass.nextReward.rewardName = "Name not found"
+    }
     const user = getUser(interaction.user.id);
 
     let embeds = []
