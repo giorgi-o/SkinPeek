@@ -146,7 +146,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     if(forOtherUser){
         components = null;
     } else {
-        components = switchAccountButtons(interaction, "shop", true, "a");
+        components = switchAccountButtons(interaction, "shop", true, "accessory");
     }
 
     const levels = await getSkinLevels(shop.offers, interaction);
@@ -207,7 +207,7 @@ export const renderAccessoryOffers = async (shop, interaction, valorantUser, KCe
         }
     }
 
-    let components = switchAccountButtons(interaction, "accessoryshop", true, "d");
+    let components = switchAccountButtons(interaction, "accessoryshop", true, "daily");
 
     return {
         embeds, components
@@ -914,12 +914,12 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
     }
     let label;
     let custom;
-    if(accessory === "a") {
+    if(accessory === "accessory") {
         label = s(interaction).info.ACCESSORY_SHOP_SWITCH_BUTTON;
-        custom = `account/accessoryshop/${id}/a`;
-    } else if(accessory === "d"){
+        custom = `account/accessoryshop/${id}/accessory`;
+    } else if(accessory === "daily"){
         label = s(interaction).info.DAILY_SHOP_SWITCH_BUTTON;
-        custom = `account/shop/${id}/d`;
+        custom = `account/shop/${id}/daily`;
     }
 
     return label && custom ? [new ActionRowBuilder().setComponents(new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel(label).setCustomId(custom)), new ActionRowBuilder().setComponents(...buttons)] : [new ActionRowBuilder().setComponents(...buttons)]
