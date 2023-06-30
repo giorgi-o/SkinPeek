@@ -161,7 +161,19 @@ export const getNextNightMarketTimestamp = async () => {
  * {
  *     offers: {
  *         offers: [...],
- *         expires: timestamp
+ *         expires: timestamp,
+ *         accessory: {
+ *              offers: [{
+ *                  "cost": 4000,
+ *                  "rewards": [{
+ *                      "ItemTypeID": uuid,
+ *                      "ItemID": uuid,
+ *                      "Quantity": number
+ *                      }],
+ *                  "contractID": uuid
+ *                  },...],
+ *              expires: timestamp
+ *          }
  *     },
  *     bundles: [{
  *         uuid: uuid,
@@ -196,6 +208,9 @@ export const getShopCache = (puuid, target="offers", print=true) => {
         if(Date.now() / 1000 > expiresTimestamp) return null;
 
         if(print) console.log(`Fetched shop cache for user ${discordTag(puuid)}`);
+
+        if(!shopCache.offers.accessory) return null;// If there are no accessories in the cache, it returns null so that the user's shop is checked again.
+
         return shopCache;
     } catch(e) {}
     return null;
