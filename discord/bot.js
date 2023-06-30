@@ -45,7 +45,7 @@ import {
     removeAlert,
     testAlerts
 } from "./alerts.js";
-import {RadEmoji, VPEmoji} from "./emoji.js";
+import {RadEmoji, VPEmoji, KCEmoji} from "./emoji.js";
 import {queueCookiesLogin, startAuthQueue,} from "../valorant/authQueue.js";
 import {login2FA, loginUsernamePassword, retryFailedOperation, waitForAuthQueueResponse} from "./authManager.js";
 import {renderBattlepassProgress} from "../valorant/battlepass.js";
@@ -602,7 +602,7 @@ client.on("interactionCreate", async (interaction) => {
 
     let maintenanceMessage;
     if(config.maintenanceMode) maintenanceMessage = config.status || "The bot is currently under maintenance! Please be patient.";
-    else if(!areAllShardsReady()) maintenanceMessage = "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)";
+    else if(!areAllShardsReady()) maintenanceMessage = s(interaction).info.SHARDS_LOADING;
     if(maintenanceMessage) {
         if(interaction.isAutocomplete()) return await interaction.respond([{name: maintenanceMessage, value: maintenanceMessage}]);
         return await interaction.reply({content: maintenanceMessage, ephemeral: true});
@@ -741,6 +741,7 @@ client.on("interactionCreate", async (interaction) => {
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     const VPEmojiPromise = VPEmoji(interaction, channel);
                     const RadEmojiPromise = RadEmoji(interaction, channel);
+                    const KCEmojiPromise = KCEmoji(interaction, channel);
 
                     const balance = await getBalance(interaction.user.id);
 
@@ -748,14 +749,16 @@ client.on("interactionCreate", async (interaction) => {
 
                     const theVPEmoji = await VPEmojiPromise;
                     const theRadEmoji = await RadEmojiPromise || "";
+                    const theKCEmoji = await KCEmojiPromise || "";
 
                     await interaction.followUp({
                         embeds: [{ // move this to embed.js?
-                            title: s(interaction).info.WALLET_HEADER.f({u: valorantUser.username}, interaction),
+                            title: s(interaction).info.WALLET_HEADER.f({ u: valorantUser.username }, interaction),
                             color: VAL_COLOR_1,
                             fields: [
-                                {name: s(interaction).info.VPOINTS, value: `${theVPEmoji} ${balance.vp}`, inline: true},
-                                {name: s(interaction).info.RADIANITE, value: `${theRadEmoji} ${balance.rad}`, inline: true}
+                                { name: s(interaction).info.VPOINTS, value: `${theVPEmoji} ${balance.vp}`, inline: true },
+                                { name: s(interaction).info.RADIANITE, value: `${theRadEmoji} ${balance.rad}`, inline: true },
+                                { name: s(interaction).info.KCREDIT, value: `${theKCEmoji} ${balance.kc}`, inline: true }
                             ]
                         }]
                     });
@@ -1093,7 +1096,7 @@ client.on("interactionCreate", async (interaction) => {
                     });
 
                    if(targetIndex === userJson.currentAccount) return await interaction.reply({
-                   embeds: [basicEmbed(s(interaction).info.ACCOUNT_ALREADY_SELECTED.f({u: valorantUser.username}, interaction))],
+                   embeds: [basicEmbed(s(interaction).info.ACCOUNT_ALREADY_SELECTED.f({u: valorantUser.username}, interaction, false))],
                    ephemeral: true
                    });
 
@@ -1129,6 +1132,10 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "valstatus": {
+                    if (!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
                     await defer(interaction);
 
                     const json = await fetchMaintenances(valorantUser.region);
@@ -1237,10 +1244,7 @@ client.on("interactionCreate", async (interaction) => {
                     const emoji = await VPEmoji(interaction, channel);
                     const message = await renderBundle(bundle, interaction, emoji);
 
-                    await interaction.update({
-                        embeds: message.embeds,
-                        components: []
-                    });
+                    await interaction.update(message);
 
                     break;
                 }
@@ -1261,6 +1265,7 @@ client.on("interactionCreate", async (interaction) => {
                     for (let i = 0; i < json.data.levels.length; i++) {
                         const level = json.data.levels[i];
                         if(level.streamedVideo){
+                            if(level.displayName.length > 100) level.displayName = level.displayName.slice(0, 96) + " ...";
                             levelSelector.addOptions(
                                 new StringSelectMenuOptionBuilder()
                                     .setLabel(`${level.displayName}`)
@@ -1272,6 +1277,7 @@ client.on("interactionCreate", async (interaction) => {
                     for (let i = 0; i < json.data.chromas.length; i++) {
                         const chromas = json.data.chromas[i];
                         if(chromas.streamedVideo){
+                            if(chromas.displayName.length > 100) chromas.displayName = chromas.displayName.slice(0, 96) + " ...";
                             levelSelector.addOptions(
                                 new StringSelectMenuOptionBuilder()
                                     .setLabel(`${chromas.displayName}`)
@@ -1447,15 +1453,18 @@ client.on("interactionCreate", async (interaction) => {
                     components: message.components
                 });
 
-                const success = switchAccount(interaction.user.id, parseInt(accountIndex));
-                if(!success) return await interaction.followUp({
+                if(accountIndex !== "accessory" && accountIndex !== "daily"){
+                    const success = switchAccount(interaction.user.id, parseInt(accountIndex));
+                    if(!success) return await interaction.followUp({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
                         ephemeral: true
-                });
+                    });
+                }
 
                 let newMessage;
                 switch(customId) {
-                    case "shop": newMessage = await fetchShop(interaction, getUser(interaction.user.id)); break;
+                    case "shop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "daily"); break;
+                    case "accessoryshop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "accessory"); break;
                     case "nm": newMessage = await fetchNightMarket(interaction, getUser(interaction.user.id)); break;
                     case "bp": newMessage = await renderBattlepassProgress(interaction); break;
                     case "alerts": newMessage = await fetchAlerts(interaction); break;

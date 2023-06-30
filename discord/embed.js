@@ -126,7 +126,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     }
 
     // show notice if there is one
-    if(config.notice) {
+    if(config.notice && valorantUser) {
         // users shouldn't see the same notice twice
         if(!config.onlyShowNoticeOnce || valorantUser.lastNoticeSeen !== config.notice) {
 
@@ -146,7 +146,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     if(forOtherUser){
         components = null;
     } else {
-        components = switchAccountButtons(interaction, "shop", true);
+        components = switchAccountButtons(interaction, "shop", true, "accessory");
     }
 
     const levels = await getSkinLevels(shop.offers, interaction);
@@ -157,13 +157,70 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     };
 }
 
-export const getSkinLevels = async (offers, interaction) => {
+export const renderAccessoryOffers = async (shop, interaction, valorantUser, KCemoji) => {
+
+    if(!shop.success) {
+        let errorText = s(interaction).error.AUTH_ERROR_SHOP;
+
+        return authFailureMessage(interaction, shop, errorText);
+    }
+
+    let headerText = s(interaction).info.ACCESSORY_SHOP_HEADER.f({ u: valorantUser.username, t: shop.accessory.expires }, interaction);
+
+    const embeds = [headerEmbed(headerText)];
+    for (const offer of shop.accessory.offers) {
+        for (const reward of offer.rewards){
+            
+            switch (reward.ItemTypeID) {
+                case "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475": //sprays
+                    embeds.push(await sprayEmbed(reward.ItemID, offer.cost, interaction, KCemoji))
+                    break;
+                case "dd3bf334-87f3-40bd-b043-682a57a8dc3a": //gun buddies
+                    embeds.push(await buddyEmbed(reward.ItemID, offer.cost, interaction, KCemoji))
+                    break;
+                case "3f296c07-64c3-494c-923b-fe692a4fa1bd": //cards
+                    embeds.push(await cardEmbed(reward.ItemID, offer.cost, interaction, KCemoji))
+                    break;
+                case "de7caa6b-adf7-4588-bbd1-143831e786c6": //titles
+                    embeds.push(await titleEmbed(reward.ItemID, offer.cost, interaction, KCemoji))
+                    break;
+                default:
+                    console.log(reward.ItemTypeID);
+            }
+        }
+    }
+
+    // show notice if there is one
+    if(config.notice && valorantUser) {
+        // users shouldn't see the same notice twice
+        if(!config.onlyShowNoticeOnce || valorantUser.lastNoticeSeen !== config.notice) {
+
+            // the notice can either be just a simple string, or a raw JSON embed data object
+            if(typeof config.notice === "string") {
+                if(config.notice.startsWith('{')) embeds.push(EmbedBuilder.from(JSON.parse(config.notice)).toJSON());
+                else embeds.push(basicEmbed(config.notice));
+            }
+            else embeds.push(EmbedBuilder.from(config.notice).toJSON());
+
+            valorantUser.lastNoticeSeen = config.notice;
+            saveUser(valorantUser);
+        }
+    }
+
+    let components = switchAccountButtons(interaction, "accessoryshop", true, "daily");
+
+    return {
+        embeds, components
+    };
+}
+
+export const getSkinLevels = async (offers, interaction, nightmarket = false) => {
     const skinSelector = new StringSelectMenuBuilder()
         .setCustomId("select-skin-with-level")
         .setPlaceholder(s(interaction).info.SELECT_SKIN_WITH_LEVEL)
 
     for (const uuid of offers) {
-        let skin = await getSkin(uuid);
+        let skin = await getSkin(nightmarket ? uuid.uuid : uuid);
         if(!skin) continue;
         const req = await fetch(`https://valorant-api.com/v1/weapons/skins/${skin.skinUuid}`);
         const json = JSON.parse(req.body);
@@ -267,7 +324,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
 
     const itemEmbeds = await renderBundleItems(bundle, interaction, emoji);
     const levels = await getSkinLevels(bundle.items.map(i=>i.uuid), interaction);
-    return levels ? {embeds: [bundleTitleEmbed, ...itemEmbeds], components: [levels]} : {embeds: [bundleTitleEmbed, ...itemEmbeds]};
+    return levels ? {embeds: [bundleTitleEmbed, ...itemEmbeds], components: [levels]} : {embeds: [bundleTitleEmbed, ...itemEmbeds], components: []};
 }
 
 export const renderNightMarket = async (market, interaction, valorantUser, emoji) => {
@@ -295,7 +352,7 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
     
     const components = switchAccountButtons(interaction, "nm", true);
 
-    const levels = await getSkinLevels(market.offers, interaction);
+    const levels = await getSkinLevels(market.offers, interaction, true);
     if(levels) components.unshift(levels);
     return {
         embeds, components
@@ -305,18 +362,23 @@ export const renderNightMarket = async (market, interaction, valorantUser, emoji
 export const renderBattlepass = async (battlepass, targetlevel, interaction) => {
     if(!battlepass.success) return authFailureMessage(interaction, battlepass, s(interaction).error.AUTH_ERROR_BPASS);
     if(battlepass.nextReward.rewardType === "EquippableCharmLevel"){
-          battlepass.nextReward.rewardType = s(interaction).battlepass.GUN_BUDDY;
-      }
-      if(battlepass.nextReward.rewardType === "EquippableSkinLevel"){
-          battlepass.nextReward.rewardType = s(interaction).battlepass.SKIN;
-      }
-      if(battlepass.nextReward.rewardType === "PlayerCard"){
-          battlepass.nextReward.rewardType = s(interaction).battlepass.CARD;
-      }
-
-      if(battlepass.nextReward.rewardName === undefined) {
-          battlepass.nextReward.rewardName = "Name not found"
-      }
+        battlepass.nextReward.rewardType = s(interaction).battlepass.GUN_BUDDY;
+    }
+    if(battlepass.nextReward.rewardType === "EquippableSkinLevel"){
+        battlepass.nextReward.rewardType = s(interaction).battlepass.SKIN;
+    }
+    if(battlepass.nextReward.rewardType === "PlayerCard"){
+        battlepass.nextReward.rewardType = s(interaction).battlepass.CARD;
+    }
+    if(battlepass.nextReward.rewardType === "Currency") {
+        battlepass.nextReward.rewardType = s(interaction).battlepass.CURRENCY;
+    }
+    if(battlepass.nextReward.rewardType === "Spray") {
+        battlepass.nextReward.rewardType = s(interaction).battlepass.SPRAY;
+    }
+    if(battlepass.nextReward.rewardName === undefined) {
+        battlepass.nextReward.rewardName = "Name not found"
+    }
     const user = getUser(interaction.user.id);
 
     let embeds = []
@@ -480,12 +542,12 @@ const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
     };
 }
 
-const buddyEmbed = async (uuid, price, locale, VPemojiString) => {
+const buddyEmbed = async (uuid, price, locale, emojiString) => {
     const buddy = await getBuddy(uuid);
     return {
         title: l(buddy.names, locale),
         url: config.linkItemImage ? buddy.icon : null,
-        description: priceDescription(VPemojiString, price),
+        description: priceDescription(emojiString, price),
         color: VAL_COLOR_2,
         thumbnail: {
             url: buddy.icon
@@ -493,12 +555,12 @@ const buddyEmbed = async (uuid, price, locale, VPemojiString) => {
     }
 }
 
-const cardEmbed = async (uuid, price, locale, VPemojiString) => {
+const cardEmbed = async (uuid, price, locale, emojiString) => {
     const card = await getCard(uuid);
     return {
         title: l(card.names, locale),
         url: config.linkItemImage ? card.icons.large : null,
-        description: priceDescription(VPemojiString, price),
+        description: priceDescription(emojiString, price),
         color: VAL_COLOR_2,
         thumbnail: {
             url: card.icons.large
@@ -506,12 +568,12 @@ const cardEmbed = async (uuid, price, locale, VPemojiString) => {
     }
 }
 
-const sprayEmbed = async (uuid, price, locale, VPemojiString) => {
+const sprayEmbed = async (uuid, price, locale, emojiString) => {
     const spray = await getSpray(uuid);
     return {
         title: l(spray.names, locale),
         url: config.linkItemImage ? spray.icon : null,
-        description: priceDescription(VPemojiString, price),
+        description: priceDescription(emojiString, price),
         color: VAL_COLOR_2,
         thumbnail: {
             url: spray.icon
@@ -519,11 +581,11 @@ const sprayEmbed = async (uuid, price, locale, VPemojiString) => {
     }
 }
 
-const titleEmbed = async (uuid, price, locale, VPemojiString) => {
+const titleEmbed = async (uuid, price, locale, emojiString) => {
     const title = await getTitle(uuid);
     return {
         title: l(title.names, locale),
-        description: "`" + title.text + "`\n\n" + (priceDescription(VPemojiString, price) || ""),
+        description: "`" + l(title.text, locale) + "`\n\n" + (priceDescription(emojiString, price) || ""),
         color: VAL_COLOR_2,
     }
 }
@@ -834,7 +896,7 @@ const pageButtons = (pageId, userId, current, max) => {
     return new ActionRowBuilder().setComponents(leftButton, rightButton);
 }
 
-export const switchAccountButtons = (interaction, customId, oneAccountButton=false, id=interaction?.user?.id || interaction) => {
+export const switchAccountButtons = (interaction, customId, oneAccountButton=false, accessory = false, id=interaction?.user?.id || interaction) => {
     const json = removeDupeAccounts(id);
     if(!json || json.accounts.length === 1 && !oneAccountButton) return [];
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
@@ -850,8 +912,17 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
 
         buttons.push(button);
     }
+    let label;
+    let custom;
+    if(accessory === "accessory") {
+        label = s(interaction).info.ACCESSORY_SHOP_SWITCH_BUTTON;
+        custom = `account/accessoryshop/${id}/accessory`;
+    } else if(accessory === "daily"){
+        label = s(interaction).info.DAILY_SHOP_SWITCH_BUTTON;
+        custom = `account/shop/${id}/daily`;
+    }
 
-    return [new ActionRowBuilder().setComponents(...buttons)];
+    return label && custom ? [new ActionRowBuilder().setComponents(new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel(label).setCustomId(custom)), new ActionRowBuilder().setComponents(...buttons)] : [new ActionRowBuilder().setComponents(...buttons)]
 }
 
 const alertFieldDescription = async (interaction, channel_id, emojiString, price) => {
@@ -1107,15 +1178,16 @@ export const secondaryEmbed = (content) => {
 }
 
 const createProgressBar = (totalxpneeded, currentxp, level) => {
-    const length = 14;
-    const totalxp = Number(totalxpneeded.replace(',', '')) + Number(currentxp)
+    const totalxp = parseFloat(totalxpneeded.replace(/[,\.]/g, '')) + parseFloat(String(currentxp).replace(/[,\.]/g, '')); // I don't know why, but in the country I was in, the data had "." instead of ","
 
-    const index = Math.min(Math.round(currentxp / totalxp * length), length);
+    const totalBars = 14; // Total number of bars and circles
+    const filledBars = Math.floor((currentxp / totalxp) * totalBars);
+    const emptyBars = totalBars - filledBars;
 
     const line = '▬';
     const circle = '⬤';
 
-    const bar = line.repeat(Math.max(index, 0)) + circle + line.repeat(Math.max(length - index, 0));
+    const bar = line.repeat(filledBars) + circle + line.repeat(emptyBars);
 
-    return level + '┃' + bar + '┃' + (Number(level) + 1);
+    return level + '┃' + bar + '┃' + (parseInt(level) + 1);
 }

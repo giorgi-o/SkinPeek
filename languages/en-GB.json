@@ -50,6 +50,7 @@
   },
   "info":{
     "SHOP_HEADER": "Daily shop for **{u}** (new shop <t:{t}:R>)",
+    "ACCESSORY_SHOP_HEADER": "Accessory shop for **{u}** (new shop <t:{t}:R>)",
     "BUNDLE_HEADER": "Featured bundle: **{b}**",
     "BUNDLES_HEADER": "Currently featured bundles:",
     "BUNDLES_HEADER_DESC": "Use `/bundle` to inspect a specific bundle",
@@ -76,6 +77,7 @@
     "WALLET_HEADER": "**{u}**'s Wallet:",
     "VPOINTS": "VALORANT Points",
     "RADIANITE": "Radianite",
+    "KCREDIT": "Kingdom Credit",
     "ALERT_HAPPENED": ":tada: <@{i}> The **{s}** is in **{u}**'s daily shop!\nIt will be gone <t:{t}:R>.",
     "ALERT_CHOICE": "Which skin would you like to set a reminder for?",
     "ALERT_CHOICE_PLACEHOLDER": "Select skin:",
@@ -114,6 +116,8 @@
     "ACCOUNT_CURRENTLY_SELECTED": "(Currently selected)",
     "SWITCH_ACCOUNT_BUTTON": "Account #{n}",
     "SWITCH_DESIGN_BUTTON": "Switch design",
+    "ACCESSORY_SHOP_SWITCH_BUTTON": "Accessory shop",
+    "DAILY_SHOP_SWITCH_BUTTON": "Daily shop",
     "LOADING": "Loading...",
     "HIDDEN_USERNAME": "username hidden",
     "NO_USERNAME": "[No username]",
@@ -124,7 +128,8 @@
     "LAST_UPDATED": "Last updated <t:{t}:R>",
     "UNHANDLED_COMMAND": "Yer a wizard harry!",
     "SELECT_SKIN_WITH_LEVEL":"Select skin to show:",
-    "SELECT_LEVEL_OF_SKIN":"Select level of skin:"
+    "SELECT_LEVEL_OF_SKIN":"Select level of skin:",
+    "SHARDS_LOADING": "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Battlepass Calculation",
@@ -152,7 +157,9 @@
     "TYPE": "Type",
     "SKIN": "Skin",
     "CARD": "Card",
-    "GUN_BUDDY": "Gun Buddy"
+    "GUN_BUDDY": "Gun Buddy",
+    "CURRENCY": "Currency",
+    "SPRAY": "Spray"
   },
   "settings": {
     "TRUE": "Yes",
