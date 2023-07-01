@@ -32,9 +32,9 @@ import {
     valMaintenancesEmbeds,
     collectionOfWeaponEmbed
 } from "./embed.js";
-import {authUser, fetchRiotClientVersion, getUser, getUserList, getRegion, getUserInfo} from "../valorant/auth.js";
-import {getBalance} from "../valorant/shop.js";
-import {getSkin, fetchData, searchSkin, searchBundle, getBundle, clearCache} from "../valorant/cache.js";
+import { authUser, fetchRiotClientVersion, getUser, getUserList, getRegion, getUserInfo } from "../valorant/auth.js";
+import { getBalance } from "../valorant/shop.js";
+import { getSkin, fetchData, searchSkin, searchBundle, getBundle, clearCache } from "../valorant/cache.js";
 import {
     addAlert,
     alertExists,
@@ -45,11 +45,11 @@ import {
     removeAlert,
     testAlerts
 } from "./alerts.js";
-import {RadEmoji, VPEmoji, KCEmoji} from "./emoji.js";
-import {queueCookiesLogin, startAuthQueue,} from "../valorant/authQueue.js";
-import {login2FA, loginUsernamePassword, retryFailedOperation, waitForAuthQueueResponse} from "./authManager.js";
-import {renderBattlepassProgress} from "../valorant/battlepass.js";
-import {getOverallStats, getStatsFor} from "../misc/stats.js";
+import { RadEmoji, VPEmoji, KCEmoji } from "./emoji.js";
+import { queueCookiesLogin, startAuthQueue, } from "../valorant/authQueue.js";
+import { login2FA, loginUsernamePassword, retryFailedOperation, waitForAuthQueueResponse } from "./authManager.js";
+import { renderBattlepassProgress } from "../valorant/battlepass.js";
+import { getOverallStats, getStatsFor } from "../misc/stats.js";
 import {
     canSendMessages,
     defer,
@@ -60,9 +60,9 @@ import {
     WeaponType,
     fetch
 } from "../misc/util.js";
-import config, {loadConfig, saveConfig} from "../misc/config.js";
-import {localError, localLog, sendConsoleOutput} from "../misc/logger.js";
-import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
+import config, { loadConfig, saveConfig } from "../misc/config.js";
+import { localError, localLog, sendConsoleOutput } from "../misc/logger.js";
+import { DEFAULT_VALORANT_LANG, discToValLang, l, s } from "../misc/languages.js";
 import {
     deleteUser,
     deleteWholeUser, findTargetAccountIndex,
@@ -71,8 +71,8 @@ import {
     switchAccount,
     saveUser
 } from "../valorant/accountSwitcher.js";
-import {areAllShardsReady, sendShardMessage} from "../misc/shardMessage.js";
-import {fetchBundles, fetchNightMarket, fetchShop} from "../valorant/shopManager.js";
+import { areAllShardsReady, sendShardMessage } from "../misc/shardMessage.js";
+import { fetchBundles, fetchNightMarket, fetchShop } from "../valorant/shopManager.js";
 import {
     getSetting,
     handleSettingDropdown,
@@ -80,9 +80,9 @@ import {
     handleSettingsViewCommand, registerInteractionLocale, settingIsVisible, settingName, settings
 } from "../misc/settings.js";
 import fuzzysort from "fuzzysort";
-import {renderCollection, getSkins} from "../valorant/inventory.js";
-import {getLoadout} from "../valorant/inventory.js";
-import {spawn} from "child_process";
+import { renderCollection, getSkins } from "../valorant/inventory.js";
+import { getLoadout } from "../valorant/inventory.js";
+import { spawn } from "child_process";
 import * as fs from "fs";
 
 export const client = new Client({
@@ -99,7 +99,7 @@ client.on("ready", async () => {
     fetchData().then(() => console.log("Skins loaded!"));
     fetchRiotClientVersion().then(() => console.log("Fetched latest Riot user-agent!"));
     initProxyManager().then(() => {
-        if(getProxyManager().enabled) {
+        if (getProxyManager().enabled) {
             console.log(`Proxy manager loaded ${getProxyManager().allProxies.length} proxies!`);
             // getProxyManager().loadForHostname("auth.riotgames.com").then(() => console.log("Loaded proxies for auth.riotgames.com!"));
         }
@@ -107,24 +107,24 @@ client.on("ready", async () => {
 
     scheduleTasks();
 
-    await client.user.setActivity("your store!", {type: ActivityType.Watching});
+    await client.user.setActivity("your store!", { type: ActivityType.Watching });
 
     // deploy commands if different
-    if(config.autoDeployCommands && (!client.shard || client.shard.ids[0] === 0)) {
+    if (config.autoDeployCommands && (!client.shard || client.shard.ids[0] === 0)) {
         const currentCommands = await client.application.commands.fetch();
 
         let shouldDeploy = currentCommands.size !== commands.length;
-        if(!shouldDeploy) for(const command of commands) {
+        if (!shouldDeploy) for (const command of commands) {
             try {
                 const correspondingCommand = currentCommands.find(c => c.equals(command));
-                if(!correspondingCommand) shouldDeploy = true;
-            } catch(e) {
+                if (!correspondingCommand) shouldDeploy = true;
+            } catch (e) {
                 shouldDeploy = true;
             }
-            if(shouldDeploy) break;
+            if (shouldDeploy) break;
         }
 
-        if(shouldDeploy) {
+        if (shouldDeploy) {
             console.log("Slash commands are different! Deploying the new ones globally...");
             await client.application.commands.set(commands);
             console.log("Slash commands deployed!");
@@ -132,38 +132,38 @@ client.on("ready", async () => {
     }
 
     // tell sharding manager that we're ready (workaround in case of shard respawn)
-    if(client.shard) client.shard.send("shardReady");
+    if (client.shard) client.shard.send("shardReady");
 });
 
 export const scheduleTasks = () => {
     console.log("Scheduling tasks...");
 
     // check alerts every day at 00:00:10 GMT
-    if(config.refreshSkins) cronTasks.push(cron.schedule(config.refreshSkins, checkAlerts, {timezone: "GMT"}));
+    if (config.refreshSkins) cronTasks.push(cron.schedule(config.refreshSkins, checkAlerts, { timezone: "GMT" }));
 
     // check for new valorant version every 15mins
-    if(config.checkGameVersion) cronTasks.push(cron.schedule(config.checkGameVersion, () => fetchData(null, true)));
+    if (config.checkGameVersion) cronTasks.push(cron.schedule(config.checkGameVersion, () => fetchData(null, true)));
 
     // if login queue is enabled, process an item every 3 seconds
-    if(config.useLoginQueue && config.loginQueueInterval) startAuthQueue();
+    if (config.useLoginQueue && config.loginQueueInterval) startAuthQueue();
 
     // if send console to discord channel is enabled, send console output every 10 seconds
-    if(config.logToChannel && config.logFrequency) cronTasks.push(cron.schedule(config.logFrequency, sendConsoleOutput));
+    if (config.logToChannel && config.logFrequency) cronTasks.push(cron.schedule(config.logFrequency, sendConsoleOutput));
 
     // check for a new riot client version (new user agent) every 15mins
-    if(config.updateUserAgent) cronTasks.push(cron.schedule(config.updateUserAgent, fetchRiotClientVersion));
+    if (config.updateUserAgent) cronTasks.push(cron.schedule(config.updateUserAgent, fetchRiotClientVersion));
 }
 
 export const destroyTasks = () => {
     console.log("Destroying scheduled tasks...");
-    for(const task of cronTasks)
+    for (const task of cronTasks)
         task.stop();
     cronTasks.length = 0;
 }
 
 const settingsChoices = [];
 setTimeout(() => {
-    for(const setting of Object.keys(settings).filter(settingIsVisible)) {
+    for (const setting of Object.keys(settings).filter(settingIsVisible)) {
         settingsChoices.push({
             name: settingName(setting),
             value: setting
@@ -243,8 +243,8 @@ const commands = [
         ]
     },
     {
-    name: "update",
-    description: "Update your username/region in the bot.",
+        name: "update",
+        description: "Update your username/region in the bot.",
     },
     {
         name: "2fa",
@@ -272,22 +272,22 @@ const commands = [
         name: "settings",
         description: "Change your settings with the bot, or view your current settings",
         options: [{
-                name: "view",
-                description: "See your current settings",
-                type: ApplicationCommandOptionType.Subcommand,
-            },
-            {
-                name: "set",
-                description: "Change one of your settings with the bot",
-                type: ApplicationCommandOptionType.Subcommand,
-                options: [{
-                    name: "setting",
-                    description: "The name of the setting you want to change",
-                    type: ApplicationCommandOptionType.String,
-                    required: true,
-                    choices: settingsChoices
-                }]
-            }
+            name: "view",
+            description: "See your current settings",
+            type: ApplicationCommandOptionType.Subcommand,
+        },
+        {
+            name: "set",
+            description: "Change one of your settings with the bot",
+            type: ApplicationCommandOptionType.Subcommand,
+            options: [{
+                name: "setting",
+                description: "The name of the setting you want to change",
+                type: ApplicationCommandOptionType.String,
+                required: true,
+                choices: settingsChoices
+            }]
+        }
         ]
     },
     {
@@ -372,47 +372,47 @@ const commands = [
 client.on("messageCreate", async (message) => {
     try {
         let isAdmin = false;
-        if(!config.ownerId) isAdmin = true;
-        else for(const id of config.ownerId.split(/, ?/)) {
-            if(message.author.id === id || message.guildId === id) {
+        if (!config.ownerId) isAdmin = true;
+        else for (const id of config.ownerId.split(/, ?/)) {
+            if (message.author.id === id || message.guildId === id) {
                 isAdmin = true;
                 break;
             }
 
-            if(message.member && message.member.roles.resolve(id)) {
+            if (message.member && message.member.roles.resolve(id)) {
                 isAdmin = true;
                 break;
             }
         }
-        if(!isAdmin) return;
+        if (!isAdmin) return;
 
         const content = message.content.replace(new RegExp(`<@!?${client.user.id}+> ?`), ""); // remove @bot mention
-        if(!content.startsWith('!')) return;
+        if (!content.startsWith('!')) return;
         console.log(`${message.author.tag} sent admin command ${content}`);
 
-        if(content === "!deploy guild") {
-            if(!message.guild) return;
+        if (content === "!deploy guild") {
+            if (!message.guild) return;
 
             console.log("Deploying commands in guild...");
 
             await message.guild.commands.set(commands).then(() => console.log(`Commands deployed in guild ${message.guild.name}!`));
 
             await message.reply("Deployed in guild!");
-        } else if(content === "!deploy global") {
+        } else if (content === "!deploy global") {
             console.log("Deploying commands...");
 
             await client.application.commands.set(commands).then(() => console.log("Commands deployed globally!"));
 
             await message.reply("Deployed globally!");
-        } else if(content.startsWith("!undeploy")) {
+        } else if (content.startsWith("!undeploy")) {
             console.log("Undeploying commands...");
 
-            if(content === "!undeploy guild") {
-                if(!message.guild) return;
+            if (content === "!undeploy guild") {
+                if (!message.guild) return;
                 await message.guild.commands.set([]).then(() => console.log(`Commands undeployed in guild ${message.guild.name}!`));
                 await message.reply("Undeployed in guild!");
             }
-            else if(content === "!undeploy global" || !message.guild) {
+            else if (content === "!undeploy global" || !message.guild) {
                 await client.application.commands.set([]).then(() => console.log("Commands undeployed globally!"));
                 await message.reply("Undeployed globally!");
             }
@@ -424,44 +424,44 @@ client.on("messageCreate", async (message) => {
 
                 await message.reply("Undeployed in guild and globally!");
             }
-        } else if(content.startsWith("!config")) {
+        } else if (content.startsWith("!config")) {
             const splits = content.split(' ');
-            if(splits[1] === "reload") {
+            if (splits[1] === "reload") {
                 const oldToken = config.token;
 
                 destroyTasks();
                 saveConfig();
                 scheduleTasks();
 
-                if(client.shard) sendShardMessage({type: "configReload"});
+                if (client.shard) sendShardMessage({ type: "configReload" });
 
                 let s = "Successfully reloaded the config!";
-                if(config.token !== oldToken)
+                if (config.token !== oldToken)
                     s += "\nI noticed you changed the token. You'll have to restart the bot for that to happen."
                 await message.reply(s);
-            } else if(splits[1] === "load") {
+            } else if (splits[1] === "load") {
                 const oldToken = config.token;
 
                 loadConfig();
                 destroyTasks();
                 scheduleTasks();
 
-                if(client.shard) sendShardMessage({type: "configReload"});
+                if (client.shard) sendShardMessage({ type: "configReload" });
 
                 let s = "Successfully reloaded the config from disk!";
-                if(config.token !== oldToken)
+                if (config.token !== oldToken)
                     s += "\nI noticed you changed the token. You'll have to restart the bot for that to happen."
                 await message.reply(s);
-            } else if(splits[1] === "read") {
+            } else if (splits[1] === "read") {
                 const s = "Here is the config.json the bot currently has loaded:```json\n" + JSON.stringify({
                     ...config,
                     token: "[redacted]",
                     "githubToken": config.githubToken ? "[redacted]" : config.githubToken
                 }, null, 2) + "```";
                 await message.reply(s);
-            } else if(splits[1] === "clearcache") {
+            } else if (splits[1] === "clearcache") {
                 await message.channel.send("Deleting all files in data/shopCache...");
-                fs.rmSync("data/shopCache", {force: true, recursive: true});
+                fs.rmSync("data/shopCache", { force: true, recursive: true });
                 fs.mkdirSync("data/shopCache");
 
                 // delete skins.json and reset skin cache
@@ -492,13 +492,13 @@ client.on("messageCreate", async (message) => {
                 }
 
                 let s;
-                if(typeof config[target] === 'string') s = `Set the config value \`${target}\` to \`"${config[target]}"\`!`;
+                if (typeof config[target] === 'string') s = `Set the config value \`${target}\` to \`"${config[target]}"\`!`;
                 else s = `Set the config value \`${target}\` to \`${config[target]}\`!`;
                 s += "\nDon't forget to `!config reload` to apply your changes!";
-                if(configType === 'undefined') s += "\n**Note:** That config option wasn't there before! Are you sure that's not a typo?"
+                if (configType === 'undefined') s += "\n**Note:** That config option wasn't there before! Are you sure that's not a typo?"
                 await message.reply(s);
             }
-        } else if(content.startsWith("!message ")) {
+        } else if (content.startsWith("!message ")) {
             const messageContent = content.substring(9);
             const messageEmbed = ownerMessageEmbed(messageContent, message.author);
 
@@ -506,29 +506,29 @@ client.on("messageCreate", async (message) => {
 
             await message.reply(`Sending message to ${Object.keys(guilds).length} guilds with alerts set up...`);
 
-            for(const guildId in guilds) {
+            for (const guildId in guilds) {
                 const guild = client.guilds.cache.get(guildId);
-                if(!guild) continue;
+                if (!guild) continue;
 
                 try {
                     const alertsPerChannel = guilds[guildId];
                     let channelWithMostAlerts = [null, 0];
-                    for(const channelId in alertsPerChannel) {
-                        if(alertsPerChannel[channelId] > channelWithMostAlerts[1]) {
+                    for (const channelId in alertsPerChannel) {
+                        if (alertsPerChannel[channelId] > channelWithMostAlerts[1]) {
                             channelWithMostAlerts = [channelId, alertsPerChannel[channelId]];
                         }
                     }
-                    if(channelWithMostAlerts[0] === null) continue;
+                    if (channelWithMostAlerts[0] === null) continue;
 
                     const channel = await fetchChannel(channelWithMostAlerts[0]);
-                    if(!channel) continue;
+                    if (!channel) continue;
 
                     console.log(`Channel with most alerts: #${channel.name} (${channelWithMostAlerts[1]} alerts)`);
                     await channel.send({
                         embeds: [messageEmbed]
                     });
-                } catch(e) {
-                    if(e.code === 50013 || e.code === 50001) {
+                } catch (e) {
+                    if (e.code === 50013 || e.code === 50001) {
                         console.error(`Don't have perms to send !message to ${guild.name}!`)
                     } else {
                         console.error(`Error while sending !message to guild ${guild.name}!`);
@@ -538,22 +538,22 @@ client.on("messageCreate", async (message) => {
             }
 
             await message.reply(`Finished sending the message!`);
-        } else if(content.startsWith("!status")) {
+        } else if (content.startsWith("!status")) {
             config.status = content.substring(8, 8 + 1023);
             saveConfig();
             await message.reply("Set the status to `" + config.status + "`!");
-        } else if(content === "!forcealerts") {
-            if(!client.shard || client.shard.ids.includes(0)) {
+        } else if (content === "!forcealerts") {
+            if (!client.shard || client.shard.ids.includes(0)) {
                 await checkAlerts();
                 await message.reply("Checked alerts!");
             }
             else {
-                await sendShardMessage({type: "checkAlerts"});
+                await sendShardMessage({ type: "checkAlerts" });
                 await message.reply("Told shard 0 to start checking alerts!");
             }
-        } else if(content === "!stop skinpeek") {
+        } else if (content === "!stop skinpeek") {
             return client.destroy();
-        } else if(content === "!update") {
+        } else if (content === "!update") {
             console.log("Starting git pull...")
             await message.reply("Starting `git pull`... (note that this will only work if you `git clone`d the repo, not if you downloaded a zip)");
 
@@ -569,13 +569,13 @@ client.on("messageCreate", async (message) => {
             git.on('close', async (code) => {
                 await message.reply('```\n' + stdout + '\n```');
 
-                if(code !== 0) {
+                if (code !== 0) {
                     localError(`git pull failed with exit code ${code}!`);
                     await message.channel.send("`git pull` failed! Check the console for more info.");
                     return;
                 }
 
-                if(stdout === "Already up to date.\n") {
+                if (stdout === "Already up to date.\n") {
                     localLog("Bot is already up to date!");
                     await message.channel.send("Bot is already up to date!");
                 }
@@ -583,7 +583,7 @@ client.on("messageCreate", async (message) => {
                     localLog("Git pull succeded! Stopping the bot...");
                     await message.channel.send("`git pull` succeded! Stopping the bot...");
 
-                    await sendShardMessage({type: "processExit"});
+                    await sendShardMessage({ type: "processExit" });
 
                     client.destroy();
                     client.destroyed = true;
@@ -592,7 +592,7 @@ client.on("messageCreate", async (message) => {
                 }
             });
         }
-    } catch(e) {
+    } catch (e) {
         console.error("Error while processing message!");
         console.error(e);
     }
@@ -601,18 +601,18 @@ client.on("messageCreate", async (message) => {
 client.on("interactionCreate", async (interaction) => {
 
     let maintenanceMessage;
-    if(config.maintenanceMode) maintenanceMessage = config.status || "The bot is currently under maintenance! Please be patient.";
-    else if(!areAllShardsReady()) maintenanceMessage = s(interaction).info.SHARDS_LOADING;
-    if(maintenanceMessage) {
-        if(interaction.isAutocomplete()) return await interaction.respond([{name: maintenanceMessage, value: maintenanceMessage}]);
-        return await interaction.reply({content: maintenanceMessage, ephemeral: true});
+    if (config.maintenanceMode) maintenanceMessage = config.status || "The bot is currently under maintenance! Please be patient.";
+    else if (!areAllShardsReady()) maintenanceMessage = s(interaction).info.SHARDS_LOADING;
+    if (maintenanceMessage) {
+        if (interaction.isAutocomplete()) return await interaction.respond([{ name: maintenanceMessage, value: maintenanceMessage }]);
+        return await interaction.reply({ content: maintenanceMessage, ephemeral: true });
     }
 
     registerInteractionLocale(interaction);
 
     const valorantUser = getUser(interaction.user.id);
 
-    if(interaction.isCommand()) {
+    if (interaction.isCommand()) {
         try {
             console.log(`${interaction.user.tag} used /${interaction.commandName}`);
             switch (interaction.commandName) {
@@ -620,19 +620,19 @@ client.on("interactionCreate", async (interaction) => {
                     let targetUser = interaction.user;
 
                     const otherUser = interaction.options.getUser("user");
-                    if(otherUser && otherUser.id !== interaction.user.id) {
+                    if (otherUser && otherUser.id !== interaction.user.id) {
                         const otherValorantUser = getUser(otherUser.id);
-                        if(!otherValorantUser) return await interaction.reply({
+                        if (!otherValorantUser) return await interaction.reply({
                             embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED_OTHER)]
                         });
 
-                        if(!getSetting(otherUser.id, "othersCanViewShop")) return await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).error.OTHER_SHOP_DISABLED.f({u: `<@${otherUser.id}>`}))]
+                        if (!getSetting(otherUser.id, "othersCanViewShop")) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.OTHER_SHOP_DISABLED.f({ u: `<@${otherUser.id}>` }))]
                         });
 
                         targetUser = otherUser;
                     }
-                    else if(!valorantUser) return await interaction.reply({
+                    else if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -647,7 +647,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "bundles": {
-                    if(!valorantUser) return await interaction.reply({
+                    if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -673,12 +673,12 @@ client.on("interactionCreate", async (interaction) => {
                     // if the name matches exactly, and there is only one with that name
                     const nameMatchesExactly = (interaction) => searchResults.filter(r => l(r.obj.names, interaction).toLowerCase() === searchQuery.toLowerCase()).length === 1;
 
-                    if(searchResults.length === 0) {
+                    if (searchResults.length === 0) {
                         return await interaction.followUp({
                             embeds: [basicEmbed(s(interaction).error.BUNDLE_NOT_FOUND)],
                             ephemeral: true
                         });
-                    } else if(searchResults.length === 1 || nameMatchesExactly(interaction) || nameMatchesExactly()) { // check both localized and english
+                    } else if (searchResults.length === 1 || nameMatchesExactly(interaction) || nameMatchesExactly()) { // check both localized and english
                         const bundle = searchResults[0].obj;
                         const message = await renderBundle(bundle, interaction, emoji)
 
@@ -695,14 +695,14 @@ client.on("interactionCreate", async (interaction) => {
 
                         // some bundles have the same name (e.g. Magepunk)
                         const nameCount = {};
-                        for(const option of options) {
-                            if(option.label in nameCount) nameCount[option.label]++;
+                        for (const option of options) {
+                            if (option.label in nameCount) nameCount[option.label]++;
                             else nameCount[option.label] = 1;
                         }
 
-                        for(let i = options.length - 1; i >= 0; i--) {
+                        for (let i = options.length - 1; i >= 0; i--) {
                             const occurrence = nameCount[options[i].label]--;
-                            if(occurrence > 1) options[i].label += " " + occurrence;
+                            if (occurrence > 1) options[i].label += " " + occurrence;
                         }
 
                         row.addComponents(new StringSelectMenuBuilder().setCustomId("bundle-select").setPlaceholder(s(interaction).info.BUNDLE_CHOICE_PLACEHOLDER).addOptions(options));
@@ -716,7 +716,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "nightmarket": {
-                    if(!valorantUser) return await interaction.reply({
+                    if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -731,7 +731,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "balance": {
-                    if(!valorantUser) return await interaction.reply({
+                    if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -745,7 +745,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     const balance = await getBalance(interaction.user.id);
 
-                    if(!balance.success) return await interaction.followUp(authFailureMessage(interaction, balance, "**Could not fetch your balance**, most likely you got logged out. Try logging in again."));
+                    if (!balance.success) return await interaction.followUp(authFailureMessage(interaction, balance, "**Could not fetch your balance**, most likely you got logged out. Try logging in again."));
 
                     const theVPEmoji = await VPEmojiPromise;
                     const theRadEmoji = await RadEmojiPromise || "";
@@ -767,44 +767,44 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "alert": {
-                    if(!valorantUser) return await interaction.reply({
+                    if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
-                    if(!canSendMessages(channel)) return await interaction.reply({
+                    if (!canSendMessages(channel)) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.ALERT_NO_PERMS)]
                     });
 
                     await defer(interaction);
 
                     const auth = await authUser(interaction.user.id);
-                    if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
+                    if (!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
                     const searchQuery = interaction.options.get("skin").value
                     const searchResults = await searchSkin(searchQuery, interaction.locale, 25);
 
                     // filter out results for which the user already has an alert set up
                     const filteredResults = [];
-                    for(const result of searchResults) {
+                    for (const result of searchResults) {
                         const otherAlert = alertExists(interaction.user.id, result.obj.uuid);
-                        if(!otherAlert) filteredResults.push(result);
+                        if (!otherAlert) filteredResults.push(result);
                     }
 
-                    if(filteredResults.length === 0) {
-                        if(searchResults.length === 0) return await interaction.followUp({
+                    if (filteredResults.length === 0) {
+                        if (searchResults.length === 0) return await interaction.followUp({
                             embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)]
                         });
 
                         const skin = searchResults[0].obj;
                         const otherAlert = alertExists(interaction.user.id, skin.uuid);
                         return await interaction.followUp({
-                            embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction), c: otherAlert.channel_id}))],
+                            embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({ s: await skinNameAndEmoji(skin, interaction.channel, interaction), c: otherAlert.channel_id }))],
                             components: [removeAlertActionRow(interaction.user.id, skin.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                             ephemeral: true
                         });
-                    } else if(filteredResults.length === 1 ||
+                    } else if (filteredResults.length === 1 ||
                         l(filteredResults[0].obj.names, interaction.locale).toLowerCase() === searchQuery.toLowerCase() ||
                         l(filteredResults[0].obj.names).toLowerCase() === searchQuery.toLowerCase()) {
                         const skin = filteredResults[0].obj;
@@ -837,7 +837,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "alerts": {
-                    if(!valorantUser) return await interaction.reply({
+                    if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -850,14 +850,14 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "update": {
-                     if (!valorantUser) return await interaction.reply({
-                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
-                         ephemeral: true,
-                     });
+                    if (!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true,
+                    });
 
-                     const id = interaction.user.id;
-                     const authSuccess = await authUser(id);
-                     if (!authSuccess.success) return await interaction.followUp(authFailureMessage(interaction, authSuccess, s(interaction).error.AUTH_ERROR_GENERIC));
+                    const id = interaction.user.id;
+                    const authSuccess = await authUser(id);
+                    if (!authSuccess.success) return await interaction.followUp(authFailureMessage(interaction, authSuccess, s(interaction).error.AUTH_ERROR_GENERIC));
 
                     let user = getUser(id);
                     console.log(`Refreshing username & region for ${user.username}...`);
@@ -873,12 +873,12 @@ client.on("interactionCreate", async (interaction) => {
                     saveUser(user);
 
                     await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_UPDATED.f({u: user.username}, interaction))],
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_UPDATED.f({ u: user.username }, interaction))],
                     });
-                   break;
+                    break;
                 }
                 case "testalerts": {
-                    if(!valorantUser) return await interaction.reply({
+                    if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -886,7 +886,7 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction);
 
                     const auth = await authUser(interaction.user.id);
-                    if(!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
+                    if (!auth.success) return await interaction.followUp(authFailureMessage(interaction, auth, s(interaction).error.AUTH_ERROR_ALERTS));
 
                     const success = await testAlerts(interaction);
 
@@ -898,9 +898,9 @@ client.on("interactionCreate", async (interaction) => {
                     await defer(interaction, true);
 
                     const json = readUserJson(interaction.user.id);
-                    if(json && json.accounts.length >= config.maxAccountsPerUser) {
+                    if (json && json.accounts.length >= config.maxAccountsPerUser) {
                         return await interaction.followUp({
-                            embeds: [basicEmbed(s(interaction).error.TOO_MANY_ACCOUNTS.f({n: config.maxAccountsPerUser}))]
+                            embeds: [basicEmbed(s(interaction).error.TOO_MANY_ACCOUNTS.f({ n: config.maxAccountsPerUser }))]
                         })
                     }
 
@@ -912,7 +912,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "2fa": {
-                    if(!valorantUser || !valorantUser.auth || !valorantUser.auth.waiting2FA) return await interaction.reply({
+                    if (!valorantUser || !valorantUser.auth || !valorantUser.auth.waiting2FA) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.UNEXPECTED_2FA)],
                         ephemeral: true
                     });
@@ -931,13 +931,13 @@ client.on("interactionCreate", async (interaction) => {
                     const cookies = interaction.options.get("cookies").value;
 
                     let success = await queueCookiesLogin(interaction.user.id, cookies);
-                    if(success.inQueue) success = await waitForAuthQueueResponse(success);
+                    if (success.inQueue) success = await waitForAuthQueueResponse(success);
 
                     const user = getUser(interaction.user.id);
                     let embed;
-                    if(success && user) {
+                    if (success && user) {
                         console.log(`${interaction.user.tag} logged in as ${user.username} using cookies`)
-                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({u: user.username}));
+                        embed = basicEmbed(s(interaction).info.LOGGED_IN.f({ u: user.username }));
                     } else {
                         console.log(`${interaction.user.tag} cookies login failed`);
                         embed = basicEmbed(s(interaction).error.INVALID_COOKIES);
@@ -952,29 +952,29 @@ client.on("interactionCreate", async (interaction) => {
                 }
                 case "forget": {
                     const accountCount = getNumberOfAccounts(interaction.user.id);
-                    if(accountCount === 0) return await interaction.reply({
+                    if (accountCount === 0) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
 
                     const targetAccount = interaction.options.get("account") && interaction.options.get("account").value;
-                    if(targetAccount) {
+                    if (targetAccount) {
                         const targetIndex = findTargetAccountIndex(interaction.user.id, targetAccount);
 
-                        if(targetIndex === null) return await interaction.reply({
+                        if (targetIndex === null) return await interaction.reply({
                             embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
                             ephemeral: true
                         });
 
-                        if(targetIndex > accountCount) return await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
+                        if (targetIndex > accountCount) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({ n: accountCount }))],
                             ephemeral: true
                         });
 
                         const usernameOfDeleted = deleteUser(interaction.user.id, targetIndex);
 
                         await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({n: targetIndex, u: usernameOfDeleted}, interaction))],
+                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({ n: targetIndex, u: usernameOfDeleted }, interaction))],
                         });
                     } else {
                         deleteWholeUser(interaction.user.id);
@@ -991,19 +991,19 @@ client.on("interactionCreate", async (interaction) => {
                     let targetUser = interaction.user;
 
                     const otherUser = interaction.options.getUser("user");
-                    if(otherUser && otherUser.id !== interaction.user.id) {
+                    if (otherUser && otherUser.id !== interaction.user.id) {
                         const otherValorantUser = getUser(otherUser.id);
-                        if(!otherValorantUser) return await interaction.reply({
+                        if (!otherValorantUser) return await interaction.reply({
                             embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED_OTHER)]
                         });
 
-                        if(!getSetting(otherUser.id, "othersCanViewColl")) return await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).error.OTHER_COLLECTION_DISABLED.f({u: `<@${otherUser.id}>`}))]
+                        if (!getSetting(otherUser.id, "othersCanViewColl")) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.OTHER_COLLECTION_DISABLED.f({ u: `<@${otherUser.id}>` }))]
                         });
 
                         targetUser = otherUser;
                     }
-                    else if(!valorantUser) return await interaction.reply({
+                    else if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -1019,7 +1019,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "battlepass": {
-                    if(!valorantUser) return await interaction.reply({
+                    if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -1038,14 +1038,14 @@ client.on("interactionCreate", async (interaction) => {
 
                     const skinName = (interaction.options.get("skin") || {}).value;
 
-                    if(skinName) {
+                    if (skinName) {
                         const skins = await searchSkin(skinName, interaction.locale, 25);
 
-                        if(skins.length === 0) {
+                        if (skins.length === 0) {
                             return await interaction.followUp({
                                 embeds: [basicEmbed(s(interaction).error.SKIN_NOT_FOUND)]
                             });
-                        } else if(skins.length === 1 ||
+                        } else if (skins.length === 1 ||
                             l(skins[0].obj.names, interaction.locale).toLowerCase() === skinName.toLowerCase() ||
                             l(skins[0].obj.names).toLowerCase() === skinName.toLowerCase()) {
                             const skin = skins[0].obj;
@@ -1081,7 +1081,7 @@ client.on("interactionCreate", async (interaction) => {
                     const userJson = readUserJson(interaction.user.id);
 
                     const accountCount = getNumberOfAccounts(interaction.user.id);
-                    if(accountCount === 0) return await interaction.reply({
+                    if (accountCount === 0) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -1090,31 +1090,31 @@ client.on("interactionCreate", async (interaction) => {
                     const targetIndex = findTargetAccountIndex(interaction.user.id, targetAccount);
 
                     const valorantUser = switchAccount(interaction.user.id, targetIndex);
-                    if(targetIndex === null) return await interaction.reply({
+                    if (targetIndex === null) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
                         ephemeral: true
                     });
 
-                   if(targetIndex === userJson.currentAccount) return await interaction.reply({
-                   embeds: [basicEmbed(s(interaction).info.ACCOUNT_ALREADY_SELECTED.f({u: valorantUser.username}, interaction, false))],
-                   ephemeral: true
-                   });
-
-                    if(targetIndex > accountCount) return await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({n: accountCount}))],
+                    if (targetIndex === userJson.currentAccount) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_ALREADY_SELECTED.f({ u: valorantUser.username }, interaction, false))],
                         ephemeral: true
                     });
 
-                    
+                    if (targetIndex > accountCount) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({ n: accountCount }))],
+                        ephemeral: true
+                    });
+
+
 
                     await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({n: targetIndex, u: valorantUser.username}, interaction))],
+                        embeds: [basicEmbed(s(interaction).info.ACCOUNT_SWITCHED.f({ n: targetIndex, u: valorantUser.username }, interaction))],
                     });
                     break;
                 }
                 case "accounts": {
                     const userJson = readUserJson(interaction.user.id);
-                    if(!userJson) return await interaction.reply({
+                    if (!userJson) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
                         ephemeral: true
                     });
@@ -1124,7 +1124,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "settings": {
-                    switch(interaction.options.getSubcommand()) {
+                    switch (interaction.options.getSubcommand()) {
                         case "view": return await handleSettingsViewCommand(interaction);
                         case "set": return await handleSettingsSetCommand(interaction);
                     }
@@ -1145,7 +1145,7 @@ client.on("interactionCreate", async (interaction) => {
                 }
                 case "info": {
                     let guildCount, userCount;
-                    if(client.shard) {
+                    if (client.shard) {
                         const guildCounts = await client.shard.fetchClientValues('guilds.cache.size');
                         guildCount = guildCounts.reduce((acc, guildCount) => acc + guildCount, 0);
 
@@ -1155,7 +1155,7 @@ client.on("interactionCreate", async (interaction) => {
                         guildCount = client.guilds.cache.size;
 
                         userCount = 0;
-                        for(const guild of client.guilds.cache.values())
+                        for (const guild of client.guilds.cache.values())
                             userCount += guild.memberCount;
                     }
 
@@ -1170,17 +1170,17 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
             }
-        } catch(e) {
+        } catch (e) {
             await handleError(e, interaction);
         }
-    } else if(interaction.isStringSelectMenu()) {
+    } else if (interaction.isStringSelectMenu()) {
         try {
             console.log(`${interaction.user.tag} selected an option from the dropdown with id ${interaction.customId}`);
             let selectType = interaction.customId;
-            if(interaction.values[0].startsWith("skinlevels") || interaction.values[0].startsWith("skinchromas")) selectType = "get-level-video"
+            if (interaction.values[0].startsWith("skinlevels") || interaction.values[0].startsWith("skinchromas")) selectType = "get-level-video"
             switch (selectType) {
                 case "skin-select": {
-                    if(interaction.message.interaction.user.id !== interaction.user.id) {
+                    if (interaction.message.interaction.user.id !== interaction.user.id) {
                         return await interaction.reply({
                             embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_ALERT)],
                             ephemeral: true
@@ -1191,8 +1191,8 @@ client.on("interactionCreate", async (interaction) => {
                     const skin = await getSkin(chosenSkin);
 
                     const otherAlert = alertExists(interaction.user.id, chosenSkin);
-                    if(otherAlert) return await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({s: await skinNameAndEmoji(skin, interaction.channel, interaction), c: otherAlert.channel_id}))],
+                    if (otherAlert) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.DUPLICATE_ALERT.f({ s: await skinNameAndEmoji(skin, interaction.channel, interaction), c: otherAlert.channel_id }))],
                         components: [removeAlertActionRow(interaction.user.id, otherAlert.uuid, s(interaction).info.REMOVE_ALERT_BUTTON)],
                         ephemeral: true
                     });
@@ -1211,7 +1211,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "skin-select-stats": {
-                    if(interaction.message.interaction.user.id !== interaction.user.id) {
+                    if (interaction.message.interaction.user.id !== interaction.user.id) {
                         return await interaction.reply({
                             embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_STATS)],
                             ephemeral: true
@@ -1230,7 +1230,7 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "bundle-select": {
-                    if(interaction.message.interaction.user.id !== interaction.user.id) {
+                    if (interaction.message.interaction.user.id !== interaction.user.id) {
                         return await interaction.reply({
                             embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_BUNDLE)],
                             ephemeral: true
@@ -1252,7 +1252,7 @@ client.on("interactionCreate", async (interaction) => {
                     await handleSettingDropdown(interaction);
                     break;
                 }
-                case "select-skin-with-level":{
+                case "select-skin-with-level": {
                     const skinUuid = interaction.values[0];
                     const levelSelector = new StringSelectMenuBuilder()
                         .setCustomId(`select-skin-level`)
@@ -1264,20 +1264,20 @@ client.on("interactionCreate", async (interaction) => {
 
                     for (let i = 0; i < json.data.levels.length; i++) {
                         const level = json.data.levels[i];
-                        if(level.streamedVideo){
-                            if(level.displayName.length > 100) level.displayName = level.displayName.slice(0, 96) + " ...";
+                        if (level.streamedVideo) {
+                            if (level.displayName.length > 100) level.displayName = level.displayName.slice(0, 96) + " ...";
                             levelSelector.addOptions(
                                 new StringSelectMenuOptionBuilder()
                                     .setLabel(`${level.displayName}`)
                                     .setValue(`skinlevels/${level.uuid}`))
-                            
+
                         }
                     }
 
                     for (let i = 0; i < json.data.chromas.length; i++) {
                         const chromas = json.data.chromas[i];
-                        if(chromas.streamedVideo){
-                            if(chromas.displayName.length > 100) chromas.displayName = chromas.displayName.slice(0, 96) + " ...";
+                        if (chromas.streamedVideo) {
+                            if (chromas.displayName.length > 100) chromas.displayName = chromas.displayName.slice(0, 96) + " ...";
                             levelSelector.addOptions(
                                 new StringSelectMenuOptionBuilder()
                                     .setLabel(`${chromas.displayName}`)
@@ -1285,131 +1285,131 @@ client.on("interactionCreate", async (interaction) => {
                         }
                     }
 
-                    await interaction.reply({components:[new ActionRowBuilder().addComponents(levelSelector)], ephemeral:true})
+                    await interaction.reply({ components: [new ActionRowBuilder().addComponents(levelSelector)], ephemeral: true })
                     break;
                 }
-                case "get-level-video":{
+                case "get-level-video": {
                     const [type, uuid] = interaction.values[0].split('/');
                     const name = interaction.component.data.options.find(item => item.value.startsWith(`${type}/${uuid}`)).label;
                     const req = await fetch(`https://valorant-api.com/v1/weapons/${type}/${uuid}`);
                     const json = JSON.parse(req.body);
-                    await interaction.reply({content:`[${name}](${json.data.streamedVideo})`, ephemeral:true})
+                    await interaction.reply({ content: `[${name}](${json.data.streamedVideo})`, ephemeral: true })
                 }
             }
-        } catch(e) {
+        } catch (e) {
             await handleError(e, interaction);
         }
-    } else if(interaction.isButton()) {
+    } else if (interaction.isButton()) {
         try {
             console.log(`${interaction.user.tag} clicked ${interaction.component.customId}`);
-            if(interaction.customId.startsWith("removealert/")) {
+            if (interaction.customId.startsWith("removealert/")) {
                 const [, uuid, id] = interaction.customId.split('/');
 
-                if(id !== interaction.user.id) return await interaction.reply({
+                if (id !== interaction.user.id) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_ALERT)],
                     ephemeral: true
                 });
 
                 const success = removeAlert(id, uuid);
-                if(success) {
+                if (success) {
                     const skin = await getSkin(uuid);
 
                     const channel = interaction.channel || await fetchChannel(interaction.channelId);
                     await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({s: await skinNameAndEmoji(skin, channel, interaction)}))],
+                        embeds: [basicEmbed(s(interaction).info.ALERT_REMOVED.f({ s: await skinNameAndEmoji(skin, channel, interaction) }))],
                         ephemeral: true
                     });
 
-                    if(interaction.message.flags.has(MessageFlagsBitField.Flags.Ephemeral)) return; // message is ephemeral
+                    if (interaction.message.flags.has(MessageFlagsBitField.Flags.Ephemeral)) return; // message is ephemeral
 
-                    if(interaction.message.interaction && interaction.message.interaction.commandName === "alert") { // if the message is the response to /alert
-                        await interaction.message.delete().catch(() => {});
-                    } else if(!interaction.message.interaction) { // the message is an automatic alert
+                    if (interaction.message.interaction && interaction.message.interaction.commandName === "alert") { // if the message is the response to /alert
+                        await interaction.message.delete().catch(() => { });
+                    } else if (!interaction.message.interaction) { // the message is an automatic alert
                         const actionRow = removeAlertActionRow(interaction.user.id, uuid, s(interaction).info.REMOVE_ALERT_BUTTON);
                         actionRow.components[0].setDisabled(true).setLabel("Removed");
 
-                        await interaction.update({components: [actionRow]}).catch(() => {});
+                        await interaction.update({ components: [actionRow] }).catch(() => { });
                     }
                 } else {
-                    await interaction.reply({embeds: [basicEmbed(s(interaction).error.GHOST_ALERT)], ephemeral: true});
+                    await interaction.reply({ embeds: [basicEmbed(s(interaction).error.GHOST_ALERT)], ephemeral: true });
                 }
-            } else if(interaction.customId.startsWith("retry_auth")) {
-                await interaction.deferReply({ephemeral: true});
+            } else if (interaction.customId.startsWith("retry_auth")) {
+                await interaction.deferReply({ ephemeral: true });
                 const [, operationIndex] = interaction.customId.split('/');
                 await retryFailedOperation(interaction, parseInt(operationIndex));
-            } else if(interaction.customId.startsWith("changealertspage")) {
+            } else if (interaction.customId.startsWith("changealertspage")) {
                 const [, id, pageIndex] = interaction.customId.split('/');
 
-                if(id !== interaction.user.id) return await interaction.reply({
+                if (id !== interaction.user.id) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_ALERT)],
                     ephemeral: true
                 });
 
                 const emojiString = await VPEmoji(interaction);
                 await interaction.update(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), parseInt(pageIndex), emojiString));
-            } else if(interaction.customId.startsWith("changestatspage")) {
+            } else if (interaction.customId.startsWith("changestatspage")) {
                 const [, id, pageIndex] = interaction.customId.split('/');
 
-                if(id !== interaction.user.id) return await interaction.reply({
+                if (id !== interaction.user.id) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_STATS)],
                     ephemeral: true
                 });
 
                 await interaction.update(await allStatsEmbed(interaction, await getOverallStats(), parseInt(pageIndex)));
-            } else if(interaction.customId.startsWith("clpage")) {
+            } else if (interaction.customId.startsWith("clpage")) {
                 const [, id, pageIndex] = interaction.customId.split('/');
 
                 let user;
-                if(id !== interaction.user.id) user = getUser(id);
+                if (id !== interaction.user.id) user = getUser(id);
                 else user = valorantUser;
 
                 const loadoutResponse = await getLoadout(user);
-                if(!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
+                if (!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
 
                 await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadoutResponse, parseInt(pageIndex)));
-            } else if(interaction.customId.startsWith("clswitch")) {
+            } else if (interaction.customId.startsWith("clswitch")) {
                 const [, switchTo, id] = interaction.customId.split('/');
                 const switchToPage = switchTo === "p";
 
                 let user;
-                if(id !== interaction.user.id) user = getUser(id);
+                if (id !== interaction.user.id) user = getUser(id);
                 else user = valorantUser;
 
                 const loadoutResponse = await getLoadout(user);
-                if(!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
+                if (!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
 
-                if(switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadoutResponse));
+                if (switchToPage) await interaction.update(await skinCollectionPageEmbed(interaction, id, user, loadoutResponse));
                 else await interaction.update(await skinCollectionSingleEmbed(interaction, id, user, loadoutResponse));
-            } else if(interaction.customId.startsWith("clwpage")) {
+            } else if (interaction.customId.startsWith("clwpage")) {
                 const [, weaponTypeIndex, id, pageIndex] = interaction.customId.split('/');
                 const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
 
                 let user;
-                if(id !== interaction.user.id) user = getUser(id);
+                if (id !== interaction.user.id) user = getUser(id);
                 else user = valorantUser;
 
                 const skinsResponse = await getSkins(user);
-                if(!skinsResponse.success) return await interaction.reply(authFailureMessage(interaction, skinsResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
+                if (!skinsResponse.success) return await interaction.reply(authFailureMessage(interaction, skinsResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
 
                 await interaction.update(await collectionOfWeaponEmbed(interaction, id, user, weaponType, skinsResponse.skins, parseInt(pageIndex)));
-            } else if(interaction.customId.startsWith("clwswitch")) {
+            } else if (interaction.customId.startsWith("clwswitch")) {
                 const [, weaponTypeIndex, switchTo, id] = interaction.customId.split('/');
                 const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
                 const switchToPage = switchTo === "p";
 
                 let user;
-                if(id !== interaction.user.id) user = getUser(id);
+                if (id !== interaction.user.id) user = getUser(id);
                 else user = valorantUser;
 
                 const skinsResponse = await getSkins(user);
-                if(!skinsResponse.success) return await interaction.reply(authFailureMessage(interaction, skinsResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
+                if (!skinsResponse.success) return await interaction.reply(authFailureMessage(interaction, skinsResponse, s(interaction).error.AUTH_ERROR_COLLECTION, id !== interaction.user.id));
 
-                if(switchToPage) await interaction.update(await collectionOfWeaponEmbed(interaction, id, user, weaponType, skinsResponse.skins));
+                if (switchToPage) await interaction.update(await collectionOfWeaponEmbed(interaction, id, user, weaponType, skinsResponse.skins));
                 else await interaction.update(await singleWeaponEmbed(interaction, id, user, weaponType, skinsResponse.skins));
-            } else if(interaction.customId.startsWith("viewbundle")) {
+            } else if (interaction.customId.startsWith("viewbundle")) {
                 const [, id, uuid] = interaction.customId.split('/');
 
-                if(id !== interaction.user.id) return await interaction.reply({
+                if (id !== interaction.user.id) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_BUNDLE)],
                     ephemeral: true
                 });
@@ -1420,30 +1420,30 @@ client.on("interactionCreate", async (interaction) => {
                     components: [],
                     ...await renderBundle(bundle, interaction, emoji),
                 });
-            } else if(interaction.customId.startsWith("account")) {
+            } else if (interaction.customId.startsWith("account")) {
 
                 const [, customId, id, accountIndex] = interaction.customId.split('/');
 
-                if(id !== interaction.user.id) return await interaction.reply({
+                if (id !== interaction.user.id) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_GENERIC)],
                     ephemeral: true
                 });
 
-                if(!canSendMessages(interaction.channel)) return await interaction.reply({
+                if (!canSendMessages(interaction.channel)) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.GENERIC_NO_PERMS)]
                 });
 
                 const channel = await client.channels.fetch(interaction.channelId);
                 const message = await channel.messages.fetch(interaction.message.id);
-                if(!message.components) message.components = switchAccountButtons(interaction, customId, true);
+                if (!message.components) message.components = switchAccountButtons(interaction, customId, true);
 
-                for(const actionRow of message.components) {
-                    for(const component of actionRow.components) {
-                        if(component.data.custom_id === interaction.customId) {
+                for (const actionRow of message.components) {
+                    for (const component of actionRow.components) {
+                        if (component.data.custom_id === interaction.customId) {
                             component.data.label = `${s(interaction).info.LOADING}`;
                             component.data.style = ButtonStyle.Primary;
                             component.data.disabled = true;
-                            component.data.emoji = { name: '⏳'};
+                            component.data.emoji = { name: '⏳' };
                         }
                     }
                 }
@@ -1453,51 +1453,50 @@ client.on("interactionCreate", async (interaction) => {
                     components: message.components
                 });
 
-                if(accountIndex !== "accessory" && accountIndex !== "daily"){
+                if (accountIndex !== "a" && accountIndex !== "d") {
                     const success = switchAccount(interaction.user.id, parseInt(accountIndex));
-                    if(!success) return await interaction.followUp({
+                    if (!success) return await interaction.followUp({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
                         ephemeral: true
                     });
                 }
 
                 let newMessage;
-                switch(customId) {
-                    case "shop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "daily"); break;
-                    case "accessoryshop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "accessory"); break;
+                switch (customId) {
+                    case "shop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "d"); break;
+                    case "accessoryshop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "a"); break;
                     case "nm": newMessage = await fetchNightMarket(interaction, getUser(interaction.user.id)); break;
                     case "bp": newMessage = await renderBattlepassProgress(interaction); break;
                     case "alerts": newMessage = await fetchAlerts(interaction); break;
                     case "cl": newMessage = await renderCollection(interaction); break;
                 }
-                /* else */ if(customId.startsWith("clw")) {
+                /* else */ if (customId.startsWith("clw")) {
                     let valorantUser = getUser(interaction.user.id);
                     const [, weaponTypeIndex] = interaction.customId.split('/')[1].split('-');
                     const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
                     newMessage = await collectionOfWeaponEmbed(interaction, interaction.user.id, valorantUser, weaponType, (await getSkins(valorantUser)).skins);
                 }
 
-                if(!newMessage.components) newMessage.components = switchAccountButtons(interaction, customId, true);
+                if (!newMessage.components) newMessage.components = switchAccountButtons(interaction, customId, true);
 
 
                 await message.edit(newMessage);
             }
-        } catch(e) {
+        } catch (e) {
             await handleError(e, interaction);
         }
-    } else if(interaction.isAutocomplete()) {
+    } else if (interaction.isAutocomplete()) {
         try {
             // console.log("Received autocomplete interaction from " + interaction.user.tag);
-            if(interaction.commandName === "alert" || interaction.commandName === "stats") {
+            if (interaction.commandName === "alert" || interaction.commandName === "stats") {
                 const focusedValue = interaction.options.getFocused();
                 const searchResults = await searchSkin(focusedValue, interaction.locale, 5);
 
                 await interaction.respond(searchResults.map(result => ({
                     name: result.obj.names[discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG],
                     value: result.obj.names[DEFAULT_VALORANT_LANG],
-                    nameLocalizations: valNamesToDiscordNames(result.obj.names) // does this even work?
                 })));
-            } else if(interaction.commandName === "bundle") {
+            } else if (interaction.commandName === "bundle") {
 
                 const focusedValue = interaction.options.getFocused();
                 const searchResults = await searchBundle(focusedValue, interaction.locale, 5);
@@ -1505,18 +1504,17 @@ client.on("interactionCreate", async (interaction) => {
                 await interaction.respond(searchResults.map(result => ({
                     name: result.obj.names[discToValLang[interaction.locale] || DEFAULT_VALORANT_LANG],
                     value: result.obj.names[DEFAULT_VALORANT_LANG],
-                    nameLocalizations: valNamesToDiscordNames(result.obj.names) // does this even work?
                 })));
-            } else if(interaction.commandName === "account" || interaction.commandName === "forget") {
+            } else if (interaction.commandName === "account" || interaction.commandName === "forget") {
                 const focusedValue = interaction.options.getFocused();
 
                 const userJson = readUserJson(interaction.user.id);
-                if(!userJson) return await interaction.respond([]);
+                if (!userJson) return await interaction.respond([]);
 
                 const values = [];
-                for(const [index, account] of Object.entries(userJson.accounts)) {
+                for (const [index, account] of Object.entries(userJson.accounts)) {
                     const username = account.username || s(interaction).info.NO_USERNAME;
-                    if(values.find(a => a.name === username)) continue;
+                    if (values.find(a => a.name === username)) continue;
 
                     values.push({
                         name: username,
@@ -1533,7 +1531,7 @@ client.on("interactionCreate", async (interaction) => {
 
                 await interaction.respond(filteredValues.map(value => value.obj));
             }
-        } catch(e) {
+        } catch (e) {
             console.error(e);
             // await handleError(e, interaction); // unknown interaction happens quite often
         }
@@ -1541,13 +1539,13 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 const handleError = async (e, interaction) => {
-    const message = s(interaction).error.GENERIC_ERROR.f({e: e.message});
+    const message = s(interaction).error.GENERIC_ERROR.f({ e: e.message });
     try {
         const embed = basicEmbed(message);
-        if(interaction.deferred) await interaction.followUp({embeds: [embed], ephemeral: true});
-        else await interaction.reply({embeds: [embed], ephemeral: true});
+        if (interaction.deferred) await interaction.followUp({ embeds: [embed], ephemeral: true });
+        else await interaction.reply({ embeds: [embed], ephemeral: true });
         console.error(e);
-    } catch(e2) {
+    } catch (e2) {
         console.error("There was a problem while trying to handle an error!\nHere's the original error:");
         console.error(e);
         console.error("\nAnd here's the error while trying to handle it:");
