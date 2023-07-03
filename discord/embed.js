@@ -222,16 +222,14 @@ export const getSkinLevels = async (offers, interaction, nightmarket = false) =>
     for (const uuid of offers) {
         let skin = await getSkin(nightmarket ? uuid.uuid : uuid);
         if(!skin) continue;
-        const req = await fetch(`https://valorant-api.com/v1/weapons/skins/${skin.skinUuid}`);
-        const json = JSON.parse(req.body);
 
-        for (let i = 0; i < json.data.levels.length; i++) {
-            const level = json.data.levels[i];
+        for (let i = 0; i < skin.levels.length; i++) {
+            const level = skin.levels[i];
             if(level.streamedVideo){
                 skinSelector.addOptions(
                     new StringSelectMenuOptionBuilder()
                         .setLabel(`${l(skin.names, interaction)}`)
-                        .setValue(`${skin.skinUuid}`)
+                        .setValue(`${skin.uuid}`)
                 )
                 break;
             }
