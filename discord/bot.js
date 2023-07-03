@@ -1293,7 +1293,10 @@ client.on("interactionCreate", async (interaction) => {
                     const name = interaction.component.data.options.find(item => item.value.startsWith(`${type}/${uuid}`)).label;
                     const req = await fetch(`https://valorant-api.com/v1/weapons/${type}/${uuid}`);
                     const json = JSON.parse(req.body);
-                    await interaction.reply({ content: `[${name}](${json.data.streamedVideo})`, ephemeral: true })
+                    const baseLink = "https://embed.arthurdev.web.tr/s";
+                    let link;
+                    config.viewerWithSite ? link = baseLink + `?link=${json.data.streamedVideo}&title=${encodeURI(client.user.username)}` : link = json.data.streamedVideo
+                    await interaction.reply({ content: `[${name}](${link})`, ephemeral: true })
                 }
             }
         } catch (e) {
