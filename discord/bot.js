@@ -1177,7 +1177,7 @@ client.on("interactionCreate", async (interaction) => {
         try {
             console.log(`${interaction.user.tag} selected an option from the dropdown with id ${interaction.customId}`);
             let selectType = interaction.customId;
-            if (interaction.values[0].startsWith("skinlevels") || interaction.values[0].startsWith("skinchromas")) selectType = "get-level-video"
+            if (interaction.values[0].startsWith("levels") || interaction.values[0].startsWith("chromas")) selectType = "get-level-video"
             switch (selectType) {
                 case "skin-select": {
                     if (interaction.message.interaction.user.id !== interaction.user.id) {
@@ -1253,35 +1253,39 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "select-skin-with-level": {
-                    const skinUuid = interaction.values[0];
+                    let skinUuid = interaction.values[0];
+                    let skin = await getSkin(skinUuid);
                     const levelSelector = new StringSelectMenuBuilder()
                         .setCustomId(`select-skin-level`)
                         .setPlaceholder(s(interaction).info.SELECT_LEVEL_OF_SKIN)
 
+                    if(!skin){
+                        const req = await fetch(`https://valorant-api.com/v1/weapons/skins/${skinUuid}?language=all`);
+                        skin = JSON.parse(req.body).data;
+                        skinUuid = skin.levels[0].uuid;
+                    }
 
-                    const req = await fetch(`https://valorant-api.com/v1/weapons/skins/${skinUuid}`);
-                    const json = JSON.parse(req.body);
-
-                    for (let i = 0; i < json.data.levels.length; i++) {
-                        const level = json.data.levels[i];
+                    for (let i = 0; i < skin.levels.length; i++) {
+                        const level = skin.levels[i];
                         if (level.streamedVideo) {
-                            if (level.displayName.length > 100) level.displayName = level.displayName.slice(0, 96) + " ...";
+                            let skinName = l(level.displayName, interaction);
+                            if (skinName.length > 100) skinName = skinName.slice(0, 96) + " ...";
                             levelSelector.addOptions(
                                 new StringSelectMenuOptionBuilder()
-                                    .setLabel(`${level.displayName}`)
-                                    .setValue(`skinlevels/${level.uuid}`))
-
+                                    .setLabel(`${skinName}`)
+                                    .setValue(`levels/${level.uuid}/${skinUuid}`))
                         }
                     }
 
-                    for (let i = 0; i < json.data.chromas.length; i++) {
-                        const chromas = json.data.chromas[i];
+                    for (let i = 0; i < skin.chromas.length; i++) {
+                        const chromas = skin.chromas[i];
                         if (chromas.streamedVideo) {
-                            if (chromas.displayName.length > 100) chromas.displayName = chromas.displayName.slice(0, 96) + " ...";
+                            let chromaName = l(chromas.displayName, interaction);
+                            if (chromaName.length > 100) chromaName = chromaName.slice(0, 96) + " ...";
                             levelSelector.addOptions(
                                 new StringSelectMenuOptionBuilder()
-                                    .setLabel(`${chromas.displayName}`)
-                                    .setValue(`skinchromas/${chromas.uuid}`))
+                                    .setLabel(`${chromaName}`)
+                                    .setValue(`chromas/${chromas.uuid}/${skinUuid}`))
                         }
                     }
 
@@ -1289,11 +1293,14 @@ client.on("interactionCreate", async (interaction) => {
                     break;
                 }
                 case "get-level-video": {
-                    const [type, uuid] = interaction.values[0].split('/');
-                    const name = interaction.component.data.options.find(item => item.value.startsWith(`${type}/${uuid}`)).label;
-                    const req = await fetch(`https://valorant-api.com/v1/weapons/${type}/${uuid}`);
-                    const json = JSON.parse(req.body);
-                    await interaction.reply({ content: `[${name}](${json.data.streamedVideo})`, ephemeral: true })
+                    const [type, uuid, skinUuid] = interaction.values[0].split('/');
+                    const rawSkin = await getSkin(skinUuid);
+                    const skin = rawSkin[type].filter(x => x.uuid === uuid);
+                    const name = l(skin[0].displayName, interaction)
+                    const baseLink = "https://embed.arthurdev.web.tr/s";
+                    let link;
+                    config.viewerWithSite ? link = baseLink + `?link=${skin[0].streamedVideo}&title=${encodeURI(client.user.username)}` : link = skin[0].streamedVideo
+                    await interaction.reply({ content: `‏[${name}](${link})`, ephemeral: true })
                 }
             }
         } catch (e) {
