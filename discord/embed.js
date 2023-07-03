@@ -806,7 +806,7 @@ export const collectionOfWeaponEmbed = async (interaction, id, user, weaponTypeU
     if(maxPages > 1) actionRows.push(pageButtons(`clwpage/${weaponTypeIndex}`, id, pageIndex, maxPages));
     if(!someoneElseUsedCommand) actionRows.push(...switchAccountButtons(interaction, `clw-${weaponTypeIndex}`, false, id));
 
-    const levels = await getSkinLevels(filteredSkins.map(item=>item.uuid), interaction);
+    const levels = await getSkinLevels(filteredSkins.slice(pageIndex * embedsPerPage, (pageIndex + 1) * embedsPerPage).map(item=>item.uuid), interaction);
     if(levels) actionRows.unshift(levels);
 
     return {embeds, components: actionRows}
