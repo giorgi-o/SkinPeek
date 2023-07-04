@@ -1300,7 +1300,7 @@ client.on("interactionCreate", async (interaction) => {
                     const baseLink = "https://embed.arthurdev.web.tr/s";
                     let link;
                     config.viewerWithSite ? link = baseLink + `?link=${skin[0].streamedVideo}&title=${encodeURI(client.user.username)}` : link = skin[0].streamedVideo
-                    await interaction.reply({ content: `‏[${name}](${link})`, ephemeral: true })
+                    await interaction.reply({ content: `\u200b[${name}](${link})`, ephemeral: true })
                 }
             }
         } catch (e) {
