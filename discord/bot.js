@@ -1532,7 +1532,7 @@ client.on("interactionCreate", async (interaction) => {
                 const filteredValues = fuzzysort.go(focusedValue, values, {
                     key: "name",
                     threshold: -1000,
-                    limit: 5,
+                    limit: config.maxAccountsPerUser <= 10 ? config.maxAccountsPerUser : 10,
                     all: true
                 });
 
