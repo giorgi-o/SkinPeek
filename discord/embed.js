@@ -897,10 +897,13 @@ const pageButtons = (pageId, userId, current, max) => {
 export const switchAccountButtons = (interaction, customId, oneAccountButton=false, accessory = false, id=interaction?.user?.id || interaction) => {
     const json = removeDupeAccounts(id);
     if(!json || json.accounts.length === 1 && !oneAccountButton) return [];
-    const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, 5);
+    const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, config.maxAccountsPerUser <= 10 ? config.maxAccountsPerUser : 10);
     const hideIgn = getSetting(id, "hideIgn");
 
+    const rows = [];
     const buttons = [];
+    const buttons2 = [];
+
     for(const number of accountNumbers) {
         const username = json.accounts[number - 1].username || s(interaction).info.NO_USERNAME;
         const label = hideIgn ? s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: number.toString()}) : username;
@@ -908,7 +911,7 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
         const button = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setLabel(label).setCustomId(`account/${customId}/${id}/${number}`);
         button.setDisabled(number === json.currentAccount);
 
-        buttons.push(button);
+        number > 5 ? buttons2.push(button) : buttons.push(button);
     }
     let label;
     let custom;
@@ -919,8 +922,10 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
         label = s(interaction).info.DAILY_SHOP_SWITCH_BUTTON;
         custom = `account/shop/${id}/daily`;
     }
-
-    return label && custom ? [new ActionRowBuilder().setComponents(new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel(label).setCustomId(custom)), new ActionRowBuilder().setComponents(...buttons)] : [new ActionRowBuilder().setComponents(...buttons)]
+    if(label && custom) rows.push(new ActionRowBuilder().setComponents(new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel(label).setCustomId(custom)))
+    rows.push(new ActionRowBuilder().setComponents(...buttons))
+    if(buttons2.length) rows.push(new ActionRowBuilder().setComponents(...buttons2))
+    return rows
 }
 
 const alertFieldDescription = async (interaction, channel_id, emojiString, price) => {
