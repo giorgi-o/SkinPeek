@@ -30,15 +30,39 @@ export const getEntitlements = async (user, itemTypeId, itemType="item") => {
 
 }
 
+const skinCache = {};
+
 export const getSkins = async (user) => {
+    // get all the owned skins of a user
+    if(user.puuid in skinCache) {
+        const cached = skinCache[user.puuid];
+        const expiresIn = cached.timestamp - Date.now() + config.loadoutCacheExpiration;
+        if(expiresIn <= 0) {
+            delete skinCache[user.puuid];
+        } else {
+            console.log(`Fetched skins collection from cache for user ${user.username}! It expires in ${Math.ceil(expiresIn / 1000)}s.`);
+            return {success: true, skins: cached.skins};
+        }
+    }
+
+
     if(!user.auth) throw "You got logged out! Please /login again.";
 
     const data = await getEntitlements(user, "e7c63390-eda7-46e0-bb7a-a6abdacd2433", "skins");
     if(!data.success) return data;
 
+    const skins = data.entitlements.Entitlements.map(ent => ent.ItemID);
+
+    skinCache[user.puuid] = {
+        skins: skins,
+        timestamp: Date.now()
+    }
+
+    console.log(`Fetched skins collection for ${user.username}`);
+
     return {
         success: true,
-        skins: data.entitlements.Entitlements.map(ent => ent.ItemID)
+        skins: skins
     }
 }
 
@@ -46,12 +70,14 @@ export const getSkins = async (user) => {
 const loadoutCache = {};
 
 export const getLoadout = async (user, account) => {
+    // get the currently equipped skins of a user
     if(user.puuid in loadoutCache) {
         const cached = loadoutCache[user.puuid];
-        if(Date.now() - cached.timestamp > config.loadoutCacheExpiration) {
+        const expiresIn = cached.timestamp - Date.now() + config.loadoutCacheExpiration;
+        if(expiresIn <= 0) {
             delete loadoutCache[user.puuid];
         } else {
-            console.log(`Fetched loadout from cache for user ${user.username}! It expires in ${Math.ceil((cached.timestamp - Date.now() + config.loadoutCacheExpiration) / 1000)}s.`);
+            console.log(`Fetched loadout from cache for user ${user.username}! It expires in ${Math.ceil(expiresIn / 1000)}s.`);
             return {success: true, loadout: cached.loadout, favorites: cached.favorites};
         }
     }
