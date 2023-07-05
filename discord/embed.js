@@ -146,7 +146,7 @@ export const renderOffers = async (shop, interaction, valorantUser, VPemoji, oth
     if(forOtherUser){
         components = null;
     } else {
-        components = switchAccountButtons(interaction, "shop", true, "accessory");
+        components = switchAccountButtons(interaction, "shop", true, "daily");
     }
 
     const levels = await getSkinLevels(shop.offers, interaction);
@@ -207,7 +207,7 @@ export const renderAccessoryOffers = async (shop, interaction, valorantUser, KCe
         }
     }
 
-    let components = switchAccountButtons(interaction, "accessoryshop", true, "daily");
+    let components = switchAccountButtons(interaction, "accessoryshop", true, "accessory");
 
     return {
         embeds, components
@@ -900,9 +900,9 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
     const accountNumbers = [...Array(json.accounts.length).keys()].map(n => n + 1).slice(0, config.maxAccountsPerUser <= 10 ? config.maxAccountsPerUser : 10);
     const hideIgn = getSetting(id, "hideIgn");
 
-    const rows = [];
-    const buttons = [];
-    const buttons2 = [];
+    const rows = []; // action rows
+    const buttons = []; // account switch buttons, row 1
+    const buttons2 = []; // account switch buttons, row 2
 
     for(const number of accountNumbers) {
         const username = json.accounts[number - 1].username || s(interaction).info.NO_USERNAME;
@@ -913,16 +913,28 @@ export const switchAccountButtons = (interaction, customId, oneAccountButton=fal
 
         number > 5 ? buttons2.push(button) : buttons.push(button);
     }
-    let label;
-    let custom;
-    if(accessory === "accessory") {
-        label = s(interaction).info.ACCESSORY_SHOP_SWITCH_BUTTON;
-        custom = `account/accessoryshop/${id}/accessory`;
-    } else if(accessory === "daily"){
-        label = s(interaction).info.DAILY_SHOP_SWITCH_BUTTON;
-        custom = `account/shop/${id}/daily`;
+
+    // accessory/shop buttons
+    // the "accessory" parameter represents the current page of the embed.
+    // it can be either "daily" for the skin shop, "accessory" for the accessory shop.
+    // it can also be "false" to not render this row.
+    if(accessory !== false) {
+        const skinShopButton = new ButtonBuilder().setStyle(ButtonStyle.Primary)
+                                    .setLabel(s(interaction).info.DAILY_SHOP_SWITCH_BUTTON)
+                                    .setEmoji("🛒")
+                                    .setCustomId(`account/shop/${id}/daily`);
+        const accessoryShopButton = new ButtonBuilder().setStyle(ButtonStyle.Primary)
+                                    .setLabel(s(interaction).info.ACCESSORY_SHOP_SWITCH_BUTTON)
+                                    .setEmoji("🎩")
+                                    .setCustomId(`account/accessoryshop/${id}/accessory`);
+
+        if(accessory === "daily") skinShopButton.setDisabled(true);
+        else if(accessory === "accessory") accessoryShopButton.setDisabled(true);
+
+        const row = new ActionRowBuilder().setComponents(skinShopButton, accessoryShopButton);
+        rows.push(row);
     }
-    if(label && custom) rows.push(new ActionRowBuilder().setComponents(new ButtonBuilder().setStyle(ButtonStyle.Primary).setLabel(label).setCustomId(custom)))
+
     rows.push(new ActionRowBuilder().setComponents(...buttons))
     if(buttons2.length) rows.push(new ActionRowBuilder().setComponents(...buttons2))
     return rows
