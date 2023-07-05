@@ -46,7 +46,8 @@
     "ACCOUNT_NOT_FOUND": "**Couldn't find that account in your registered accounts!**",
     "ACCOUNT_NUMBER_TOO_HIGH": "**You only have {n} accounts!**",
     "TOO_MANY_ACCOUNTS": "**You can only have maximum {n} accounts on the bot!** `/forget` some accounts and try again.",
-    "GENERIC_ERROR": ":no_entry_sign: **There was an error trying to do that!** I blame Riot.\n`{e}`"
+    "GENERIC_ERROR": ":no_entry_sign: **There was an error trying to do that!** I blame Riot.\n`{e}`",
+    "QUEUE_WAIT": "Many people are using the bot! Please wait... (estimated: <t:{t}:R>)"
   },
   "info":{
     "SHOP_HEADER": "Daily shop for **{u}** (new shop <t:{t}:R>)",

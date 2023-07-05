@@ -24,7 +24,7 @@ export const activeWaitForAuthQueueResponse = async (interaction, queueResponse,
         if(response.processed) return response.result;
 
         let embed;
-        if(response.timestamp) embed = secondaryEmbed(`Many people are using the bot! Please wait... (estimated: <t:${response.timestamp}:R>)`);
+        if(response.timestamp) embed = secondaryEmbed(s(interaction).error.QUEUE_WAIT.f({t: response.timestamp }));
         else embed = secondaryEmbed("Processing...");
         if(replied) await interaction.editReply({embeds: [embed]});
         else {

@@ -47,7 +47,8 @@
     "ACCOUNT_NUMBER_TOO_HIGH": "**{n} tane hesaba sahipsin!**",
     "TOO_MANY_ACCOUNTS": "**Botta maksimum {n} hesabınız olabilir!** `/forget` komutuyla bazı hesaplarınızı sildikten sonra tekrar deneyin.",
     "GENERIC_ERROR": ":no_entry_sign: **Bunu yapmaya çalışırken bir hata oluştu!** Riot'u suçluyorum.\n`{e}`",
-    "SHARDS_LOADING": "Bot hala başlatılıyor! Lütfen birkaç saniye bekleyin ve tekrar deneyin. ( Shard yükleniyor...)"
+    "SHARDS_LOADING": "Bot hala başlatılıyor! Lütfen birkaç saniye bekleyin ve tekrar deneyin. ( Shard yükleniyor...)",
+    "QUEUE_WAIT": "Şu anda birçok kişi botu kullanıyor! Lütfen bekleyin... (tahmini süre: <t:{t}:R>)"
   },
   "info": {
     "SHOP_HEADER": "**{u}** için günlük mağaza (Yeni mağaza <t:{t}:R>)",
@@ -111,7 +112,7 @@
     "COLLECTION_VIEW_IMAGES": "Resimleri görüntüle",
     "COLLECTION_VIEW_ALL": "Hepsini görüntüle",
     "ACCOUNT_SWITCHED": "**{n}. {u}** Hesaba geçildi",
-	  "ACCOUNT_ALREADY_SELECTED": "**{u}** zaten seçili!",
+    "ACCOUNT_ALREADY_SELECTED": "**{u}** zaten seçili!",
     "ACCOUNTS_HEADER": "Botla giriş yaptığınız tüm hesaplarınız:",
     "ACCOUNT_CURRENTLY_SELECTED": "(Şuan seçili)",
     "SWITCH_ACCOUNT_BUTTON": "Hesap #{n}",
