@@ -190,6 +190,11 @@ export const renderAccessoryOffers = async (shop, interaction, valorantUser, KCe
         }
     }
 
+    // leave a little message if the accessory shop is empty (i.e. they have every single accessory in the game)
+    if(shop.accessory.offers.length === 0) {
+        embeds.push(basicEmbed(s(interaction).info.NO_MORE_ACCESSORIES));
+    }
+
     // show notice if there is one
     if(config.notice && valorantUser) {
         // users shouldn't see the same notice twice

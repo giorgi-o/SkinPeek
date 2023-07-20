@@ -48,7 +48,8 @@
     "TOO_MANY_ACCOUNTS": "**Botta maksimum {n} hesabınız olabilir!** `/forget` komutuyla bazı hesaplarınızı sildikten sonra tekrar deneyin.",
     "GENERIC_ERROR": ":no_entry_sign: **Bunu yapmaya çalışırken bir hata oluştu!** Riot'u suçluyorum.\n`{e}`",
     "SHARDS_LOADING": "Bot hala başlatılıyor! Lütfen birkaç saniye bekleyin ve tekrar deneyin. ( Shard yükleniyor...)",
-    "QUEUE_WAIT": "Şu anda birçok kişi botu kullanıyor! Lütfen bekleyin... (tahmini süre: <t:{t}:R>)"
+    "QUEUE_WAIT": "Şu anda birçok kişi botu kullanıyor! Lütfen bekleyin... (tahmini süre: <t:{t}:R>)",
+    "NO_MORE_ACCESSORIES": "Zaten bütün aksesuarlara sahipsin! :sunglasses:"
   },
   "info": {
     "SHOP_HEADER": "**{u}** için günlük mağaza (Yeni mağaza <t:{t}:R>)",

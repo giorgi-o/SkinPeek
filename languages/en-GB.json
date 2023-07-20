@@ -130,7 +130,8 @@
     "UNHANDLED_COMMAND": "Yer a wizard Harry!",
     "SELECT_SKIN_WITH_LEVEL":"Select skin to show video:",
     "SELECT_LEVEL_OF_SKIN":"Select level of skin:",
-    "SHARDS_LOADING": "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)"
+    "SHARDS_LOADING": "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)",
+    "NO_MORE_ACCESSORIES": "You've already got all the swagger! :sunglasses:"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Battlepass Calculation",

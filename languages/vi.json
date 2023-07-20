@@ -130,7 +130,8 @@
       "UNHANDLED_COMMAND": "Bạn là một phù thuỷ đó Harry!",
       "SELECT_SKIN_WITH_LEVEL": "Chọn skin để xem video:",
       "SELECT_LEVEL_OF_SKIN": "Chọn cấp độ của skin:",
-      "SHARDS_LOADING": "Bot đang chuẩn bị khởi động! Vui lòng đợi vài giây và thử lại. (Shards loading...)"
+      "SHARDS_LOADING": "Bot đang chuẩn bị khởi động! Vui lòng đợi vài giây và thử lại. (Shards loading...)",
+      "NO_MORE_ACCESSORIES": "Phòng thủ quá tốt, bạn đã có hết các trang bị phụ kiện có thể mua được rồi! :sunglasses:"
     },
     "battlepass": {
       "CALCULATIONS_TITLE": "\uD83D\uDCC8 Tiến trình Battlepass",

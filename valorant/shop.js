@@ -72,7 +72,7 @@ export const getOffers = async (id, account=null) => {
         offers: resp.shop.SkinsPanelLayout.SingleItemOffers,
         expires: Math.floor(Date.now() / 1000) + resp.shop.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds,
         accessory: {
-            offers: resp.shop.AccessoryStore.AccessoryStoreOffers.map(rawAccessory => {
+            offers: r(esp.shop.AccessoryStore.AccessoryStoreOffers || []).map(rawAccessory => {
                 return {
                     cost: rawAccessory.Offer.Cost["85ca954a-41f2-ce94-9b45-8ca3dd39a00d"],
                     rewards: rawAccessory.Offer.Rewards,
@@ -225,7 +225,7 @@ const addShopCache = (puuid, shopJson) => {
             offers: shopJson.SkinsPanelLayout.SingleItemOffers,
             expires: Math.floor(now / 1000) + shopJson.SkinsPanelLayout.SingleItemOffersRemainingDurationInSeconds,
             accessory: {
-                offers: shopJson.AccessoryStore.AccessoryStoreOffers.map(rawAccessory => {
+                offers: (shopJson.AccessoryStore.AccessoryStoreOffers || []).map(rawAccessory => {
                     return {
                         cost: rawAccessory.Offer.Cost["85ca954a-41f2-ce94-9b45-8ca3dd39a00d"],
                         rewards: rawAccessory.Offer.Rewards,
