@@ -127,7 +127,7 @@
     "MAINTENANCE_TYPE": "maintenance",
     "INCIDENT_TYPE": "incident",
     "LAST_UPDATED": "Last updated <t:{t}:R>",
-    "UNHANDLED_COMMAND": "Yer a wizard harry!",
+    "UNHANDLED_COMMAND": "Yer a wizard Harry!",
     "SELECT_SKIN_WITH_LEVEL":"Select skin to show video:",
     "SELECT_LEVEL_OF_SKIN":"Select level of skin:",
     "SHARDS_LOADING": "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)"
