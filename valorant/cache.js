@@ -7,7 +7,7 @@ import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
 import {client} from "../discord/bot.js";
 import {sendShardMessage} from "../misc/shardMessage.js";
 
-const formatVersion = 12;
+const formatVersion = 13;
 let gameVersion;
 
 let weapons, skins, rarities, buddies, sprays, cards, titles, bundles, battlepass;
@@ -202,7 +202,7 @@ const getBundleList = async (gameVersion) => {
             names: bundle.displayName,
             subNames: bundle.displayNameSubText,
             descriptions: bundle.extraDescription,
-            icon: bundle.displayIcon2,
+            icon: bundle.displayIcon,
             items: null,
             price: null,
             basePrice: null,
