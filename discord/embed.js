@@ -299,7 +299,7 @@ export const renderBundle = async (bundle, interaction, emoji, includeExpires=tr
     const subName = bundle.subNames ? l(bundle.subNames, interaction) + "\n" : "";
     const slantedDescription = bundle.descriptions ? "*" + l(bundle.descriptions, interaction) + "*\n" : "";
     const strikedBundleBasePrice = bundle.basePrice ? " ~~" + bundle.basePrice + "~~" : "";
-    const UnixStamp = bundle.last_seen / 1000 ? `\n_${s(interaction).info.BUNDLE_RELEASED.f({t: bundle.last_seen / 1000})}_\n` : "";
+    const UnixStamp = bundle.last_seen / 1000 ? `\n_${s(interaction).info.BUNDLE_RELEASED.f({t: Math.round(bundle.last_seen / 1000)})}_\n` : "";
 
     if(!bundle.items) return {embeds: [{
         title: s(interaction).info.BUNDLE_NAME.f({b: l(bundle.names, interaction)}),
