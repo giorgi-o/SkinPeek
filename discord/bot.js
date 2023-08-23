@@ -896,9 +896,7 @@ client.on("interactionCreate", async (interaction) => {
                 }
                 case "login": {
                     await defer(interaction, true);
-                    return await interaction.followUp({ // It would be nice to make a code that can close each command separately.
-                        embeds: [basicEmbed("Temporary disabled due to a Riot update, see [here](https://github.com/giorgi-o/SkinPeek/issues/93#issuecomment-1689499851) for more info. Try using /cookies instead using [this guide](https://github.com/giorgi-o/SkinPeek/wiki/How-to-get-your-Riot-cookies).")]
-                    })
+                    
                     const json = readUserJson(interaction.user.id);
                     if (json && json.accounts.length >= config.maxAccountsPerUser) {
                         return await interaction.followUp({

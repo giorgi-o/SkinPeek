@@ -440,6 +440,9 @@ export const fetchRiotClientVersion = async (attempt=1) => {
 }
 
 const getUserAgent = async () => {
+    // temporary bypass for Riot adding hCaptcha (see github issue #93)
+    return "ShooterGame/11 Windows/10.0.22621.1.768.64bit";
+    
     if(!riotClientVersion) await fetchRiotClientVersion();
     return `RiotClient/${riotClientVersion}.1234567 rso-auth (Windows;10;;Professional, x64)`;
 }
