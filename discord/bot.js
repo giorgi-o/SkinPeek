@@ -1297,7 +1297,7 @@ client.on("interactionCreate", async (interaction) => {
                     const rawSkin = await getSkin(skinUuid);
                     const skin = rawSkin[type].filter(x => x.uuid === uuid);
                     const name = l(skin[0].displayName, interaction)
-                    const baseLink = "https://embed.arthurdev.web.tr/s";
+                    const baseLink = "https://embed.sypnex.net/s";
                     let link;
                     config.viewerWithSite ? link = baseLink + `?link=${skin[0].streamedVideo}&title=${encodeURI(client.user.username)}` : link = skin[0].streamedVideo
                     await interaction.reply({ content: `\u200b[${name}](${link})`, ephemeral: true })
