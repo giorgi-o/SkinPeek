@@ -174,6 +174,7 @@
     "hideIgn": "Oyun içi adı gizle",
     "othersCanViewShop": "Başkalarının kullanıcı adınızla /shop kullanmasına izin verin",
     "othersCanViewColl": "Başkalarının kullanıcı adınızla /collection kullanmasına izin verin",
+    "othersCanUseAccountButtons": "Başkalarının /shop gibi komutlarda sizin hesap butonlarınızı kullanmasına izin verin",
     "locale": "Dil"
   }
 }

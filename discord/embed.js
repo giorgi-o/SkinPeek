@@ -399,10 +399,25 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, tar
 
     let embeds = []
     if(battlepass.bpdata.progressionLevelReached < 55) {
+
+        const forOtherUser = targetId && targetId !== interaction.user.id;
+        const otherUserMention = `<@${targetId}>`;
+    
+        let headerText;
+        if(forOtherUser) {
+            const json = readUserJson(targetId);
+    
+            let usernameText = otherUserMention;
+            if(json.accounts.length > 1) usernameText += ' ' + s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: json.currentAccount});
+
+            headerText = s(interaction).battlepass.TIER_HEADER.f({u: usernameText})
+        }
+        else headerText = s(interaction).battlepass.TIER_HEADER.f({u: user.username}, interaction)
+
         embeds.push({
             title: s(interaction).battlepass.CALCULATIONS_TITLE,
             thumbnail: {url: thumbnails[Math.floor(Math.random()*thumbnails.length)]},
-            description: `${s(interaction).battlepass.TIER_HEADER.f({u: user.username}, interaction)}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
+            description: `${headerText}\n${createProgressBar(battlepass.xpneeded, battlepass.bpdata.progressionTowardsNextLevel, battlepass.bpdata.progressionLevelReached)}`,
             color: VAL_COLOR_1,
             fields: [
                 {
@@ -476,7 +491,7 @@ export const renderBattlepass = async (battlepass, targetlevel, interaction, tar
                 },
             ],
             thumbnail: {
-              url: battlepass.nextReward.rewardIcon,
+                url: battlepass.nextReward.rewardIcon,
             },
         });
     } else {
