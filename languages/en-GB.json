@@ -175,6 +175,7 @@
     "hideIgn": "Hide in-game name",
     "othersCanViewShop": "Allow others to use /shop with your username",
     "othersCanViewColl": "Allow others to use /collection with your username",
+    "othersCanUseAccountButtons": "Allow others to press buttons on your /shop",
     "locale": "Language"
   }
 }
