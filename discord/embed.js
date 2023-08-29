@@ -166,7 +166,19 @@ export const renderAccessoryOffers = async (shop, interaction, valorantUser, KCe
         return authFailureMessage(interaction, shop, errorText);
     }
 
-    let headerText = s(interaction).info.ACCESSORY_SHOP_HEADER.f({ u: valorantUser.username, t: shop.accessory.expires }, interaction);
+    const forOtherUser = id && id !== interaction.user.id;
+    const otherUserMention = `<@${id}>`;
+
+    let headerText;
+    if(forOtherUser) {
+        const json = readUserJson(id);
+
+        let usernameText = otherUserMention;
+        if(json.accounts.length > 1) usernameText += ' ' + s(interaction).info.SWITCH_ACCOUNT_BUTTON.f({n: json.currentAccount});
+
+        headerText = s(interaction).info.ACCESSORY_SHOP_HEADER.f({ u: usernameText, t: shop.accessory.expires });
+    }
+    else headerText = s(interaction).info.ACCESSORY_SHOP_HEADER.f({ u: valorantUser.username, t: shop.accessory.expires }, interaction);
 
     const embeds = [headerEmbed(headerText)];
     for (const offer of shop.accessory.offers) {
