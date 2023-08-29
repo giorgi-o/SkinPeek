@@ -115,8 +115,7 @@ const getNextReward = async (interaction, CurrentTier) => {
 }
 
 
-export const getBattlepassProgress = async (interaction, maxlevel) => {
-    const id = interaction.user.id;
+export const getBattlepassProgress = async (interaction, maxlevel, id=interaction.user.id) => {
     const authSuccess = await authUser(id);
     if (!authSuccess.success)
         return authSuccess;
@@ -258,9 +257,9 @@ const getBattlepassPurchase = async (id) => {
     return false;
 }
 
-export const renderBattlepassProgress = async (interaction) => {
+export const renderBattlepassProgress = async (interaction, targetId=interaction.user.id) => {
     const maxlevel = interaction.options && interaction.options.getInteger("maxlevel") || 50;
-    const battlepassProgress = await getBattlepassProgress(interaction, maxlevel);
+    const battlepassProgress = await getBattlepassProgress(interaction, maxlevel, targetId);
 
-    return await renderBattlepass(battlepassProgress, maxlevel, interaction);
+    return await renderBattlepass(battlepassProgress, maxlevel, interaction, targetId);
 }

@@ -1431,7 +1431,7 @@ client.on("interactionCreate", async (interaction) => {
 
                 const [, customId, id, accountIndex] = interaction.customId.split('/');
 
-                if (id !== interaction.user.id) return await interaction.reply({
+                if (id !== interaction.user.id && !getSetting(id, "othersCanUseAccountButtons")) return await interaction.reply({
                     embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_GENERIC)],
                     ephemeral: true
                 });
@@ -1461,7 +1461,7 @@ client.on("interactionCreate", async (interaction) => {
                 });
 
                 if (accountIndex !== "accessory" && accountIndex !== "daily") {
-                    const success = switchAccount(interaction.user.id, parseInt(accountIndex));
+                    const success = switchAccount(id, parseInt(accountIndex));
                     if (!success) return await interaction.followUp({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
                         ephemeral: true
@@ -1470,21 +1470,21 @@ client.on("interactionCreate", async (interaction) => {
 
                 let newMessage;
                 switch (customId) {
-                    case "shop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "daily"); break;
-                    case "accessoryshop": newMessage = await fetchShop(interaction, getUser(interaction.user.id), interaction.user.id, "accessory"); break;
-                    case "nm": newMessage = await fetchNightMarket(interaction, getUser(interaction.user.id)); break;
-                    case "bp": newMessage = await renderBattlepassProgress(interaction); break;
+                    case "shop": newMessage = await fetchShop(interaction, getUser(id), id, "daily"); break;
+                    case "accessoryshop": newMessage = await fetchShop(interaction, getUser(id), id, "accessory"); break;
+                    case "nm": newMessage = await fetchNightMarket(interaction, getUser(id)); break;
+                    case "bp": newMessage = await renderBattlepassProgress(interaction, id); break;
                     case "alerts": newMessage = await fetchAlerts(interaction); break;
-                    case "cl": newMessage = await renderCollection(interaction); break;
+                    case "cl": newMessage = await renderCollection(interaction, id); break;
                 }
                 /* else */ if (customId.startsWith("clw")) {
-                    let valorantUser = getUser(interaction.user.id);
+                    let valorantUser = getUser(id);
                     const [, weaponTypeIndex] = interaction.customId.split('/')[1].split('-');
                     const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
-                    newMessage = await collectionOfWeaponEmbed(interaction, interaction.user.id, valorantUser, weaponType, (await getSkins(valorantUser)).skins);
+                    newMessage = await collectionOfWeaponEmbed(interaction, id, valorantUser, weaponType, (await getSkins(valorantUser)).skins);
                 }
 
-                if (!newMessage.components) newMessage.components = switchAccountButtons(interaction, customId, true);
+                if (!newMessage.components) newMessage.components = switchAccountButtons(interaction, customId, true, false, id);
 
 
                 await message.edit(newMessage);

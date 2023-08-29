@@ -19,7 +19,7 @@ export const fetchShop = async (interaction, user, targetId=interaction.user.id,
     if(accessory === "daily" || !accessory) {
         return await renderOffers(shop, interaction, user, await emojiPromise, targetId)
     }else {
-        return await renderAccessoryOffers(shop, interaction, user, await KCEmojiPromise)
+        return await renderAccessoryOffers(shop, interaction, user, await KCEmojiPromise, targetId)
     }
     
 }

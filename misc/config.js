@@ -32,6 +32,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "token", "token goes here");
     applyConfig(loadedConfig, "fetchSkinPrices", true);
     applyConfig(loadedConfig, "fetchSkinRarities", true);
+    applyConfig(loadedConfig, "localiseText", true);
     applyConfig(loadedConfig, "localiseSkinNames", true);
     applyConfig(loadedConfig, "linkItemImage", true);
     applyConfig(loadedConfig, "viewerWithSite", true);

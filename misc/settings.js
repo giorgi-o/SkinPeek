@@ -27,6 +27,10 @@ export const settings = {
         values: [true, false],
         default: true
     },
+    othersCanUseAccountButtons: {
+        values: [true, false],
+        default: true,
+    },
     locale: {
         values: ["Automatic"], // locales will be added after imports finished processing
         default: "Automatic"

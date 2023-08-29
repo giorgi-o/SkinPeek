@@ -131,6 +131,8 @@ export const redeemUsernamePassword = async (id, login, password) => {
     rateLimit = checkRateLimit(req1, "auth.riotgames.com");
     if(rateLimit) return {success: false, rateLimit: rateLimit};
 
+    if(detectCloudflareBlock(req1)) return {success: false, rateLimit: "cloudflare"};
+
     let cookies = parseSetCookie(req1.headers["set-cookie"]);
 
     // get access token
@@ -153,6 +155,8 @@ export const redeemUsernamePassword = async (id, login, password) => {
 
     rateLimit = checkRateLimit(req2, "auth.riotgames.com")
     if(rateLimit) return {success: false, rateLimit: rateLimit};
+
+    if(detectCloudflareBlock(req2)) return {success: false, rateLimit: "cloudflare"};
 
     cookies = {
         ...cookies,
@@ -343,6 +347,8 @@ export const redeemCookies = async (id, cookies) => {
     rateLimit = checkRateLimit(req, "auth.riotgames.com");
     if(rateLimit) return {success: false, rateLimit: rateLimit};
 
+    if(detectCloudflareBlock(req)) return {success: false, rateLimit: "cloudflare"};
+
     if(req.headers.location.startsWith("/login")) return {success: false}; // invalid cookies
 
     cookies = {
@@ -445,6 +451,16 @@ const getUserAgent = async () => {
     
     if(!riotClientVersion) await fetchRiotClientVersion();
     return `RiotClient/${riotClientVersion}.1234567 rso-auth (Windows;10;;Professional, x64)`;
+}
+
+const detectCloudflareBlock = (req) => {
+    const blocked = req.statusCode === 403 && req.headers["x-frame-options"] === "SAMEORIGIN";
+
+    if(blocked) {
+        console.error("[ !!! ] Error 1020: Your bot might be rate limited, it's best to check if your IP address/your hosting service is blocked by Riot - try hosting on your own PC to see if it solves the issue?")
+    }
+
+    return blocked;
 }
 
 export const deleteUserAuth = (user) => {
