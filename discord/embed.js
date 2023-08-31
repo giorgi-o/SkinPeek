@@ -95,7 +95,7 @@ export const skinChosenEmbed = async (interaction, skin) => {
 export const renderOffers = async (shop, interaction, valorantUser, VPemoji, otherId=null) => {
     const forOtherUser = otherId && otherId !== interaction.user.id;
     const otherUserMention = `<@${otherId}>`;
-    const targetId = forOtherUser ? otherId : interaction.user.id;
+    const targetId = forOtherUser ? otherId : interaction?.user?.id;
 
     if(!shop.success) {
         let errorText;
