@@ -35,7 +35,8 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "localiseText", true);
     applyConfig(loadedConfig, "localiseSkinNames", true);
     applyConfig(loadedConfig, "linkItemImage", true);
-    applyConfig(loadedConfig, "viewerWithSite", true);
+    applyConfig(loadedConfig, "videoViewerWithSite", true);
+    applyConfig(loadedConfig, "imageViewerWithSite", false);
     applyConfig(loadedConfig, "useEmojisFromServer", "");
     applyConfig(loadedConfig, "refreshSkins", "10 0 0 * * *");
     applyConfig(loadedConfig, "checkGameVersion", "*/15 * * * *");

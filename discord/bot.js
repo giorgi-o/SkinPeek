@@ -1277,16 +1277,14 @@ client.on("interactionCreate", async (interaction) => {
                         }
                     }
 
-                    for (let i = 0; i < skin.chromas.length; i++) {
-                        const chromas = skin.chromas[i];
-                        if (chromas.streamedVideo) {
-                            let chromaName = l(chromas.displayName, interaction);
-                            if (chromaName.length > 100) chromaName = chromaName.slice(0, 96) + " ...";
-                            levelSelector.addOptions(
-                                new StringSelectMenuOptionBuilder()
-                                    .setLabel(`${chromaName}`)
-                                    .setValue(`chromas/${chromas.uuid}/${skinUuid}`))
-                        }
+                    for (let i = 1; i < skin.chromas.length; i++) { // this change skips the default version of the skin because it is the same as level 1 (may work incorrectly, let me know if so)
+                        const chromas = skin.chromas[i]
+                        let chromaName = l(chromas.displayName, interaction);
+                        if (chromaName.length > 100) chromaName = chromaName.slice(0, 96) + " ...";
+                        levelSelector.addOptions(
+                            new StringSelectMenuOptionBuilder()
+                                .setLabel(`${chromaName}`)
+                                .setValue(`chromas/${chromas.uuid}/${skinUuid}`))
                     }
 
                     await interaction.reply({ components: [new ActionRowBuilder().addComponents(levelSelector)], ephemeral: true })
@@ -1297,9 +1295,13 @@ client.on("interactionCreate", async (interaction) => {
                     const rawSkin = await getSkin(skinUuid);
                     const skin = rawSkin[type].filter(x => x.uuid === uuid);
                     const name = l(skin[0].displayName, interaction)
-                    const baseLink = "https://embed.sypnex.net/s";
+                    const baseLink = "https://embed.sypnex.net/";
                     let link;
-                    config.viewerWithSite ? link = baseLink + `?link=${skin[0].streamedVideo}&title=${encodeURI(client.user.username)}` : link = skin[0].streamedVideo
+                    if(skin[0].streamedVideo)
+                        config.videoViewerWithSite ? link = baseLink + `s?link=${skin[0].streamedVideo}&title=${encodeURI(client.user.username)}` : link = skin[0].streamedVideo
+                    else
+                        config.imageViewerWithSite ? link = baseLink + `d?link=${skin[0].displayIcon}&title=${encodeURI(client.user.username)}` : link = skin[0].displayIcon
+
                     await interaction.reply({ content: `\u200b[${name}](${link})`, ephemeral: true })
                 }
             }
