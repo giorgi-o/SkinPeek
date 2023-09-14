@@ -7,13 +7,25 @@ import {findKeyOfValue} from "./util.js";
 export const settings = {
     dailyShop: { // stores false or channel id
         set: (value, interaction) => value === 'true' ? interaction.channelId : false,
-        render: (value) => {
-            if(value?.startsWith?.('#')) return value;
-            return value ? `<#${value}>` : false;
+        render: (value, interaction) => {
+            const isChannelId = (v) => !isNaN(parseFloat(v));
+            if(isChannelId(value)) return s(interaction).info.ALERT_IN_CHANNEL.f({ c: value });
+            return value;
         },
-        choices: (interaction) => [`#${interaction.channel?.name || s(interaction).info.ALERT_IN_DM_CHANNEL}`, false],
+        choices: (interaction) => {
+            // [interaction.channel?.name || s(interaction).info.ALERT_IN_DM_CHANNEL, false]
+            // if the channel name is not in cache, assume it's a DM channel
+            let channelOption = interaction.channel?.name
+                ? s(interaction).info.ALERT_IN_CHANNEL_NAME.f({ c: interaction.channel.name }) 
+                : s(interaction).info.ALERT_IN_DM_CHANNEL;
+            return [channelOption, false];
+        },
         values: [true, false],
         default: false
+    },
+    pingOnAutoDailyShop: {
+        values: [true, false],
+        default: true
     },
     hideIgn: {
         values: [true, false],

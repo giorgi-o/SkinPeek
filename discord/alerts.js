@@ -299,9 +299,12 @@ export const sendDailyShop = async (id, shop, channelId, valorantUser, tryOnOthe
         return;
     }
 
+    const shouldPing = getSetting(id, "pingOnAutoDailyShop");
+    const content = shouldPing ? `<@${id}>` : null;
+
     const rendered = await renderOffers(shop, id, valorantUser, await VPEmoji(id, channel));
     await channel.send({
-        content: `<@${id}>`,
+        content,
         ...rendered
     });
 }

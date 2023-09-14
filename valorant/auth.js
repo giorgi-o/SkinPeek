@@ -363,6 +363,7 @@ export const redeemCookies = async (id, cookies) => {
 }
 
 export const refreshToken = async (id, account=null) => {
+    console.log(`Refreshing token for ${id}...`)
     let response = {success: false}
 
     let user = getUser(id, account);
