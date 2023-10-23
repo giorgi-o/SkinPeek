@@ -920,11 +920,12 @@ const priceDescription = (VPemojiString, price) => {
 const pageButtons = (pageId, userId, current, max) => {
     const leftButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
     const rightButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
+    const goToPageButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("🔍").setCustomId(`goToPage/${pageId}/${userId}/${max}`);
 
     if(current === 0) leftButton.setEmoji("⏪");
     if(current === max - 1) rightButton.setEmoji("⏩");
 
-    return new ActionRowBuilder().setComponents(leftButton, rightButton);
+    return new ActionRowBuilder().setComponents(leftButton, rightButton, goToPageButton);
 }
 
 export const switchAccountButtons = (interaction, customId, oneAccountButton=false, accessory = false, id=interaction?.user?.id || interaction) => {

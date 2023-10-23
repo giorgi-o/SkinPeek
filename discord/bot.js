@@ -9,6 +9,9 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ActivityType,
+    ModalBuilder, 
+    TextInputBuilder, 
+    TextInputStyle
 } from "discord.js";
 import cron from "node-cron";
 
@@ -58,7 +61,8 @@ import {
     skinNameAndEmoji,
     valNamesToDiscordNames, WeaponTypeUuid,
     WeaponType,
-    fetch
+    fetch,
+    calcLength
 } from "../misc/util.js";
 import config, { loadConfig, saveConfig } from "../misc/config.js";
 import { localError, localLog, sendConsoleOutput } from "../misc/logger.js";
@@ -1490,6 +1494,85 @@ client.on("interactionCreate", async (interaction) => {
 
 
                 await message.edit(newMessage);
+            } else if (interaction.customId.startsWith("goToPage")) {
+                let [, pageId, userId, max] = interaction.customId.split('/');
+                let weaponTypeIndex
+                if(pageId === 'clwpage') [, pageId, weaponTypeIndex, userId, max] = interaction.customId.split('/');
+                if (userId !== interaction.user.id) return await interaction.reply({
+                    embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_GENERIC)],
+                    ephemeral: true
+                });
+
+                const modal = new ModalBuilder()
+                    .setCustomId(`goToPage/${pageId}${weaponTypeIndex ? `/${weaponTypeIndex}`: ''}/${userId}/${max}`)
+                    .setTitle(s(interaction).modal.PAGE_TITLE);
+
+                const pageInput = new TextInputBuilder()
+                    .setMinLength(1)
+                    .setMaxLength(calcLength(max))
+                    .setPlaceholder(s(interaction).modal.PAGE_INPUT_PLACEHOLDER.f({max: max}))
+                    .setRequired(true)
+                    .setCustomId('pageIndex')
+                    .setLabel(s(interaction).modal.PAGE_INPUT_LABEL)
+                    .setStyle(TextInputStyle.Short);
+
+                const q1 = new ActionRowBuilder().addComponents(pageInput);
+                modal.addComponents(q1);
+                await interaction.showModal(modal);
+            }
+        } catch (e) {
+            await handleError(e, interaction);
+        }
+    } else if (interaction.isModalSubmit()){
+        try {
+            if (interaction.customId.startsWith("goToPage")) {
+                let [, pageId, userId, max] = interaction.customId.split('/');
+                let weaponTypeIndex
+                if(pageId === 'clwpage') [, pageId, weaponTypeIndex, userId, max] = interaction.customId.split('/');
+                const pageIndex = interaction.fields.getTextInputValue('pageIndex');
+
+                if(isNaN(Number(pageIndex))){
+                    return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_A_NUMBER)],
+                        ephemeral: true
+                    });
+                }else if(Number(pageIndex) > max || Number(pageIndex) <= 0){
+                    return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.INVALID_PAGE_NUMBER.f({max: max}))],
+                        ephemeral: true
+                    });
+                }
+
+                switch (pageId) {
+                    case "clpage": clpage(); break;
+                    case "clwpage": clwpage(); break;
+                    case "changealertspage": await interaction.update(await alertsPageEmbed(interaction, await filteredAlertsForUser(interaction), parseInt(pageIndex-1), await VPEmoji(interaction))); break;
+                    case "changestatspage": await interaction.update(await allStatsEmbed(interaction, await getOverallStats(), parseInt(pageIndex-1)));break;
+                }
+
+                async function clpage() {
+                    let user;
+                    if (userId !== interaction.user.id) user = getUser(userId);
+                    else user = valorantUser;
+
+                    const loadoutResponse = await getLoadout(user);
+                    if (!loadoutResponse.success) return await interaction.reply(authFailureMessage(interaction, loadoutResponse, s(interaction).error.AUTH_ERROR_COLLECTION, userId !== interaction.user.id));
+
+                    await interaction.update(await skinCollectionPageEmbed(interaction, userId, user, loadoutResponse, parseInt(pageIndex-1)));
+                }
+
+                async function clwpage() {
+                    const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
+    
+                    let user;
+                    if (userId !== interaction.user.id) user = getUser(userId);
+                    else user = valorantUser;
+    
+                    const skinsResponse = await getSkins(user);
+                    if (!skinsResponse.success) return await interaction.reply(authFailureMessage(interaction, skinsResponse, s(interaction).error.AUTH_ERROR_COLLECTION, userId !== interaction.user.id));
+    
+                    await interaction.update(await collectionOfWeaponEmbed(interaction, userId, user, weaponType, skinsResponse.skins, parseInt(pageIndex-1)));
+                }
             }
         } catch (e) {
             await handleError(e, interaction);
