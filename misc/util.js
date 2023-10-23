@@ -633,3 +633,8 @@ export const ensureUsersFolder = () => {
 }
 
 export const findKeyOfValue = (obj, value) => Object.keys(obj).find(key => obj[key] === value);
+
+export const calcLength = (any) => {
+    if(!isNaN(any)) any = any.toString();
+    return any.length;
+}
