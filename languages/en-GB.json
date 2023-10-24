@@ -47,7 +47,9 @@
     "ACCOUNT_NUMBER_TOO_HIGH": "**You only have {n} accounts!**",
     "TOO_MANY_ACCOUNTS": "**You can only have maximum {n} accounts on the bot!** `/forget` some accounts and try again.",
     "GENERIC_ERROR": ":no_entry_sign: **There was an error trying to do that!** I blame Riot.\n`{e}`",
-    "QUEUE_WAIT": "Many people are using the bot! Please wait... (estimated: <t:{t}:R>)"
+    "QUEUE_WAIT": "Many people are using the bot! Please wait... (estimated: <t:{t}:R>)",
+    "NOT_A_NUMBER": "This is not a number, please enter a valid number.",
+    "INVALID_PAGE_NUMBER": "Invalid page number, please enter a value between **1 - {max}**"
   },
   "info":{
     "SHOP_HEADER": "Daily shop for **{u}** (new shop <t:{t}:R>)",
@@ -179,5 +181,10 @@
     "othersCanViewColl": "Allow others to use /collection with your username",
     "othersCanUseAccountButtons": "Allow others to press buttons on your /shop",
     "locale": "Language"
+  },
+  "modal": {
+    "PAGE_TITLE": "Page Navigator",
+    "PAGE_INPUT_PLACEHOLDER": "Please only input a number.",
+    "PAGE_INPUT_LABEL": "Go to page (1-{max})"
   }
 }
