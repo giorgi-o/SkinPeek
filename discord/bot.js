@@ -1498,10 +1498,20 @@ client.on("interactionCreate", async (interaction) => {
                 let [, pageId, userId, max] = interaction.customId.split('/');
                 let weaponTypeIndex
                 if(pageId === 'clwpage') [, pageId, weaponTypeIndex, userId, max] = interaction.customId.split('/');
-                if (userId !== interaction.user.id) return await interaction.reply({
-                    embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_GENERIC)],
-                    ephemeral: true
-                });
+
+                if (userId !== interaction.user.id){
+                    if (pageId === 'changestatspage'){
+                        return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.NOT_UR_MESSAGE_STATS)],
+                            ephemeral: true
+                        });
+                    }else if (pageId === 'changealertspage'){
+                        return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.NOT_UR_ALERT)],
+                            ephemeral: true
+                        });
+                    }
+                }
 
                 const modal = new ModalBuilder()
                     .setCustomId(`goToPage/${pageId}${weaponTypeIndex ? `/${weaponTypeIndex}`: ''}/${userId}/${max}`)
@@ -1510,10 +1520,10 @@ client.on("interactionCreate", async (interaction) => {
                 const pageInput = new TextInputBuilder()
                     .setMinLength(1)
                     .setMaxLength(calcLength(max))
-                    .setPlaceholder(s(interaction).modal.PAGE_INPUT_PLACEHOLDER.f({max: max}))
+                    .setPlaceholder(s(interaction).modal.PAGE_INPUT_PLACEHOLDER)
                     .setRequired(true)
                     .setCustomId('pageIndex')
-                    .setLabel(s(interaction).modal.PAGE_INPUT_LABEL)
+                    .setLabel(s(interaction).modal.PAGE_INPUT_LABEL.f({max: max}))
                     .setStyle(TextInputStyle.Short);
 
                 const q1 = new ActionRowBuilder().addComponents(pageInput);

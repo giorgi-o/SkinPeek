@@ -183,8 +183,8 @@
     "locale": "Language"
   },
   "modal": {
-    "PAGE_TITLE": "PAGE_TITLE",
-    "PAGE_INPUT_PLACEHOLDER": "PAGE_INPUT_PLACEHOLDER",
-    "PAGE_INPUT_LABEL": "PAGE_INPUT_LABEL"
+    "PAGE_TITLE": "Page Navigator",
+    "PAGE_INPUT_PLACEHOLDER": "Please only input a number.",
+    "PAGE_INPUT_LABEL": "Go to page (1-{max})"
   }
 }
