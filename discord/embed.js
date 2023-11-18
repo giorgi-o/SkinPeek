@@ -909,18 +909,16 @@ const competitiveMatchEmbed = (interaction, matchData) => {
     const colors = {
         red: 13195866,
         grey: 9145227,
-        green: 9354595
+        green: 7654512
     }
     let embedColor;
     if (matchData.teams.red.has_won === true) {
         if (matchData.player.team === "Red") {
             embedColor = colors.green;
-            matchData.player.mmr = `+${matchData.player.mmr}`
         } else embedColor = colors.red;
     } else if (matchData.teams.blue.has_won === true) {
         if (matchData.player.team === "Blue") {
             embedColor = colors.green;
-            matchData.player.mmr = `+${matchData.player.mmr}`
         } else embedColor = colors.red;
     } else {
         embedColor = colors.grey;

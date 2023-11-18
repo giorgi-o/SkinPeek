@@ -100,6 +100,7 @@ export const fetchMatchHistory = async (interaction, user, mode="competitive") =
 
             if(matchMMR){
                 data.player.mmr = matchMMR.mmr_change_to_last_game;
+                if(data.player.mmr > 0) data.player.mmr = `+${data.player.mmr}`
                 data.player.currentTierImageUrl = matchMMR.images.large;
             }
             matches.push(data);
