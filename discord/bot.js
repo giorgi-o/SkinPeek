@@ -34,7 +34,8 @@ import {
     skinCollectionSingleEmbed,
     valMaintenancesEmbeds,
     collectionOfWeaponEmbed,
-    renderProfile
+    renderProfile,
+    renderCompetitiveMatchHistory
 } from "./embed.js";
 import { authUser, fetchRiotClientVersion, getUser, getUserList, getRegion, getUserInfo } from "../valorant/auth.js";
 import { getBalance } from "../valorant/shop.js";
@@ -87,7 +88,7 @@ import {
 import fuzzysort from "fuzzysort";
 import { renderCollection, getSkins } from "../valorant/inventory.js";
 import { getLoadout } from "../valorant/inventory.js";
-import { getAccountInfo } from "../valorant/profile.js";
+import { getAccountInfo, fetchMatchHistory } from "../valorant/profile.js";
 import { spawn } from "child_process";
 import * as fs from "fs";
 
@@ -472,7 +473,8 @@ client.on("messageCreate", async (message) => {
                 const s = "Here is the config.json the bot currently has loaded:```json\n" + JSON.stringify({
                     ...config,
                     token: "[redacted]",
-                    "githubToken": config.githubToken ? "[redacted]" : config.githubToken
+                    "githubToken": config.githubToken ? "[redacted]" : config.githubToken,
+                    "HDevToken": config.HDevToken ? "[redacted]" : config.HDevToken
                 }, null, 2) + "```";
                 await message.reply(s);
             } else if (splits[1] === "clearcache") {
@@ -1508,7 +1510,7 @@ client.on("interactionCreate", async (interaction) => {
                     embeds: message.embeds,
                     components: message.components
                 });
-                if (accountIndex !== "accessory" && accountIndex !== "daily" && accountIndex !== "change") {
+                if (accountIndex !== "accessory" && accountIndex !== "daily" && accountIndex !== "c") {
                     const success = switchAccount(id, parseInt(accountIndex));
                     if (!success) return await interaction.followUp({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
@@ -1525,6 +1527,7 @@ client.on("interactionCreate", async (interaction) => {
                     case "alerts": newMessage = await fetchAlerts(interaction); break;
                     case "cl": newMessage = await renderCollection(interaction, id); break;
                     case "profile": newMessage = await renderProfile(interaction, await getAccountInfo(getUser(id)), id); break;
+                    case "comphistory": newMessage = await renderCompetitiveMatchHistory(interaction, await getAccountInfo(getUser(id)),await fetchMatchHistory(interaction, getUser(id), "competitive"), id); break;
                 }
                 /* else */ if (customId.startsWith("clw")) {
                     let valorantUser = getUser(id);

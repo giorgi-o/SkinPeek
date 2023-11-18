@@ -51,7 +51,8 @@
     "QUEUE_WAIT": "Many people are using the bot! Please wait... (estimated: <t:{t}:R>)",
     "NOT_A_NUMBER": "This is not a number, please enter a valid number.",
     "INVALID_PAGE_NUMBER": "Invalid page number, please enter a value between **1 - {max}**",
-    "NO_MATCH_DATA": "No {m} matches was found, maybe it's time to queue up?"
+    "NO_MATCH_DATA": "No {m} matches was found, maybe it's time to queue up?",
+    "WAIT_FOR_PREVIUS_REQUEST": "We're still working on your previous request, please wait a moment before trying again!"
   },
   "info":{
     "SHOP_HEADER": "Daily shop for **{u}** (new shop <t:{t}:R>)",
@@ -127,6 +128,7 @@
     "NIGHT_MARKET_BUTTON": "Night.Market",
     "BATTLEPASS_BUTTON": "Battlepass",
     "COLLECTION_BUTTON": "Collection",
+    "COMPETITIVE_HISTORY_BUTTON": "Competitive Match History",
     "RETURN_BUTTON": "Return",
     "LOADING": "Loading...",
     "HIDDEN_USERNAME": "username hidden",
@@ -140,7 +142,8 @@
     "SELECT_SKIN_WITH_LEVEL":"Select skin to show video:",
     "SELECT_LEVEL_OF_SKIN":"Select level of skin:",
     "SHARDS_LOADING": "The bot is still starting up! Please wait a few seconds and try again. (Shards loading...)",
-    "NO_MORE_ACCESSORIES": "You've already got all the swagger! :sunglasses:"
+    "NO_MORE_ACCESSORIES": "You've already got all the swagger! :sunglasses:",
+    "PROFILE_PEAK_RANK": "Peak Rank"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Battlepass Calculation",

@@ -638,3 +638,5 @@ export const calcLength = (any) => {
     if(!isNaN(any)) any = any.toString();
     return any.length;
 }
+
+export const ordinalSuffix = (number) => number % 100 >= 11 && number % 100 <= 13 ? "th" : ["th", "st", "nd", "rd"][(number % 10 < 4) ? number % 10 : 0];

@@ -13,7 +13,7 @@ import {
     itemTypes,
     removeAlertActionRow,
     removeAlertButton,
-    fetchChannel, isDefaultSkin, WeaponTypeUuid, fetch
+    fetchChannel, isDefaultSkin, WeaponTypeUuid, ordinalSuffix
 } from "../misc/util.js";
 import config from "../misc/config.js";
 import {DEFAULT_VALORANT_LANG, discToValLang, l, s, hideUsername} from "../misc/languages.js";
@@ -900,27 +900,25 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
         }]
     }
 }
-const competitiveMatchEmbed = (matchData) => {
-    const embedTitle = `${s(interaction).match.COMPETITIVE}┊${matchData.metadata.map}・${matchData.metadata.game_start+matchData.metadata.game_length}`;
+const competitiveMatchEmbed = (interaction, matchData) => {
+    const embedTitle = `${s(interaction).match.COMPETITIVE}┊${matchData.metadata.map}・<t:${matchData.metadata.game_start+matchData.metadata.game_length}:R>`;
     const roundDesc = `[**${matchData.metadata.pt_round_won}** : **${matchData.metadata.et_round_won}**]`;
     const hsPercentDesc = `**${s(interaction).match.PERCENT.f({v:matchData.player.hs_percent})}** ${s(interaction).match.HS_PERCENT}`;
     const adsDesc = `**${matchData.player.average_damage_round}** ${s(interaction).match.AVERAGE_DAMAGE_ROUND}`;
     const acsDesc = `**${matchData.player.average_combat_score}** ${s(interaction).match.AVERAGE_COMBAT_SCORE}`;
-    const embedDescription = `${mapDesc}・${roundDesc}・${hsPercentDesc}・${adsDesc}・${acsDesc}`;
     const colors = {
         red: 13195866,
         grey: 9936031,
         green: 9145227
     }
     let embedColor;
-
     if (matchData.teams.red.has_won === true) {
-        if (team === "Red") {
+        if (matchData.player.team === "Red") {
             embedColor = colors.green;
             matchData.player.mmr = `+${matchData.player.mmr}`
         } else embedColor = colors.red;
     } else if (matchData.teams.blue.has_won === true) {
-        if (team === "Blue") {
+        if (matchData.player.team === "Blue") {
             embedColor = colors.green;
             matchData.player.mmr = `+${matchData.player.mmr}`
         } else embedColor = colors.red;
@@ -928,25 +926,47 @@ const competitiveMatchEmbed = (matchData) => {
         embedColor = colors.grey;
     }
 
-    const mapDesc = `**${"`"+matchData.player.mrr+"`"}**`;
-
+    const mapDesc = `**${"`"+matchData.player.mmr+"`"}**`;
+    const embedDescription = `${mapDesc}・${roundDesc}・${hsPercentDesc}・${adsDesc}・${acsDesc}`;
     const embed = {
         "title": embedTitle,
         "description": embedDescription,
         "color": embedColor,
         "author": {
-            "name": `${matchData.player.agent}・${matchData.player.kill} / ${matchData.player.death} / ${matchData.player.assist}・${matchData.player.kd} KD┊${matchData.player.position}`,
-            "icon_url": matchData.player.agentIconUrl
-        },
-        "image": {
-            "url": matchData.metadata.mapImageUrl
-        },
+            "name": `${matchData.player.agent.name}・${matchData.player.kills} / ${matchData.player.deaths} / ${matchData.player.assists}・${matchData.player.kd} KD┊${matchData.player.position}`,
+            "icon_url": matchData.player.agent.iconUrl
+        }/*,
         "thumbnail": {
             "url": matchData.player.currentTierImageUrl
-        }
+        }*/
     }
 
     return embed
+}
+
+export const renderCompetitiveMatchHistory = async (interaction, accountData, matchHistoryData, targetId=interaction.user.id) => { //will be edited in the future
+    if(!accountData.success) return {embeds: [basicEmbed(s(interaction).error.GENERIC_ERROR.f({e: accountData.error}))]}
+    if(!matchHistoryData.success) return {embeds: [basicEmbed(s(interaction).error.GENERIC_ERROR.f({e: matchHistoryData.error}))]}
+    const account = accountData.data
+    const userName = hideUsername({u: account.account.name + "`#"+ account.account.tag + "`"}, targetId).u
+    const embeds = [{
+        "title": userName + ` • Lv. ${account.account.account_level}`,
+        "description": `${s(interaction).info.PROFILE_PEAK_RANK} ┊ **${account.mmr.highest_rank?.patched_tier}**`,
+        "color": 16632621, //TODO color according to account level
+        "author": {
+            "name": interaction.user.username + ` • ${account.mmr.current_data.ranking_in_tier} RR`,
+            "icon_url": account.mmr.current_data.images.large
+        },
+        "thumbnail": {
+            "url": account.account.card?.small
+        }
+    }];
+    for (let i = 0; i < matchHistoryData.data.length; i++) {
+        const embed = competitiveMatchEmbed(interaction, matchHistoryData.data[i])
+        embeds.push(embed);
+    }
+    const rows = switchAccountButtons(interaction, "comphistory", true, false, targetId)
+    return {embeds: embeds, components: rows}
 }
 
 export const renderProfile = async (interaction, data1, targetId=interaction.user.id) => { //will be edited in the future
@@ -956,8 +976,8 @@ export const renderProfile = async (interaction, data1, targetId=interaction.use
     const userName = hideUsername({u: data.account.name + "`#"+ data.account.tag + "`"}, targetId).u
     const embeds = [{
         "title": userName + ` • Lv. ${data.account.account_level}`,
-        "description": `Peak Rank ┊ **${data.mmr.highest_rank?.patched_tier}**`,
-        "color": 16632621,
+        "description": `${s(interaction).info.PROFILE_PEAK_RANK} ┊ **${data.mmr.highest_rank?.patched_tier}**`,
+        "color": 16632621, //TODO color according to account level
         "author": {
             "name": interaction.user.username + ` • ${data.mmr.current_data.ranking_in_tier} RR`,
             "icon_url": data.mmr.current_data.images.large
@@ -984,6 +1004,8 @@ export const renderProfile = async (interaction, data1, targetId=interaction.use
     }
 
     const rows = profileButtons(interaction, targetId)
+    switchAccountButtons(interaction, "profile", true, false, targetId).map(a => rows.push(a))
+
     return {embeds: embeds, components: rows}
 }
 
@@ -993,7 +1015,7 @@ const profileButtons = (interaction, id, back=false) => {
         .setStyle(ButtonStyle.Primary)
         .setLabel(s(interaction).info.RETURN_BUTTON)
         .setEmoji("↩️")
-        .setCustomId(`account/profile/${id}/change`);
+        .setCustomId(`account/profile/${id}/c`);
         return [new ActionRowBuilder().setComponents(returnButton)]
     }
     const shopButton = new ButtonBuilder()
@@ -1007,21 +1029,27 @@ const profileButtons = (interaction, id, back=false) => {
         .setLabel(s(interaction).info.NIGHT_MARKET_BUTTON)
         .setEmoji("🌑")
         .setDisabled(!isThereANM()) // should be working
-        .setCustomId(`account/nm/${id}/change`);
+        .setCustomId(`account/nm/${id}/c`);
 
     const battlepassButton = new ButtonBuilder()
         .setStyle(ButtonStyle.Secondary)
         .setLabel(s(interaction).info.BATTLEPASS_BUTTON)
         .setEmoji("🗓️")
-        .setCustomId(`account/bp/${id}/change`);
+        .setCustomId(`account/bp/${id}/c`);
 
     const collectionButton = new ButtonBuilder()
         .setStyle(ButtonStyle.Primary)
         .setLabel(s(interaction).info.COLLECTION_BUTTON)
         .setEmoji("🔫")
-        .setCustomId(`account/cl/${id}/change`);
+        .setCustomId(`account/cl/${id}/c`);
 
-    const row1 = new ActionRowBuilder().setComponents(shopButton, nightMarketButton, battlepassButton, collectionButton);
+    const competitiveHistoryButton = new ButtonBuilder()
+        .setStyle(ButtonStyle.Primary)
+        .setLabel(s(interaction).info.COMPETITIVE_HISTORY_BUTTON)
+        .setEmoji("⚔️")
+        .setCustomId(`account/comphistory/${id}/c`);
+
+    const row1 = new ActionRowBuilder().setComponents(shopButton, nightMarketButton, battlepassButton, collectionButton, competitiveHistoryButton);
     const rows = [row1]
 
     return rows;

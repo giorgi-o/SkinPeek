@@ -51,7 +51,8 @@
     "QUEUE_WAIT": "Şu anda birçok kişi botu kullanıyor! Lütfen bekleyin... (tahmini süre: <t:{t}:R>)",
     "NOT_A_NUMBER": "Bu bir sayı değil, lütfen geçerli bir sayı girin.",
     "INVALID_PAGE_NUMBER": "Geçersiz sayfa, lütfen **1 - {max}** arasında bir değer girin.",
-    "NO_MATCH_DATA": "{m} bir eşleşme bulunamadı, belki de bir maça girmenin zamanı gelmiştir."
+    "NO_MATCH_DATA": "{m} bir eşleşme bulunamadı, belki de bir maça girmenin zamanı gelmiştir.",
+    "WAIT_FOR_PREVIUS_REQUEST": "Hala önceki talebiniz üzerinde çalışıyoruz, lütfen tekrar denemeden önce biraz bekleyin!"
   },
   "info": {
     "SHOP_HEADER": "**{u}** için günlük mağaza (Yeni mağaza <t:{t}:R>)",
@@ -127,6 +128,7 @@
     "NIGHT_MARKET_BUTTON": "Gece.Pazarı",
     "BATTLEPASS_BUTTON": "Savaş bileti",
     "COLLECTION_BUTTON": "Koleksiyon",
+    "COMPETITIVE_HISTORY_BUTTON": "Rekabetçi Maç Geçmişi",
     "RETURN_BUTTON": "Geri dön",
     "LOADING": "Yükleniyor...",
     "HIDDEN_USERNAME": "Kullanıcı adı gizli",
@@ -140,7 +142,8 @@
     "SELECT_SKIN_WITH_LEVEL":"Gösterilecek kaplamayı seçin:",
     "SELECT_LEVEL_OF_SKIN":"Kaplama seviyesini seçin:",
     "SHARDS_LOADING": "Bot hala başlatılıyor! Lütfen birkaç saniye bekleyin ve tekrar deneyin. ( Shard yükleniyor...)",
-    "NO_MORE_ACCESSORIES": "Zaten bütün aksesuarlara sahipsin! :sunglasses:"
+    "NO_MORE_ACCESSORIES": "Zaten bütün aksesuarlara sahipsin! :sunglasses:",
+    "PROFILE_PEAK_RANK": "En Yüksek Rütbe"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 Savaş bileti hesaplaması",
