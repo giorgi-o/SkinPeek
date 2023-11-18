@@ -908,8 +908,8 @@ const competitiveMatchEmbed = (interaction, matchData) => {
     const acsDesc = `**${matchData.player.average_combat_score}** ${s(interaction).match.AVERAGE_COMBAT_SCORE}`;
     const colors = {
         red: 13195866,
-        grey: 9936031,
-        green: 9145227
+        grey: 9145227,
+        green: 9354595
     }
     let embedColor;
     if (matchData.teams.red.has_won === true) {
