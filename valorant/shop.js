@@ -157,6 +157,7 @@ export const getNextNightMarketTimestamp = async () => {
     return nextNMTimestamp;
 }
 
+export let NMTimestamp = null;
 /** Shop cache format:
  * {
  *     offers: {
@@ -244,6 +245,8 @@ const addShopCache = (puuid, shopJson) => {
         night_market: formatNightMarket(shopJson.BonusStore),
         timestamp: now
     }
+
+    if(shopJson.BonusStore) NMTimestamp = now
 
     if(!fs.existsSync("data/shopCache")) fs.mkdirSync("data/shopCache");
     fs.writeFileSync("data/shopCache/" + puuid + ".json", JSON.stringify(shopCache, null, 2));

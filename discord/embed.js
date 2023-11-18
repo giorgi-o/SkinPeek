@@ -16,7 +16,7 @@ import {
     fetchChannel, isDefaultSkin, WeaponTypeUuid, fetch
 } from "../misc/util.js";
 import config from "../misc/config.js";
-import {DEFAULT_VALORANT_LANG, discToValLang, l, s} from "../misc/languages.js";
+import {DEFAULT_VALORANT_LANG, discToValLang, l, s, hideUsername} from "../misc/languages.js";
 import {ActionRowBuilder, ButtonBuilder, ButtonStyle, escapeMarkdown, EmbedBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder} from "discord.js";
 import {getStatsFor} from "../misc/stats.js";
 import {getUser} from "../valorant/auth.js";
@@ -24,7 +24,7 @@ import {readUserJson, removeDupeAccounts, saveUser} from "../valorant/accountSwi
 import {getSetting, humanifyValue, settingIsVisible, settingName} from "../misc/settings.js";
 import {VPEmoji} from "./emoji.js";
 import {getNextNightMarketTimestamp} from "../valorant/shop.js";
-
+import {isThereANM} from "../valorant/shopManager.js";
 
 export const VAL_COLOR_1 = 0xFD4553;
 export const VAL_COLOR_2 = 0x202225;
@@ -900,6 +900,114 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
         }]
     }
 }
+const matchEmbed = (matchData) => {
+    const embedTitle = `${s(interaction).match.COMPETITIVE}┊${matchData.metadata.map}・${matchData.metadata.game_start+matchData.metadata.game_length}`;
+    const roundDesc = `[**${matchData.metadata.pt_round_won}** : **${matchData.metadata.et_round_won}**]`;
+    const hsPercentDesc = `**${s(interaction).match.PERCENT.f({v:matchData.player.hs_percent})}** ${s(interaction).match.HS_PERCENT}`;
+    const adsDesc = `**${matchData.player.average_damage_round}** ${s(interaction).match.AVERAGE_DAMAGE_ROUND}`;
+    const acsDesc = `**${matchData.player.average_combat_score}** ${s(interaction).match.AVERAGE_COMBAT_SCORE}`;
+    const embedDescription = `${mapDesc}・${roundDesc}・${hsPercentDesc}・${adsDesc}・${acsDesc}`;
+    const colors = {
+        red: 13195866,
+        grey: 9936031,
+        green: 9145227
+    }
+    let embedColor;
+
+    if (matchData.teams.red.has_won === true) {
+        if (team === "Red") {
+            embedColor = colors.green;
+            matchData.player.mmr = `+${matchData.player.mmr}`
+        } else embedColor = colors.red;
+    } else if (matchData.teams.blue.has_won === true) {
+        if (team === "Blue") {
+            embedColor = colors.green;
+            matchData.player.mmr = `+${matchData.player.mmr}`
+        } else embedColor = colors.red;
+    } else {
+        embedColor = colors.grey;
+    }
+
+    const mapDesc = `**${"`"+matchData.player.mrr+"`"}**`;
+
+    const embed = {
+        "title": embedTitle,
+        "description": embedDescription,
+        "color": embedColor,
+        "author": {
+            "name": `${matchData.player.agent}・${matchData.player.kill} / ${matchData.player.death} / ${matchData.player.assist}・${matchData.player.kd} KD┊${matchData.player.position}`,
+            "icon_url": matchData.player.agentIconUrl
+        },
+        "image": {
+            "url": matchData.metadata.mapImageUrl
+        },
+        "thumbnail": {
+            "url": matchData.player.currentTierImageUrl
+        }
+    }
+
+    return embed
+}
+
+export const renderProfile = async (interaction, data1, targetId=interaction.user.id) => { //will be edited in the future
+    if(!data1.success) return basicEmbed(s(interaction).error.GENERIC_ERROR)
+    const data = data1.data
+    const userName = hideUsername({u: data.account.name + "`#"+ data.account.tag + "`"}, targetId).u
+    const embed = [{
+        "title": userName + ` • Lv. ${data.account.account_level}`,
+        "description": `Peak Rank ┊ **${data.mmr.highest_rank?.patched_tier}**`,
+        "color": 16632621,
+        "author": {
+            "name": interaction.user.username + ` • ${data.mmr.current_data.ranking_in_tier} RR`,
+            "icon_url": data.mmr.current_data.images.large
+        },
+        "thumbnail": {
+            "url": data.account.card?.small
+        }
+    }];
+    const rows = profileButtons(interaction, targetId)
+    return {embeds: embed, components: rows}
+}
+
+const profileButtons = (interaction, id, back=false) => {
+    if(back){ // not implemented yet
+        const returnButton = new ButtonBuilder()
+        .setStyle(ButtonStyle.Primary)
+        .setLabel(s(interaction).info.RETURN_BUTTON)
+        .setEmoji("↩️")
+        .setCustomId(`account/profile/${id}/change`);
+        return [new ActionRowBuilder().setComponents(returnButton)]
+    }
+    const shopButton = new ButtonBuilder()
+        .setStyle(ButtonStyle.Primary)
+        .setLabel(s(interaction).info.DAILY_SHOP_SWITCH_BUTTON)
+        .setEmoji("🛒")
+        .setCustomId(`account/shop/${id}/daily`);
+
+    const nightMarketButton = new ButtonBuilder()
+        .setStyle(ButtonStyle.Danger)
+        .setLabel(s(interaction).info.NIGHT_MARKET_BUTTON)
+        .setEmoji("🌑")
+        .setDisabled(!isThereANM()) // should be working
+        .setCustomId(`account/nm/${id}/change`);
+
+    const battlepassButton = new ButtonBuilder()
+        .setStyle(ButtonStyle.Secondary)
+        .setLabel(s(interaction).info.BATTLEPASS_BUTTON)
+        .setEmoji("🗓️")
+        .setCustomId(`account/bp/${id}/change`);
+
+    const collectionButton = new ButtonBuilder()
+        .setStyle(ButtonStyle.Primary)
+        .setLabel(s(interaction).info.COLLECTION_BUTTON)
+        .setEmoji("🔫")
+        .setCustomId(`account/cl/${id}/change`);
+
+    const row1 = new ActionRowBuilder().setComponents(shopButton, nightMarketButton, battlepassButton, collectionButton);
+    const rows = [row1]
+
+    return rows;
+}
 
 export const ownerMessageEmbed = (messageContent, author) => {
     return {
@@ -920,7 +1028,7 @@ const priceDescription = (VPemojiString, price) => {
 const pageButtons = (pageId, userId, current, max) => {
     const leftButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("◀").setCustomId(`${pageId}/${userId}/${current - 1}`);
     const rightButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("▶").setCustomId(`${pageId}/${userId}/${current + 1}`);
-    const goToPageButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("🔍").setCustomId(`goToPage/${pageId}/${userId}/${max}`);
+    const goToPageButton = new ButtonBuilder().setStyle(ButtonStyle.Secondary).setEmoji("🔍").setCustomId(`gotopage/${pageId}/${userId}/${max}`);
 
     if(current === 0) leftButton.setEmoji("⏪");
     if(current === max - 1) rightButton.setEmoji("⏩");

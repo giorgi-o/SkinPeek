@@ -26,10 +26,20 @@ export const loadConfig = (filename="config.json") => {
     if(!loadedConfig.token || loadedConfig.token === "token goes here")
         return console.error("You forgot to put your bot token in config.json!");
 
+    if(loadedConfig.HDevTokenAlert === null || loadedConfig.HDevTokenAlert && (!loadedConfig.HDevToken || loadedConfig.HDevToken === "")){
+        console.error("You forgot to put your HDevToken in config.json!");
+        console.error("The Profile command works without an HDEV token, but you can view up to 2 different accounts per hour.");
+        console.error("If you need more than 2 accounts per hour, see https://discord.gg/B7AarTMZMK");
+        console.error("If you don't want to see this notification again, set HDevTokenAlert to false in config.json file");
+    }
+
     loadedConfig.fetchSkinPrices = loadedConfig.showSkinPrices;
     loadedConfig.fetchSkinRarities = loadedConfig.showSkinRarities;
 
     applyConfig(loadedConfig, "token", "token goes here");
+    applyConfig(loadedConfig, "HDevToken", "");
+    applyConfig(loadedConfig, "HDevTokenAlert", true);
+    //TODO applyConfig(loadedConfig, "useUnofficialValorantApi", true);
     applyConfig(loadedConfig, "fetchSkinPrices", true);
     applyConfig(loadedConfig, "fetchSkinRarities", true);
     applyConfig(loadedConfig, "localiseText", true);
@@ -43,6 +53,7 @@ export const loadConfig = (filename="config.json") => {
     applyConfig(loadedConfig, "updateUserAgent", "*/15 * * * *");
     applyConfig(loadedConfig, "delayBetweenAlerts", 5 * 1000);
     applyConfig(loadedConfig, "alertsPerPage", 10);
+    applyConfig(loadedConfig, "careerCacheExpiration", 10 * 60 * 1000);
     applyConfig(loadedConfig, "emojiCacheExpiration", 10 * 1000);
     applyConfig(loadedConfig, "loadoutCacheExpiration", 10 * 60 * 1000);
     applyConfig(loadedConfig, "useShopCache", true);

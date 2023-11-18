@@ -28,6 +28,7 @@
     "MAINTENANCE": "**Valorant servers are currently down for maintenance!** Try again later.",
     "OTHER_SHOP_DISABLED": "**{u} disabled the ability to let others see their shop!**",
     "OTHER_COLLECTION_DISABLED": "**{u} disabled the ability to let others see their collection!**",
+    "OTHER_PROFILE_DISABLED": "**{u} disabled the ability to let others see their profile!**",
     "STATS_DISABLED": "**Shop statistics are currently disabled for this bot!**",
     "EMPTY_STATS":  "**I have no shop stats to display!** use `/shop` to get started.",
     "NO_STATS_FOR_SKIN":  "**That skin hasn't been in anyone's shop** in the past {d} days!",
@@ -122,6 +123,10 @@
     "SWITCH_DESIGN_BUTTON": "Switch design",
     "ACCESSORY_SHOP_SWITCH_BUTTON": "Accessory shop",
     "DAILY_SHOP_SWITCH_BUTTON": "Skin shop",
+    "NIGHT_MARKET_BUTTON": "Night.Market",
+    "BATTLEPASS_BUTTON": "Battlepass",
+    "COLLECTION_BUTTON": "Collection",
+    "RETURN_BUTTON": "Return",
     "LOADING": "Loading...",
     "HIDDEN_USERNAME": "username hidden",
     "NO_USERNAME": "[No username]",
@@ -179,6 +184,7 @@
     "hideIgn": "Hide in-game name",
     "othersCanViewShop": "Allow others to use /shop with your username",
     "othersCanViewColl": "Allow others to use /collection with your username",
+    "othersCanViewProfile": "Allow others to use /profile with your username",
     "othersCanUseAccountButtons": "Allow others to press buttons on your /shop",
     "locale": "Language"
   },
@@ -186,5 +192,13 @@
     "PAGE_TITLE": "Page Navigator",
     "PAGE_INPUT_PLACEHOLDER": "Please only input a number.",
     "PAGE_INPUT_LABEL": "Go to page (1-{max})"
+  },
+  "match": {
+    "COMPETITIVE": "Competitive",
+    "RANKED_RATING": "RR",
+    "AVERAGE_DAMAGE_ROUND": "Adr",
+    "AVERAGE_COMBAT_SCORE": "Acs",
+    "HS_PERCENT": "HS%",
+    "PERCENT": "%{v}"
   }
 }

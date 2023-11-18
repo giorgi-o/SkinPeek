@@ -28,6 +28,7 @@
     "MAINTENANCE": "**Valorant sunucuları şu anda bakım nedeniyle kapalı!** Lütfen daha sonra tekrar deneyin.",
     "OTHER_SHOP_DISABLED": "**{u} Başkalarının mağazasına bakmasını istemediğinden bu özelliği devre dışı bıraktı!**",
     "OTHER_COLLECTION_DISABLED": "**{u} Başkalarının koleksiyonuna bakmasını istemediğinden bu özelliği devre dışı bıraktı!**",
+    "OTHER_PROFILE_DISABLED": "**{u} Başkalarının profiline bakmasını istemediğinden bu özelliği devre dışı bıraktı!**",
     "STATS_DISABLED": "**Mağaza istatistiği bu bot için şu anda kapalı!**",
     "EMPTY_STATS": "**Gösterebilecek bir mağaza istatistiğine sahip değilim!** `/shop` komutunu kullanarak başlayabilirsin.",
     "NO_STATS_FOR_SKIN": "**Bu skin son {d} gün içerisinde hiç kimsenin mağazasında olmadı!**",
@@ -122,6 +123,10 @@
     "SWITCH_DESIGN_BUTTON": "Tasarımı değiştir",
     "ACCESSORY_SHOP_SWITCH_BUTTON": "Aksesuar mağazası",
     "DAILY_SHOP_SWITCH_BUTTON": "Günlük mağaza",
+    "NIGHT_MARKET_BUTTON": "Gece.Pazarı",
+    "BATTLEPASS_BUTTON": "Savaş bileti",
+    "COLLECTION_BUTTON": "Koleksiyon",
+    "RETURN_BUTTON": "Geri dön",
     "LOADING": "Yükleniyor...",
     "HIDDEN_USERNAME": "Kullanıcı adı gizli",
     "NO_USERNAME": "[Kullanıcı adı yok]",
@@ -179,6 +184,7 @@
     "hideIgn": "Oyun içi adı gizle",
     "othersCanViewShop": "Başkalarının kullanıcı adınızla /shop kullanmasına izin verin",
     "othersCanViewColl": "Başkalarının kullanıcı adınızla /collection kullanmasına izin verin",
+    "othersCanViewProfile": "Başkalarının kullanıcı adınızla /profile kullanmasına izin verin",
     "othersCanUseAccountButtons": "Başkalarının /shop gibi komutlarda sizin hesap butonlarınızı kullanmasına izin verin",
     "locale": "Dil"
   },
@@ -186,5 +192,13 @@
     "PAGE_TITLE": "Sayfa Gezgini",
     "PAGE_INPUT_PLACEHOLDER": "Lütfen sadece sayı girin.",
     "PAGE_INPUT_LABEL": "Sayfaya git (1-{max})"
+  },
+  "match": {
+    "COMPETITIVE": "Rekabetçi",
+    "RANKED_RATING": "KP",
+    "AVERAGE_DAMAGE_ROUND": "OrtHsr",
+    "AVERAGE_COMBAT_SCORE": "OrtÇS",
+    "HS_PERCENT": "%HS",
+    "PERCENT": "%{v}"
   }
 }

@@ -1,8 +1,8 @@
-import {fetchChannel} from "../misc/util.js";
+import {fetchChannel, isToday} from "../misc/util.js";
 import {VPEmoji, KCEmoji} from "../discord/emoji.js";
 import {renderBundles, renderNightMarket, renderOffers, renderAccessoryOffers} from "../discord/embed.js";
 import {getUser} from "./auth.js";
-import {getBundles, getNightMarket, getOffers} from "./shop.js";
+import {getBundles, getNightMarket, getOffers, NMTimestamp} from "./shop.js";
 
 export const fetchShop = async (interaction, user, targetId=interaction.user.id, accessory = null) => {
     // fetch the channel if not in cache
@@ -22,6 +22,15 @@ export const fetchShop = async (interaction, user, targetId=interaction.user.id,
         return await renderAccessoryOffers(shop, interaction, user, await KCEmojiPromise, targetId)
     }
     
+}
+
+export const isThereANM = () => {
+    if(!NMTimestamp)return false;
+    if(isToday(NMTimestamp))return true;
+    else {
+        NMTimestamp = null;
+        return false;
+    }
 }
 
 export const fetchBundles = async (interaction) => {

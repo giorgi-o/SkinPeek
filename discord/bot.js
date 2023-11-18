@@ -33,7 +33,8 @@ import {
     skinCollectionPageEmbed,
     skinCollectionSingleEmbed,
     valMaintenancesEmbeds,
-    collectionOfWeaponEmbed
+    collectionOfWeaponEmbed,
+    renderProfile
 } from "./embed.js";
 import { authUser, fetchRiotClientVersion, getUser, getUserList, getRegion, getUserInfo } from "../valorant/auth.js";
 import { getBalance } from "../valorant/shop.js";
@@ -86,6 +87,7 @@ import {
 import fuzzysort from "fuzzysort";
 import { renderCollection, getSkins } from "../valorant/inventory.js";
 import { getLoadout } from "../valorant/inventory.js";
+import { getAccountInfo } from "../valorant/profile.js";
 import { spawn } from "child_process";
 import * as fs from "fs";
 
@@ -370,6 +372,16 @@ const commands = [
     {
         name: "info",
         description: "Show information about the bot"
+    },
+    {
+        name: "profile",
+        description: "Check your VALORANT profile",
+        options: [{
+            type: ApplicationCommandOptionType.User,
+            name: "user",
+            description: "Optional: see someone else's profile!",
+            required: false
+        }]
     }
 ];
 
@@ -1169,6 +1181,37 @@ client.on("interactionCreate", async (interaction) => {
 
                     break;
                 }
+                case "profile": {
+                    let targetUser = interaction.user;
+
+                    const otherUser = interaction.options.getUser("user");
+                    if (otherUser && otherUser.id !== interaction.user.id) {
+                        const otherValorantUser = getUser(otherUser.id);
+                        if (!otherValorantUser) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED_OTHER)]
+                        });
+
+                        if (!getSetting(otherUser.id, "othersCanViewProfile")) return await interaction.reply({
+                            embeds: [basicEmbed(s(interaction).error.OTHER_PROFILE_DISABLED.f({ u: `<@${otherUser.id}>` }))]
+                        });
+
+                        targetUser = otherUser;
+                    }
+                    else if (!valorantUser) return await interaction.reply({
+                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
+                        ephemeral: true
+                    });
+
+                    await defer(interaction);
+                    const user = getUser(targetUser.id)
+                    const message = await renderProfile(interaction, await getAccountInfo(user), targetUser.id);
+
+                    await interaction.followUp(message);
+
+                    console.log(`Sent ${targetUser.tag}'s profile!`); // also logged if maintenance/login failed
+
+                    break;
+                }
                 default: {
                     await interaction.reply(s(interaction).info.UNHANDLED_COMMAND);
                     break;
@@ -1465,8 +1508,7 @@ client.on("interactionCreate", async (interaction) => {
                     embeds: message.embeds,
                     components: message.components
                 });
-
-                if (accountIndex !== "accessory" && accountIndex !== "daily") {
+                if (accountIndex !== "accessory" && accountIndex !== "daily" && accountIndex !== "change") {
                     const success = switchAccount(id, parseInt(accountIndex));
                     if (!success) return await interaction.followUp({
                         embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
@@ -1482,6 +1524,7 @@ client.on("interactionCreate", async (interaction) => {
                     case "bp": newMessage = await renderBattlepassProgress(interaction, id); break;
                     case "alerts": newMessage = await fetchAlerts(interaction); break;
                     case "cl": newMessage = await renderCollection(interaction, id); break;
+                    case "profile": newMessage = await renderProfile(interaction, await getAccountInfo(getUser(id)), id); break;
                 }
                 /* else */ if (customId.startsWith("clw")) {
                     let valorantUser = getUser(id);
@@ -1494,7 +1537,7 @@ client.on("interactionCreate", async (interaction) => {
 
 
                 await message.edit(newMessage);
-            } else if (interaction.customId.startsWith("goToPage")) {
+            } else if (interaction.customId.startsWith("gotopage")) {
                 let [, pageId, userId, max] = interaction.customId.split('/');
                 let weaponTypeIndex
                 if(pageId === 'clwpage') [, pageId, weaponTypeIndex, userId, max] = interaction.customId.split('/');
@@ -1514,7 +1557,7 @@ client.on("interactionCreate", async (interaction) => {
                 }
 
                 const modal = new ModalBuilder()
-                    .setCustomId(`goToPage/${pageId}${weaponTypeIndex ? `/${weaponTypeIndex}`: ''}/${userId}/${max}`)
+                    .setCustomId(`gotopage/${pageId}${weaponTypeIndex ? `/${weaponTypeIndex}`: ''}/${userId}/${max}`)
                     .setTitle(s(interaction).modal.PAGE_TITLE);
 
                 const pageInput = new TextInputBuilder()
@@ -1535,7 +1578,7 @@ client.on("interactionCreate", async (interaction) => {
         }
     } else if (interaction.isModalSubmit()){
         try {
-            if (interaction.customId.startsWith("goToPage")) {
+            if (interaction.customId.startsWith("gotopage")) {
                 let [, pageId, userId, max] = interaction.customId.split('/');
                 let weaponTypeIndex
                 if(pageId === 'clwpage') [, pageId, weaponTypeIndex, userId, max] = interaction.customId.split('/');
