@@ -900,7 +900,7 @@ export const botInfoEmbed = (interaction, client, guildCount, userCount, registe
         }]
     }
 }
-const matchEmbed = (matchData) => {
+const competitiveMatchEmbed = (matchData) => {
     const embedTitle = `${s(interaction).match.COMPETITIVE}┊${matchData.metadata.map}・${matchData.metadata.game_start+matchData.metadata.game_length}`;
     const roundDesc = `[**${matchData.metadata.pt_round_won}** : **${matchData.metadata.et_round_won}**]`;
     const hsPercentDesc = `**${s(interaction).match.PERCENT.f({v:matchData.player.hs_percent})}** ${s(interaction).match.HS_PERCENT}`;
@@ -950,10 +950,11 @@ const matchEmbed = (matchData) => {
 }
 
 export const renderProfile = async (interaction, data1, targetId=interaction.user.id) => { //will be edited in the future
-    if(!data1.success) return basicEmbed(s(interaction).error.GENERIC_ERROR)
+    if(!data1.success) return {embeds: [basicEmbed(s(interaction).error.GENERIC_ERROR.f({e: data1.error}))]}
+    const valorantUser = getUser(targetId)
     const data = data1.data
     const userName = hideUsername({u: data.account.name + "`#"+ data.account.tag + "`"}, targetId).u
-    const embed = [{
+    const embeds = [{
         "title": userName + ` • Lv. ${data.account.account_level}`,
         "description": `Peak Rank ┊ **${data.mmr.highest_rank?.patched_tier}**`,
         "color": 16632621,
@@ -965,8 +966,25 @@ export const renderProfile = async (interaction, data1, targetId=interaction.use
             "url": data.account.card?.small
         }
     }];
+
+    if(config.notice && valorantUser) {
+        // users shouldn't see the same notice twice
+        if(!config.onlyShowNoticeOnce || valorantUser.lastNoticeSeen !== config.notice) {
+
+            // the notice can either be just a simple string, or a raw JSON embed data object
+            if(typeof config.notice === "string") {
+                if(config.notice.startsWith('{')) embeds.push(EmbedBuilder.from(JSON.parse(config.notice)).toJSON());
+                else embeds.push(basicEmbed(config.notice));
+            }
+            else embeds.push(EmbedBuilder.from(config.notice).toJSON());
+
+            valorantUser.lastNoticeSeen = config.notice;
+            saveUser(valorantUser);
+        }
+    }
+
     const rows = profileButtons(interaction, targetId)
-    return {embeds: embed, components: rows}
+    return {embeds: embeds, components: rows}
 }
 
 const profileButtons = (interaction, id, back=false) => {

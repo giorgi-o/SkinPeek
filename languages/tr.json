@@ -50,7 +50,8 @@
     "GENERIC_ERROR": ":no_entry_sign: **Bunu yapmaya çalışırken bir hata oluştu!** Riot'u suçluyorum.\n`{e}`",
     "QUEUE_WAIT": "Şu anda birçok kişi botu kullanıyor! Lütfen bekleyin... (tahmini süre: <t:{t}:R>)",
     "NOT_A_NUMBER": "Bu bir sayı değil, lütfen geçerli bir sayı girin.",
-    "INVALID_PAGE_NUMBER": "Geçersiz sayfa, lütfen **1 - {max}** arasında bir değer girin."
+    "INVALID_PAGE_NUMBER": "Geçersiz sayfa, lütfen **1 - {max}** arasında bir değer girin.",
+    "NO_MATCH_DATA": "{m} bir eşleşme bulunamadı, belki de bir maça girmenin zamanı gelmiştir."
   },
   "info": {
     "SHOP_HEADER": "**{u}** için günlük mağaza (Yeni mağaza <t:{t}:R>)",

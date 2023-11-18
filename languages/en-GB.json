@@ -50,7 +50,8 @@
     "GENERIC_ERROR": ":no_entry_sign: **There was an error trying to do that!** I blame Riot.\n`{e}`",
     "QUEUE_WAIT": "Many people are using the bot! Please wait... (estimated: <t:{t}:R>)",
     "NOT_A_NUMBER": "This is not a number, please enter a valid number.",
-    "INVALID_PAGE_NUMBER": "Invalid page number, please enter a value between **1 - {max}**"
+    "INVALID_PAGE_NUMBER": "Invalid page number, please enter a value between **1 - {max}**",
+    "NO_MATCH_DATA": "No {m} matches was found, maybe it's time to queue up?"
   },
   "info":{
     "SHOP_HEADER": "Daily shop for **{u}** (new shop <t:{t}:R>)",

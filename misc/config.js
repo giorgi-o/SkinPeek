@@ -26,7 +26,7 @@ export const loadConfig = (filename="config.json") => {
     if(!loadedConfig.token || loadedConfig.token === "token goes here")
         return console.error("You forgot to put your bot token in config.json!");
 
-    if(loadedConfig.HDevTokenAlert === null || loadedConfig.HDevTokenAlert && (!loadedConfig.HDevToken || loadedConfig.HDevToken === "")){
+    if(loadedConfig.HDevTokenAlert && !loadedConfig.HDevToken || loadedConfig.HDevToken === ""){
         console.error("You forgot to put your HDevToken in config.json!");
         console.error("The Profile command works without an HDEV token, but you can view up to 2 different accounts per hour.");
         console.error("If you need more than 2 accounts per hour, see https://discord.gg/B7AarTMZMK");
