@@ -85,6 +85,8 @@
     "RADIANITE": "Radianite",
     "KCREDIT": "Kingdom Credit",
     "ALERT_HAPPENED": ":tada: <@{i}> The **{s}** is in **{u}**'s daily shop!\nIt will be gone <t:{t}:R>.",
+    "MULTIPLE_ALERT_HAPPENED": ":tada: **It's your lucky day!** Multiple wanted skins are showing up in **{u}**'s store.\nThey will be gone <t:{t}:R>.",
+    "MULTIPLE_ALERT_HAPPENED_ON_DIFF_CHANNEL": ":tada: **It's your lucky day!** Multiple wanted skins are showing up in **{u}**'s store.\nThey will be gone <t:{t}:R>.\nBut not all of them are in this message, some of them are  in the channel where you originally set the alert.\nTo see them, use </alerts:{cid}>.",
     "ALERT_CHOICE": "Which skin would you like to set a reminder for?",
     "ALERT_CHOICE_PLACEHOLDER": "Select skin:",
     "ALERT_SET": "Successfully set an alert for the **{s}**!",

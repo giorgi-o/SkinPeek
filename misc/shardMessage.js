@@ -45,7 +45,7 @@ const receiveShardMessage = async (message) => {
             await handleMQResponse(message);
             break;
         case "alert":
-            await sendAlert(message.id, message.account, message.alerts, message.expires, false);
+            await sendAlert(message.id, message.account, message.alerts, message.expires, false, message.alertsLength);
             break;
         case "dailyShop":
             await sendDailyShop(message.id, message.shop, message.channelId, message.valorantUser, false);

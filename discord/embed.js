@@ -551,7 +551,7 @@ const bundleItemEmbed = async (item, interaction, VPemojiString) => {
     }
 }
 
-const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
+export const skinEmbed = async (uuid, price, interactionOrId, VPemojiString, channel = null) => {
     const skin = await getSkin(uuid);
     const colorMap = {
       '0cebb8be-46d7-c12a-d306-e9907bfc5a25': 0x009984,
@@ -563,7 +563,7 @@ const skinEmbed = async (uuid, price, interaction, VPemojiString) => {
 
     const color = colorMap[skin.rarity] || '000000'; // default to black
     return {
-        title: await skinNameAndEmoji(skin, interaction.channel, interaction),
+        title: await skinNameAndEmoji(skin, interactionOrId.channel || channel, interactionOrId),
         url: config.linkItemImage ? skin.icon : null,
         description: priceDescription(VPemojiString, price),
         color: color,
