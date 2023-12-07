@@ -1206,7 +1206,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     await defer(interaction);
                     const user = getUser(targetUser.id)
-                    const message = await renderProfile(interaction, await getAccountInfo(user), targetUser.id);
+                    const message = await renderProfile(interaction, await getAccountInfo(user, interaction), targetUser.id);
 
                     await interaction.followUp(message);
 

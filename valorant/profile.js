@@ -39,7 +39,10 @@ export const getAccountInfo = async (user, interaction) => {
     if(cache.success) return cache;
     if(progress(user, 'acc') || progress(user, 'mmr')) return {success: false, error: s(interaction).error.WAIT_FOR_PREVIUS_REQUEST}
     const accountData = await VAPI.getAccountByPUUID({puuid: user.puuid, force: true});
+    console.log(`Checked ACCData for ${user.id} R:${accountData?.ratelimits?.remaining} Reset: in ${accountData?.ratelimits?.reset} seconds`)
     const mmrData = await VAPI.getMMRByPUUID({version: "v2",region: user.region, puuid: user.puuid});
+    console.log(`Checked MMRData for ${user.id} R:${mmrData?.ratelimits?.remaining} Reset: in ${mmrData?.ratelimits?.reset} seconds`)
+
     setTimeout(() => {
         progress(user, 'acc', true);
         progress(user, 'mmr', true);
@@ -64,12 +67,14 @@ export const fetchMatchHistory = async (interaction, user, mode="competitive") =
 
     if(progress(user, 'matches') || mode==="competitive" && progress(user, 'mmrHistory')) return {success: false, error: s(interaction).error.WAIT_FOR_PREVIUS_REQUEST}
     const matchHistory = await VAPI.getMatchesByPUUID({puuid: user.puuid, region: user.region, filter: mode});
+    console.log(`Checked match history for ${user.id} R:${matchHistory?.ratelimits?.remaining} Reset: in ${matchHistory?.ratelimits?.reset} seconds`)
     setTimeout(() => {progress(user, 'matches', true);}, 5000);
     if(matchHistory.error) return {success: false, error: matchHistory.error[0].message};
     else if(matchHistory.data.length === 0) return {success: false, error: s(interaction).error.NO_MATCH_DATA.f({m: mode})}
     let mmrHistory;
     if(mode === "competitive") {
         mmrHistory = await VAPI.getMMRHistoryByPUUID({puuid: user.puuid, region: user.region})
+        console.log(`Checked MMRHistory for ${user.id} R:${mmrHistory?.ratelimits?.remaining} Reset: in ${mmrHistory?.ratelimits?.reset} seconds`)
         setTimeout(() => {progress(user, 'mmrHistory', true);}, 1000);
         if(mmrHistory.error) return {success: false, error: mmrHistory.error[0].message};
         const matches = []
