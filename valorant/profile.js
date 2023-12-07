@@ -1,6 +1,13 @@
 import config from "../misc/config.js";
 import unofficialValorantApi from "unofficial-valorant-api";
-const VAPI = new unofficialValorantApi(config.HDevToken)
+let VAPI;
+if(config.HDevToken === undefined){
+    setTimeout(() => {
+        VAPI = new unofficialValorantApi(config.HDevToken) // It was starting without config
+    }, 10000);
+}else{
+    VAPI = new unofficialValorantApi(config.HDevToken)
+}
 import { ordinalSuffix } from "../misc/util.js";
 import {s} from "../misc/languages.js"
 
