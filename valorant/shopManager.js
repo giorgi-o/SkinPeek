@@ -28,7 +28,7 @@ export const isThereANM = () => {
     if(!NMTimestamp)return false;
     if(isToday(NMTimestamp))return true;
     else {
-        NMTimestamp = null;
+        //NMTimestamp = null; not working, waiting for fix.
         return false;
     }
 }
