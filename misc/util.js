@@ -391,6 +391,7 @@ export const WeaponType = {
     Vandal: "Vandal",
 
     Marshal: "Marshal",
+    Outlaw: "Outlaw",
     Operator: "Operator",
     Ares: "Ares",
     Odin: "Odin",
@@ -413,6 +414,7 @@ export const WeaponTypeUuid = {
     [WeaponType.Operator]: "a03b24d3-4319-996d-0f8c-94bbfba1dfc7",
     [WeaponType.Guardian]: "4ade7faa-4cf1-8376-95ef-39884480959b",
     [WeaponType.Marshal]: "c4883e50-4494-202c-3ec3-6b8a9284f00b",
+    [WeaponType.Outlaw]: "5f0aaf7a-4289-3998-d5ff-eb9a5cf7ef5c",
     [WeaponType.Spectre]: "462080d1-4035-2937-7c09-27aa2a5c27a7",
     [WeaponType.Stinger]: "f7e1b454-4ad4-1063-ec0a-159e56b58941",
     [WeaponType.Knife]: "2f59173c-4bed-b6c3-2191-dea9b58be9c7",
