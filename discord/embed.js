@@ -630,7 +630,13 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
     const skinsUuid = [];
     const createField = async (weaponUuid, inline=true) => {
         const weapon = await getWeapon(weaponUuid);
-        const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
+        const skinUuid = loadout.Guns.find(gun => gun.ID === weaponUuid)?.SkinID
+        if(!skinUuid) return {
+            name: 'No information available',
+            value: 'Login to the game for display',
+            inline: inline
+        }
+        const skin = await getSkinFromSkinUuid(skinUuid);
         skinsUuid.push(skin);
         totalValue += skin.price;
 
@@ -664,6 +670,8 @@ export const skinCollectionSingleEmbed = async (interaction, id, user, {loadout,
         await createField(WeaponTypeUuid.Bulldog),
         await createField(WeaponTypeUuid.Guardian),
         await createField(WeaponTypeUuid.Marshal),
+
+        await createField(WeaponTypeUuid.Outlaw),
 
         await createField(WeaponTypeUuid.Stinger),
         await createField(WeaponTypeUuid.Ares),
@@ -720,8 +728,13 @@ export const skinCollectionPageEmbed = async (interaction, id, user, {loadout, f
 
     const createEmbed = async (weaponUuid) => {
         const weapon = await getWeapon(weaponUuid);
-        const skin = await getSkinFromSkinUuid(loadout.Guns.find(gun => gun.ID === weaponUuid).SkinID);
-
+        const skinUuid = loadout.Guns.find(gun => gun.ID === weaponUuid)?.SkinID
+        if(!skinUuid) return {
+            title: 'No information available',
+            description: 'Login to the game for display',
+            color: VAL_COLOR_1,
+        }
+        const skin = await getSkinFromSkinUuid(skinUuid);
         totalValue += skin.price;
 
         const starEmoji = favorites.FavoritedContent[skin.skinUuid] ? " ⭐" : "";
@@ -736,7 +749,7 @@ export const skinCollectionPageEmbed = async (interaction, id, user, {loadout, f
     }
 
     const pages = [
-        [WeaponTypeUuid.Vandal, WeaponTypeUuid.Phantom, WeaponTypeUuid.Operator, WeaponTypeUuid.Knife],
+        [WeaponTypeUuid.Vandal, WeaponTypeUuid.Phantom, WeaponTypeUuid.Operator, WeaponTypeUuid.Outlaw, WeaponTypeUuid.Knife],
         [WeaponTypeUuid.Classic, WeaponTypeUuid.Sheriff, WeaponTypeUuid.Spectre, WeaponTypeUuid.Marshal],
         [WeaponTypeUuid.Frenzy, WeaponTypeUuid.Ghost, WeaponTypeUuid.Bulldog, WeaponTypeUuid.Guardian],
         [WeaponTypeUuid.Shorty, WeaponTypeUuid.Bucky, WeaponTypeUuid.Judge],
