@@ -979,43 +979,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     break;
                 }
-                case "logout": {
-                    const accountCount = getNumberOfAccounts(interaction.user.id);
-                    if (accountCount === 0) return await interaction.reply({
-                        embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
-                        ephemeral: true
-                    });
-
-                    const targetAccount = interaction.options.get("account") && interaction.options.get("account").value;
-                    if (targetAccount) {
-                        const targetIndex = findTargetAccountIndex(interaction.user.id, targetAccount);
-
-                        if (targetIndex === null) return await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).error.ACCOUNT_NOT_FOUND)],
-                            ephemeral: true
-                        });
-
-                        if (targetIndex > accountCount) return await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).error.ACCOUNT_NUMBER_TOO_HIGH.f({ n: accountCount }))],
-                            ephemeral: true
-                        });
-
-                        const usernameOfDeleted = deleteUser(interaction.user.id, targetIndex);
-
-                        await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).info.SPECIFIC_ACCOUNT_DELETED.f({ n: targetIndex, u: usernameOfDeleted }, interaction))],
-                        });
-                    } else {
-                        deleteWholeUser(interaction.user.id);
-                        console.log(`${interaction.user.tag} deleted their account`);
-
-                        await interaction.reply({
-                            embeds: [basicEmbed(s(interaction).info.ACCOUNT_DELETED)],
-                            ephemeral: true
-                        });
-                    }
-                    break;
-                }
+                case "logout": 
                 case "forget": {
                     const accountCount = getNumberOfAccounts(interaction.user.id);
                     if (accountCount === 0) return await interaction.reply({
