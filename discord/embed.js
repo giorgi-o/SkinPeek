@@ -51,11 +51,17 @@ export const authFailureMessage = (interactionOrId, authResponse, message="AUTH_
     if(authResponse.maintenance) embed = basicEmbed(s(interactionOrId).error.MAINTENANCE);
     else if(authResponse.mfa) {
         console.log(`${tag} needs 2FA code`);
+
+        // TMP: 2FA doesn't work because of auth flow change (see issue #99)
+        embed = basicEmbed(s(interactionOrId).info.MFA_DISABLED);
+
+        /*
         if(authResponse.method === "email") {
             if(isEphemeral) embed = basicEmbed(s(interactionOrId).info.MFA_EMAIL.f({e: escapeMarkdown(authResponse.email)}));
             else embed = basicEmbed(s(interactionOrId).info.MFA_EMAIL_HIDDEN);
         }
         else embed = basicEmbed(s(interactionOrId).info.MFA_GENERIC);
+        */
     }
     else if(authResponse.rateLimit) {
         console.log(`${tag} got rate-limited`);

@@ -99,6 +99,7 @@
       "MFA_EMAIL": "**Riot đã gửi một mã tới {e}** Hãy sử dụng `/2fa` để hoàn thành đăng nhập.",
       "MFA_EMAIL_HIDDEN": "**Riot đã gửi một mã tới địa chỉ email của bạn!** Hãy sử dụng `/2fa` để hoàn thành đăng nhập.",
       "MFA_GENERIC": "Tài khoản của bạn đã kích hoạt **xác thực hai yếu tố**. Hãy sử dụng `/2fa` để nhập mã xác thực của bạn.",
+      "MFA_DISABLED": ":warning: **Đăng nhập 2FA hiện đang bị lỗi!** Do Riot đã thay đổi cách họ xác thực các tài khoản, chúng mình không thể sử dụng `/2fa` để login nữa. Hãy kiên nhẫn chờ đợi chúng mình sửa lỗi nha! Trong thời gian này, bạn có thể thử đăng nhập bằng `/cookies`.",
       "AUTH_ERROR_RETRY": "Thử lại",
       "ACCOUNT_DELETED": "Đã đăng xuất & xóa tài khoản của bạn khỏi bot",
       "SPECIFIC_ACCOUNT_DELETED": "Tài khoản **{n}. {u}** đã được đăng xuất!",

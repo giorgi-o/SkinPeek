@@ -107,6 +107,7 @@
     "MFA_EMAIL": "**Riot sent a code to {e}** Use `/2fa` to complete your login.",
     "MFA_EMAIL_HIDDEN": "**Riot sent a code to your email address!** Use `/2fa` to complete your login.",
     "MFA_GENERIC": "**You have 2FA enabled!** use `/2fa` to enter your code.",
+    "MFA_DISABLED": ":warning: **2FA is currently broken!** Due to a new authentication flow change by Riot, we can no longer support /2fa. Please hold on while we figure something out! In the meantime, you can try logging in using /cookies.",
     "AUTH_ERROR_RETRY": "Retry",
     "ACCOUNT_DELETED": "Your account has been deleted from the database!",
     "SPECIFIC_ACCOUNT_DELETED": "The account **{n}. {u}** has been deleted from the database!",
