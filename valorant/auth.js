@@ -245,6 +245,12 @@ export const redeem2FACode = async (id, code) => {
 const processAuthResponse = async (id, authData, redirect, user=null) => {
     if(!user) user = new User({id});
     const [rso, idt] = extractTokensFromUri(redirect);
+    if(rso == null) {
+        console.error("Riot servers didn't return an RSO token!");
+        console.error("Most likely the Cloudflare firewall is blocking your IP address. Try hosting on your home PC and seeing if the issue still happens.");
+        throw "Riot servers didn't return an RSO token!";
+    }
+
     user.auth = {
         ...user.auth,
         rso: rso,
