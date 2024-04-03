@@ -23,7 +23,6 @@
 </p>
 
 <p align="center">
-  Also known as &nbsp;<img height="16" src="https://user-images.githubusercontent.com/20621396/229198663-8ad95415-40c4-4385-bcc7-f310c0333862.png"> <b>Ministral</b>! <a href="https://discord.com/api/oauth2/authorize?client_id=925550988146917456&permissions=536602999920&scope=bot%20applications.commands">Invite the bot to your server</a>. <br>
   Feel free to join the <a href="https://discord.gg/yx5sPJxWth">support server</a> if you need any help!
 </p>
 <hr>
@@ -89,13 +88,6 @@
 - Once you're more or less familiar with how the bot works, you should read the [Admin Guide](https://github.com/giorgi-o/SkinPeek/wiki/SkinPeek-Admin-Guide) for advanced usage and tips & tricks for hosting the bot.
 
 - If you're bored, check out [this writeup](https://gist.github.com/giorgi-o/e0fc2f6160a5fd43f05be8567ad6fdd7) on how Riot treats third-party projects like this one.
-
-### Replit
-
-[![Run on Repl.it](https://replit.com/badge/github/Gam3rBoy57/SkinPeekReplit)](https://replit.com/github/Gam3rBoy57/SkinPeekReplit)  
-Thanks to [Gam3rBoy57](https://github.com/Gam3rBoy57) for maintaining the Replit version! For setup instructions and Replit-specific support, read the top of [this readme](https://github.com/Gam3rBoy57/SkinPeekReplit#readme).  
-**Note:** You will probably have to `/login` every day on the free version, and your alerts most likely won't work. Read more [here](https://github.com/giorgi-o/SkinPeek/pull/46#issuecomment-1213579690).
-
 
 ### Docker
 
