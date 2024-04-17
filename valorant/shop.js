@@ -28,7 +28,11 @@ export const getShop = async (id, account=null) => {
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v2/storefront/${user.puuid}`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
-            "X-Riot-Entitlements-JWT": user.auth.ent
+            "X-Riot-Entitlements-JWT": user.auth.ent,
+
+            // fix for HTTP 400 (thx Zxc and Manuel_Hexe)
+            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
+            "X-Riot-ClientVersion": "release-08.07-shipping-9-2444158",
         }
     });
     console.assert(req.statusCode === 200, `Valorant skins offers code is ${req.statusCode}!`, req);
