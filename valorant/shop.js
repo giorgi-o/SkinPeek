@@ -1,5 +1,5 @@
 import fs from "fs";
-import {authUser, deleteUserAuth, getUser} from "./auth.js";
+import { authUser, deleteUserAuth, getUser } from "./auth.js";
 import {
     discordTag,
     fetch,
@@ -9,17 +9,28 @@ import {
     isMaintenance, isSameDay,
     userRegion
 } from "../misc/util.js";
-import {addBundleData, getSkin, getSkinFromSkinUuid} from "./cache.js";
-import {addStore} from "../misc/stats.js";
+import { addBundleData, getSkin, getSkinFromSkinUuid } from "./cache.js";
+import { addStore } from "../misc/stats.js";
 import config from "../misc/config.js";
-import {deleteUser, saveUser} from "./accountSwitcher.js";
-import {mqGetShop, useMultiqueue} from "../misc/multiqueue.js";
+import { deleteUser, saveUser } from "./accountSwitcher.js";
+import { mqGetShop, useMultiqueue } from "../misc/multiqueue.js";
 
-export const getShop = async (id, account=null) => {
-    if(useMultiqueue()) return await mqGetShop(id, account);
+export const RIOT_CLIENT_HEADERS = {
+    // fix for HTTP 400 (thx Zxc and Manuel_Hexe)
+    "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
+    "X-Riot-ClientVersion": "release-08.07-shipping-9-2444158",
+    // todo: get ClientVersion from Valorant API to not have to automatically update it.
+    // before that, got to make a cache for it, so that we don't need to fetch it
+    // every time someone uses /shop, but make sure it doesn't interfere with all
+    // the other caches (skins, rarities, etc.) because those need the actual
+    // uncached client version.
+}
+
+export const getShop = async (id, account = null) => {
+    if (useMultiqueue()) return await mqGetShop(id, account);
 
     const authSuccess = await authUser(id, account);
-    if(!authSuccess.success) return authSuccess;
+    if (!authSuccess.success) return authSuccess;
 
     const user = getUser(id, account);
     console.log(`Fetching shop for ${user.username}...`);
@@ -29,24 +40,21 @@ export const getShop = async (id, account=null) => {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
             "X-Riot-Entitlements-JWT": user.auth.ent,
-
-            // fix for HTTP 400 (thx Zxc and Manuel_Hexe)
-            "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-            "X-Riot-ClientVersion": "release-08.07-shipping-9-2444158",
+            ...RIOT_CLIENT_HEADERS
         }
     });
     console.assert(req.statusCode === 200, `Valorant skins offers code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
-    if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
+    if (json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
         deleteUserAuth(user);
-        return {success: false}
-    } else if(isMaintenance(json)) return {success: false, maintenance: true};
+        return { success: false }
+    } else if (isMaintenance(json)) return { success: false, maintenance: true };
 
     // shop stats tracking
     try {
         addStore(user.puuid, json.SkinsPanelLayout.SingleItemOffers);
-    } catch(e) {
+    } catch (e) {
         console.error("Error adding shop stats!");
         console.error(e);
         console.error(json);
@@ -57,19 +65,19 @@ export const getShop = async (id, account=null) => {
 
     // save bundle data & prices
     Promise.all(json.FeaturedBundle.Bundles.map(rawBundle => formatBundle(rawBundle))).then(async bundles => {
-        for(const bundle of bundles)
+        for (const bundle of bundles)
             await addBundleData(bundle);
     });
 
-    return {success: true, shop: json};
+    return { success: true, shop: json };
 }
 
-export const getOffers = async (id, account=null) => {
+export const getOffers = async (id, account = null) => {
     const shopCache = getShopCache(getPuuid(id, account), "offers");
-    if(shopCache) return {success: true, cached: true, ...shopCache.offers};
+    if (shopCache) return { success: true, cached: true, ...shopCache.offers };
 
     const resp = await getShop(id, account);
-    if(!resp.success) return resp;
+    if (!resp.success) return resp;
 
     return await easterEggOffers(id, account, {
         success: true,
@@ -88,36 +96,36 @@ export const getOffers = async (id, account=null) => {
     });
 }
 
-export const getBundles = async (id, account=null) => {
+export const getBundles = async (id, account = null) => {
     const shopCache = getShopCache(getPuuid(id, account), "bundles");
-    if(shopCache) return {success: true, bundles: shopCache.bundles};
+    if (shopCache) return { success: true, bundles: shopCache.bundles };
 
     const resp = await getShop(id, account);
-    if(!resp.success) return resp;
+    if (!resp.success) return resp;
 
     const formatted = await Promise.all(resp.shop.FeaturedBundle.Bundles.map(rawBundle => formatBundle(rawBundle)));
 
-    return {success: true, bundles: formatted};
+    return { success: true, bundles: formatted };
 }
 
-export const getNightMarket = async (id, account=null) => {
+export const getNightMarket = async (id, account = null) => {
     const shopCache = getShopCache(getPuuid(id, account), "night_market");
-    if(shopCache) return {success: true, ...shopCache.night_market};
+    if (shopCache) return { success: true, ...shopCache.night_market };
 
     const resp = await getShop(id, account);
-    if(!resp.success) return resp;
+    if (!resp.success) return resp;
 
-    if(!resp.shop.BonusStore) return {
+    if (!resp.shop.BonusStore) return {
         success: true,
         offers: false
     }
 
-    return {success: true, ...formatNightMarket(resp.shop.BonusStore)};
+    return { success: true, ...formatNightMarket(resp.shop.BonusStore) };
 }
 
-export const getBalance = async (id, account=null) => {
+export const getBalance = async (id, account = null) => {
     const authSuccess = await authUser(id, account);
-    if(!authSuccess.success) return authSuccess;
+    if (!authSuccess.success) return authSuccess;
 
     const user = getUser(id, account);
     console.log(`Fetching balance for ${user.username}...`);
@@ -126,16 +134,17 @@ export const getBalance = async (id, account=null) => {
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/wallet/${user.puuid}`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
-            "X-Riot-Entitlements-JWT": user.auth.ent
+            "X-Riot-Entitlements-JWT": user.auth.ent,
+            ...RIOT_CLIENT_HEADERS
         }
     });
     console.assert(req.statusCode === 200, `Valorant balance code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
-    if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
+    if (json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
         deleteUser(id, account);
-        return {success: false};
-    } else if(isMaintenance(json)) return {success: false, maintenance: true};
+        return { success: false };
+    } else if (isMaintenance(json)) return { success: false, maintenance: true };
 
     return {
         success: true,
@@ -148,14 +157,14 @@ export const getBalance = async (id, account=null) => {
 let nextNMTimestamp = null, nextNMTimestampUpdated = 0;
 export const getNextNightMarketTimestamp = async () => {
     // only fetch every 5 minutes
-    if(nextNMTimestampUpdated > Date.now() - 5 * 60 * 1000) return nextNMTimestamp;
+    if (nextNMTimestampUpdated > Date.now() - 5 * 60 * 1000) return nextNMTimestamp;
 
     // thx Mistral for maintaining this!
     const req = await fetch("https://gist.githubusercontent.com/mistralwz/17bb10db4bb77df5530024bcb0385042/raw/nmdate.txt");
 
     const [timestamp] = req.body.split("\n");
     nextNMTimestamp = parseInt(timestamp);
-    if(isNaN(nextNMTimestamp) || nextNMTimestamp < Date.now() / 1000) nextNMTimestamp = null;
+    if (isNaN(nextNMTimestamp) || nextNMTimestamp < Date.now() / 1000) nextNMTimestamp = null;
 
     nextNMTimestampUpdated = Date.now();
     return nextNMTimestamp;
@@ -197,32 +206,32 @@ export let NMTimestamp = null;
  * }
  */
 
-export const getShopCache = (puuid, target="offers", print=true) => {
-    if(!config.useShopCache) return null;
+export const getShopCache = (puuid, target = "offers", print = true) => {
+    if (!config.useShopCache) return null;
 
     try {
         const shopCache = JSON.parse(fs.readFileSync("data/shopCache/" + puuid + ".json", "utf8"));
 
         let expiresTimestamp;
-        if(target === "offers") expiresTimestamp = shopCache[target].expires;
-        else if(target === "night_market") expiresTimestamp = shopCache[target] ? shopCache[target].expires : getMidnightTimestamp(shopCache.timestamp);
-        else if(target === "bundles") expiresTimestamp = Math.min(...shopCache.bundles.map(bundle => bundle.expires), get9PMTimetstamp(Date.now()));
-        else if(target === "all") expiresTimestamp = Math.min(shopCache.offers.expires, ...shopCache.bundles.map(bundle => bundle.expires), get9PMTimetstamp(Date.now()), shopCache.night_market.expires);
+        if (target === "offers") expiresTimestamp = shopCache[target].expires;
+        else if (target === "night_market") expiresTimestamp = shopCache[target] ? shopCache[target].expires : getMidnightTimestamp(shopCache.timestamp);
+        else if (target === "bundles") expiresTimestamp = Math.min(...shopCache.bundles.map(bundle => bundle.expires), get9PMTimetstamp(Date.now()));
+        else if (target === "all") expiresTimestamp = Math.min(shopCache.offers.expires, ...shopCache.bundles.map(bundle => bundle.expires), get9PMTimetstamp(Date.now()), shopCache.night_market.expires);
         else console.error("Invalid target for shop cache! " + target);
 
-        if(Date.now() / 1000 > expiresTimestamp) return null;
+        if (Date.now() / 1000 > expiresTimestamp) return null;
 
-        if(print) console.log(`Fetched shop cache for user ${discordTag(puuid)}`);
+        if (print) console.log(`Fetched shop cache for user ${discordTag(puuid)}`);
 
-        if(!shopCache.offers.accessory) return null;// If there are no accessories in the cache, it returns null so that the user's shop is checked again.
+        if (!shopCache.offers.accessory) return null;// If there are no accessories in the cache, it returns null so that the user's shop is checked again.
 
         return shopCache;
-    } catch(e) {}
+    } catch (e) { }
     return null;
 }
 
 const addShopCache = (puuid, shopJson) => {
-    if(!config.useShopCache) return;
+    if (!config.useShopCache) return;
 
     const now = Date.now();
     const shopCache = {
@@ -250,9 +259,9 @@ const addShopCache = (puuid, shopJson) => {
         timestamp: now
     }
 
-    if(shopJson.BonusStore) NMTimestamp = now
+    if (shopJson.BonusStore) NMTimestamp = now
 
-    if(!fs.existsSync("data/shopCache")) fs.mkdirSync("data/shopCache");
+    if (!fs.existsSync("data/shopCache")) fs.mkdirSync("data/shopCache");
     fs.writeFileSync("data/shopCache/" + puuid + ".json", JSON.stringify(shopCache, null, 2));
 
     console.log(`Added shop cache for user ${discordTag(puuid)}`);
@@ -272,7 +281,7 @@ const get9PMTimetstamp = (timestamp) => { // new bundles appear at 9PM UTC
 const easterEggOffers = async (id, account, offers) => {
     // shhh...
     try {
-        const _offers = {...offers, offers: [...offers.offers]};
+        const _offers = { ...offers, offers: [...offers.offers] };
         const user = getUser(id, account);
 
         const sawEasterEgg = isSameDay(user.lastSawEasterEgg, Date.now());

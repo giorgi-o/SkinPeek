@@ -3,6 +3,7 @@ import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {authFailureMessage, basicEmbed, skinCollectionSingleEmbed, collectionOfWeaponEmbed} from "../discord/embed.js";
 import config from "../misc/config.js";
 import {s} from "../misc/languages.js";
+import { RIOT_CLIENT_HEADERS } from "./shop.js";
 
 
 export const getEntitlements = async (user, itemTypeId, itemType="item") => {
@@ -10,7 +11,8 @@ export const getEntitlements = async (user, itemTypeId, itemType="item") => {
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/entitlements/${user.puuid}/${itemTypeId}`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
-            "X-Riot-Entitlements-JWT": user.auth.ent
+            "X-Riot-Entitlements-JWT": user.auth.ent,
+            ...RIOT_CLIENT_HEADERS,
         }
     });
 
@@ -91,7 +93,8 @@ export const getLoadout = async (user, account) => {
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/personalization/v2/players/${user.puuid}/playerloadout`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
-            "X-Riot-Entitlements-JWT": user.auth.ent
+            "X-Riot-Entitlements-JWT": user.auth.ent,
+            ...RIOT_CLIENT_HEADERS,
         }
     });
 
@@ -107,7 +110,8 @@ export const getLoadout = async (user, account) => {
     const req2 = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/favorites/v1/players/${user.puuid}/favorites`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
-            "X-Riot-Entitlements-JWT": user.auth.ent
+            "X-Riot-Entitlements-JWT": user.auth.ent,
+            ...RIOT_CLIENT_HEADERS,
         }
     });
 

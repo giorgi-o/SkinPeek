@@ -2,6 +2,7 @@
 import {authUser, deleteUserAuth, getUser} from "./auth.js";
 import {fetch, isMaintenance, userRegion} from "../misc/util.js";
 import {getBattlepassInfo, getBuddy, getCard, getSkin, getSpray, getValorantVersion} from "./cache.js";
+import { RIOT_CLIENT_HEADERS } from "./shop.js";
 import {renderBattlepass} from "../discord/embed.js";
 import {getEntitlements} from "./inventory.js";
 import {l, s} from "../misc/languages.js";
@@ -128,7 +129,8 @@ export const getBattlepassProgress = async (interaction, maxlevel, id=interactio
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
             "X-Riot-Entitlements-JWT": user.auth.ent,
-            "X-Riot-ClientVersion": (await getValorantVersion()).riotClientVersion
+            "X-Riot-ClientVersion": (await getValorantVersion()).riotClientVersion,
+            ...RIOT_CLIENT_HEADERS,
         }
     });
 
