@@ -1,21 +1,22 @@
-import {asyncReadJSONFile, fetch, isMaintenance, itemTypes, userRegion} from "../misc/util.js";
-import {authUser, getUser, getUserList} from "./auth.js";
+import { asyncReadJSONFile, fetch, isMaintenance, itemTypes, userRegion } from "../misc/util.js";
+import { authUser, getUser, getUserList } from "./auth.js";
 import config from "../misc/config.js";
 import fuzzysort from "fuzzysort";
 import fs from "fs";
-import {DEFAULT_VALORANT_LANG, discToValLang} from "../misc/languages.js";
-import {client} from "../discord/bot.js";
-import {sendShardMessage} from "../misc/shardMessage.js";
+import { DEFAULT_VALORANT_LANG, discToValLang } from "../misc/languages.js";
+import { client } from "../discord/bot.js";
+import { sendShardMessage } from "../misc/shardMessage.js";
+import { RIOT_CLIENT_HEADERS } from "./shop.js";
 
 const formatVersion = 13;
 let gameVersion;
 
 let weapons, skins, rarities, buddies, sprays, cards, titles, bundles, battlepass;
-let prices = {timestamp: null};
+let prices = { timestamp: null };
 
 export const clearCache = () => {
     weapons = skins = rarities = buddies = sprays = cards = titles = bundles = battlepass = null;
-    prices = {timestamp: null};
+    prices = { timestamp: null };
 }
 
 export const getValorantVersion = async () => {
@@ -30,9 +31,9 @@ export const getValorantVersion = async () => {
     return json.data;
 }
 
-export const loadSkinsJSON = async (filename="data/skins.json") => {
-    const jsonData = await asyncReadJSONFile(filename).catch(() => {});
-    if(!jsonData || jsonData.formatVersion !== formatVersion) return;
+export const loadSkinsJSON = async (filename = "data/skins.json") => {
+    const jsonData = await asyncReadJSONFile(filename).catch(() => { });
+    if (!jsonData || jsonData.formatVersion !== formatVersion) return;
 
     weapons = jsonData.weapons;
     skins = jsonData.skins;
@@ -46,41 +47,41 @@ export const loadSkinsJSON = async (filename="data/skins.json") => {
     battlepass = jsonData.battlepass;
 }
 
-export const saveSkinsJSON = (filename="data/skins.json") => {
-    fs.writeFileSync(filename, JSON.stringify({formatVersion, gameVersion, weapons, skins, prices, bundles, rarities, buddies, sprays, cards, titles, battlepass}, null, 2));
+export const saveSkinsJSON = (filename = "data/skins.json") => {
+    fs.writeFileSync(filename, JSON.stringify({ formatVersion, gameVersion, weapons, skins, prices, bundles, rarities, buddies, sprays, cards, titles, battlepass }, null, 2));
 }
 
-export const fetchData = async (types=null, checkVersion=false) => {
+export const fetchData = async (types = null, checkVersion = false) => {
     try {
-        if(checkVersion || !gameVersion) {
+        if (checkVersion || !gameVersion) {
             gameVersion = (await getValorantVersion()).manifestId;
             await loadSkinsJSON();
         }
 
-        if(types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles, battlepass];
+        if (types === null) types = [skins, prices, bundles, rarities, buddies, cards, sprays, titles, battlepass];
 
         const promises = [];
 
-        if(types.includes(skins) && (!skins || skins.version !== gameVersion)) promises.push(getSkinList(gameVersion));
-        if(types.includes(prices) && (!prices || prices.version !== gameVersion)) promises.push(getPrices(gameVersion));
-        if(types.includes(bundles) && (!bundles || bundles.version !== gameVersion)) promises.push(getBundleList(gameVersion));
-        if(types.includes(rarities) && (!rarities || rarities.version !== gameVersion)) promises.push(getRarities(gameVersion));
-        if(types.includes(buddies) && (!buddies || buddies.version !== gameVersion)) promises.push(getBuddies(gameVersion));
-        if(types.includes(cards) && (!cards || cards.version !== gameVersion)) promises.push(getCards(gameVersion));
-        if(types.includes(sprays) && (!sprays || sprays.version !== gameVersion)) promises.push(getSprays(gameVersion));
-        if(types.includes(titles) && (!titles || titles.version !== gameVersion)) promises.push(getTitles(gameVersion));
-        if(types.includes(battlepass) && (!battlepass || battlepass.version !== gameVersion)) promises.push(fetchBattlepassInfo(gameVersion));
+        if (types.includes(skins) && (!skins || skins.version !== gameVersion)) promises.push(getSkinList(gameVersion));
+        if (types.includes(prices) && (!prices || prices.version !== gameVersion)) promises.push(getPrices(gameVersion));
+        if (types.includes(bundles) && (!bundles || bundles.version !== gameVersion)) promises.push(getBundleList(gameVersion));
+        if (types.includes(rarities) && (!rarities || rarities.version !== gameVersion)) promises.push(getRarities(gameVersion));
+        if (types.includes(buddies) && (!buddies || buddies.version !== gameVersion)) promises.push(getBuddies(gameVersion));
+        if (types.includes(cards) && (!cards || cards.version !== gameVersion)) promises.push(getCards(gameVersion));
+        if (types.includes(sprays) && (!sprays || sprays.version !== gameVersion)) promises.push(getSprays(gameVersion));
+        if (types.includes(titles) && (!titles || titles.version !== gameVersion)) promises.push(getTitles(gameVersion));
+        if (types.includes(battlepass) && (!battlepass || battlepass.version !== gameVersion)) promises.push(fetchBattlepassInfo(gameVersion));
 
-        if(!prices || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) promises.push(getPrices(gameVersion)); // refresh prices every 24h
+        if (!prices || Date.now() - prices.timestamp > 24 * 60 * 60 * 1000) promises.push(getPrices(gameVersion)); // refresh prices every 24h
 
-        if(promises.length === 0) return;
+        if (promises.length === 0) return;
         await Promise.all(promises);
 
         saveSkinsJSON();
 
         // we fetched the skins, tell other shards to load them
-        if(client.shard) sendShardMessage({type: "skinsReload"});
-    } catch(e) {
+        if (client.shard) sendShardMessage({ type: "skinsReload" });
+    } catch (e) {
         console.error("There was an error while trying to fetch skin data!");
         console.error(e);
     }
@@ -95,16 +96,16 @@ export const getSkinList = async (gameVersion) => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant skins data status code is ${json.status}!`, json);
 
-    skins = {version: gameVersion};
+    skins = { version: gameVersion };
     weapons = {};
-    for(const weapon of json.data) {
+    for (const weapon of json.data) {
         weapons[weapon.uuid] = {
             uuid: weapon.uuid,
             names: weapon.displayName,
             icon: weapon.displayIcon,
             defaultSkinUuid: weapon.defaultSkinUuid,
         }
-        for(const skin of weapon.skins) {
+        for (const skin of weapon.skins) {
             const levelOne = skin.levels[0];
 
             let icon;
@@ -118,7 +119,7 @@ export const getSkinList = async (gameVersion) => {
                     }
                 }
             }
-            if(!icon) icon = null;
+            if (!icon) icon = null;
             skins[levelOne.uuid] = {
                 uuid: levelOne.uuid,
                 skinUuid: skin.uuid,
@@ -136,26 +137,26 @@ export const getSkinList = async (gameVersion) => {
     saveSkinsJSON();
 }
 
-const getPrices = async (gameVersion, id=null) => {
-    if(!config.fetchSkinPrices) return;
+const getPrices = async (gameVersion, id = null) => {
+    if (!config.fetchSkinPrices) return;
 
     // if no ID is passed, try with all users
-    if(id === null) {
-        for(const id of getUserList()) {
+    if (id === null) {
+        for (const id of getUserList()) {
             const user = getUser(id);
-            if(!user || !user.auth) continue;
+            if (!user || !user.auth) continue;
 
             const success = await getPrices(gameVersion, id);
-            if(success) return true;
+            if (success) return true;
         }
         return false;
     }
 
     let user = getUser(id);
-    if(!user) return false;
+    if (!user) return false;
 
     const authSuccess = await authUser(id);
-    if(!authSuccess.success || !user.auth.rso || !user.auth.ent || !user.region) return false;
+    if (!authSuccess.success || !user.auth.rso || !user.auth.ent || !user.region) return false;
 
     user = getUser(id);
     console.log(`Fetching skin prices using ${user.username}'s access token...`);
@@ -164,18 +165,19 @@ const getPrices = async (gameVersion, id=null) => {
     const req = await fetch(`https://pd.${userRegion(user)}.a.pvp.net/store/v1/offers/`, {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
-            "X-Riot-Entitlements-JWT": user.auth.ent
+            "X-Riot-Entitlements-JWT": user.auth.ent,
+            ...RIOT_CLIENT_HEADERS,
         }
     });
     console.assert(req.statusCode === 200, `Valorant skins prices code is ${req.statusCode}!`, req);
 
     const json = JSON.parse(req.body);
-    if(json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
+    if (json.httpStatus === 400 && json.errorCode === "BAD_CLAIMS") {
         return false; // user rso is invalid, should we delete the user as well?
-    } else if(isMaintenance(json)) return false;
+    } else if (isMaintenance(json)) return false;
 
-    prices = {version: gameVersion};
-    for(const offer of json.Offers) {
+    prices = { version: gameVersion };
+    for (const offer of json.Offers) {
         prices[offer.OfferID] = offer.Cost[Object.keys(offer.Cost)[0]];
     }
 
@@ -195,8 +197,8 @@ const getBundleList = async (gameVersion) => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant bundles data status code is ${json.status}!`, json);
 
-    bundles = {version: gameVersion};
-    for(const bundle of json.data) {
+    bundles = { version: gameVersion };
+    for (const bundle of json.data) {
         bundles[bundle.uuid] = {
             uuid: bundle.uuid,
             names: bundle.displayName,
@@ -218,8 +220,8 @@ const getBundleList = async (gameVersion) => {
     const json2 = JSON.parse(req2.body);
     console.assert(json.status === 200, `ValTracker bundles items data status code is ${json.status}!`, json);
 
-    for(const bundleData of json2.data) {
-        if(bundles[bundleData.uuid]) {
+    for (const bundleData of json2.data) {
+        if (bundles[bundleData.uuid]) {
             const bundle = bundles[bundleData.uuid];
             const items = [];
             const defaultItemData = {
@@ -227,28 +229,28 @@ const getBundleList = async (gameVersion) => {
                 discount: 0
             }
 
-            for(const weapon of bundleData.weapons)
+            for (const weapon of bundleData.weapons)
                 items.push({
                     uuid: weapon.levels[0].uuid,
                     type: itemTypes.SKIN,
                     price: weapon.price,
                     ...defaultItemData
                 });
-            for(const buddy of bundleData.buddies)
+            for (const buddy of bundleData.buddies)
                 items.push({
                     uuid: buddy.levels[0].uuid,
                     type: itemTypes.BUDDY,
                     price: buddy.price,
                     ...defaultItemData
                 });
-            for(const card of bundleData.cards)
+            for (const card of bundleData.cards)
                 items.push({
                     uuid: card.uuid,
                     type: itemTypes.CARD,
                     price: card.price,
                     ...defaultItemData
                 });
-            for(const spray of bundleData.sprays)
+            for (const spray of bundleData.sprays)
                 items.push({
                     uuid: spray.uuid,
                     type: itemTypes.SPRAY,
@@ -269,7 +271,7 @@ export const addBundleData = async (bundleData) => {
     await fetchData([bundles]);
 
     const bundle = bundles[bundleData.uuid];
-    if(bundle) {
+    if (bundle) {
         bundle.items = bundleData.items.map(item => {
             return {
                 uuid: item.uuid,
@@ -289,7 +291,7 @@ export const addBundleData = async (bundleData) => {
 }
 
 const getRarities = async (gameVersion) => {
-    if(!config.fetchSkinRarities) return false;
+    if (!config.fetchSkinRarities) return false;
 
     console.log("Fetching skin rarities list...");
 
@@ -299,8 +301,8 @@ const getRarities = async (gameVersion) => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant rarities data status code is ${json.status}!`, json);
 
-    rarities = {version: gameVersion};
-    for(const rarity of json.data) {
+    rarities = { version: gameVersion };
+    for (const rarity of json.data) {
         rarities[rarity.uuid] = {
             uuid: rarity.uuid,
             name: rarity.devName,
@@ -322,8 +324,8 @@ export const getBuddies = async (gameVersion) => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant buddies data status code is ${json.status}!`, json);
 
-    buddies = {version: gameVersion};
-    for(const buddy of json.data) {
+    buddies = { version: gameVersion };
+    for (const buddy of json.data) {
         const levelOne = buddy.levels[0];
         buddies[levelOne.uuid] = {
             uuid: levelOne.uuid,
@@ -344,8 +346,8 @@ export const getCards = async (gameVersion) => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant cards data status code is ${json.status}!`, json);
 
-    cards = {version: gameVersion};
-    for(const card of json.data) {
+    cards = { version: gameVersion };
+    for (const card of json.data) {
         cards[card.uuid] = {
             uuid: card.uuid,
             names: card.displayName,
@@ -369,8 +371,8 @@ export const getSprays = async (gameVersion) => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant sprays data status code is ${json.status}!`, json);
 
-    sprays = {version: gameVersion};
-    for(const spray of json.data) {
+    sprays = { version: gameVersion };
+    for (const spray of json.data) {
         sprays[spray.uuid] = {
             uuid: spray.uuid,
             names: spray.displayName,
@@ -390,8 +392,8 @@ export const getTitles = async (gameVersion) => {
     const json = JSON.parse(req.body);
     console.assert(json.status === 200, `Valorant titles data status code is ${json.status}!`, json);
 
-    titles = {version: gameVersion};
-    for(const title of json.data) {
+    titles = { version: gameVersion };
+    for (const title of json.data) {
         titles[title.uuid] = {
             uuid: title.uuid,
             names: title.displayName,
@@ -444,9 +446,9 @@ export const fetchBattlepassInfo = async (gameVersion) => {
     // find the last act that has a battlepass
     let currentSeason = null;
     let currentBattlepass = null;
-    for(const act of all_acts) {
+    for (const act of all_acts) {
         const bp_contract = all_bp_contracts.find(contract => contract.content.relationUuid === act.uuid);
-        if(bp_contract) {
+        if (bp_contract) {
             currentSeason = act;
             currentBattlepass = bp_contract;
             break;
@@ -464,8 +466,8 @@ export const fetchBattlepassInfo = async (gameVersion) => {
     saveSkinsJSON();
 }
 
-export const getItem = async (uuid, type) =>  {
-    switch(type) {
+export const getItem = async (uuid, type) => {
+    switch (type) {
         case itemTypes.SKIN: return await getSkin(uuid);
         case itemTypes.BUDDY: return await getBuddy(uuid);
         case itemTypes.CARD: return await getCard(uuid);
@@ -474,22 +476,22 @@ export const getItem = async (uuid, type) =>  {
     }
 }
 
-export const getSkin = async (uuid, reloadData=true) => {
-    if(reloadData) await fetchData([skins, prices]);
+export const getSkin = async (uuid, reloadData = true) => {
+    if (reloadData) await fetchData([skins, prices]);
 
     let skin = skins[uuid];
-    if(!skin) return null;
+    if (!skin) return null;
 
     skin.price = await getPrice(uuid);
 
     return skin;
 }
 
-export const getSkinFromSkinUuid = async (uuid, reloadData=true) => {
-    if(reloadData) await fetchData([skins, prices]);
+export const getSkinFromSkinUuid = async (uuid, reloadData = true) => {
+    if (reloadData) await fetchData([skins, prices]);
 
     let skin = Object.values(skins).find(skin => skin.skinUuid === uuid);
-    if(!skin) return null;
+    if (!skin) return null;
 
     skin.price = await getPrice(skin.uuid);
 
@@ -503,13 +505,13 @@ export const getWeapon = async (uuid) => {
 }
 
 export const getPrice = async (uuid) => {
-    if(!prices) await fetchData([prices]);
+    if (!prices) await fetchData([prices]);
 
-    if(prices[uuid]) return prices[uuid];
+    if (prices[uuid]) return prices[uuid];
 
-    if(!bundles) await fetchData([bundles]); // todo rewrite this part
+    if (!bundles) await fetchData([bundles]); // todo rewrite this part
     const bundle = Object.values(bundles).find(bundle => bundle.items?.find(item => item.uuid === uuid));
-    if(bundle) {
+    if (bundle) {
         const bundleItem = bundle.items.find(item => item.uuid === uuid);
         return bundleItem.price || null;
     }
@@ -519,20 +521,20 @@ export const getPrice = async (uuid) => {
 }
 
 export const getRarity = async (uuid) => {
-    if(!rarities) await fetchData([rarities]);
-    if(rarities) return rarities[uuid] || null;
+    if (!rarities) await fetchData([rarities]);
+    if (rarities) return rarities[uuid] || null;
 }
 
 export const getAllSkins = async () => {
     return await Promise.all(Object.values(skins).filter(o => typeof o === "object").map(skin => getSkin(skin.uuid, false)));
 }
 
-export const searchSkin = async (query, locale, limit=20, threshold=-5000) => {
+export const searchSkin = async (query, locale, limit = 20, threshold = -5000) => {
     await fetchData([skins, prices]);
 
     const valLocale = discToValLang[locale];
     const keys = [`names.${valLocale}`];
-    if(valLocale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
+    if (valLocale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
 
     const allSkins = await getAllSkins()
     return fuzzysort.go(query, allSkins, {
@@ -553,12 +555,12 @@ export const getAllBundles = () => {
     return Object.values(bundles).reverse().filter(o => typeof o === "object")
 }
 
-export const searchBundle = async (query, locale, limit=20, threshold=-1000) => {
+export const searchBundle = async (query, locale, limit = 20, threshold = -1000) => {
     await fetchData([bundles]);
 
     const valLocale = discToValLang[locale];
     const keys = [`names.${valLocale}`];
-    if(valLocale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
+    if (valLocale !== DEFAULT_VALORANT_LANG) keys.push(`names.${DEFAULT_VALORANT_LANG}`);
 
     return fuzzysort.go(query, getAllBundles(), {
         keys: keys,
@@ -569,26 +571,26 @@ export const searchBundle = async (query, locale, limit=20, threshold=-1000) => 
 }
 
 export const getBuddy = async (uuid) => {
-    if(!buddies) await fetchData([buddies]);
+    if (!buddies) await fetchData([buddies]);
     return buddies[uuid];
 }
 
 export const getSpray = async (uuid) => {
-    if(!sprays) await fetchData([sprays]);
+    if (!sprays) await fetchData([sprays]);
     return sprays[uuid];
 }
 
 export const getCard = async (uuid) => {
-    if(!cards) await fetchData([cards]);
+    if (!cards) await fetchData([cards]);
     return cards[uuid];
 }
 
 export const getTitle = async (uuid) => {
-    if(!titles) await fetchData([titles]);
+    if (!titles) await fetchData([titles]);
     return titles[uuid];
 }
 
 export const getBattlepassInfo = async () => {
-    if(!battlepass) await fetchData([battlepass]);
+    if (!battlepass) await fetchData([battlepass]);
     return battlepass;
 }
