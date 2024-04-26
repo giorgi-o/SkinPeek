@@ -56,7 +56,7 @@
     },
     "info":{
       "SHOP_HEADER": "ร้านค้ารายวันของคุณ **{u}** (เหลือเวลาอีก <t:{t}:R>)",
-      "ACCESSORY_SHOP_HEADER": "ร้านค้าของตกเเต่งของคุณ **{u}** (ร้านจะรีเซ็ตในอีก <t:{t}:R>)",
+      "ACCESSORY_SHOP_HEADER": "ร้านค้าของตกเเต่งของคุณ **{u}** (เหลือเวลาอีก <t:{t}:R>)",
       "BUNDLE_HEADER": "คอลเลคชั่นพิเศษ: **{b}**",
       "BUNDLES_HEADER": "คอลเลคชั่นพิเศษตอนนี้:",
       "BUNDLES_HEADER_DESC": "ใช้ `/bundle` เพื่อตรวจสอบคอลเลคชั่นที่ระบุ",
@@ -79,7 +79,7 @@
       "INFO_STATUS": "สถานะ",
       "INFO_RUNNING": "เริ่มทำงานเมื่อ <t:{t1}:f> (<t:{t2}:R>)",
       "INFO_SOURCE": "ซอร์สโค้ด",
-      "NMARKET_HEADER": "ตลาดกลางคืนของคุณ **{u}** (ends <t:{t}:R>)",
+      "NMARKET_HEADER": "ตลาดกลางคืนของคุณ **{u}** (เหลือเวลาอีก <t:{t}:R>)",
       "WALLET_HEADER": "**{u}** พอยท์ของคุณ",
       "VPOINTS": "VALORANT Points",
       "RADIANITE": "Radianite",
@@ -128,7 +128,7 @@
       "SWITCH_DESIGN_BUTTON": "เปลี่ยนรูปเเบบ",
       "ACCESSORY_SHOP_SWITCH_BUTTON": "ร้านค้าของตกเเต่ง",
       "DAILY_SHOP_SWITCH_BUTTON": "ร้านค้าสกิน",
-      "NIGHT_MARKET_BUTTON": "ตลากกลางคืน",
+      "NIGHT_MARKET_BUTTON": "ตลาดกลางคืน",
       "BATTLEPASS_BUTTON": "แบทเทิลพาส",
       "COLLECTION_BUTTON": "คอลเลคชั่น",
       "COMPETITIVE_HISTORY_BUTTON": "ประวัติการเล่นโหมดแข่งขัน",
@@ -205,8 +205,8 @@
       "RANKED_RATING": "RR",
       "AVERAGE_DAMAGE_ROUND": "ความเสียหายเฉลี่ยต่อรอบ",
       "AVERAGE_COMBAT_SCORE": "คะแนนการต่อสู้เฉลี่ย",
-      "HS_PERCENT": "อัตราHeadshot%",
-      "PERCENT": "%{v}"
+      "HS_PERCENT": "อัตรา Headshot",
+      "PERCENT": "{v}%"
     }
   }
   
