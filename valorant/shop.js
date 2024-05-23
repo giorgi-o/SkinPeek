@@ -18,7 +18,7 @@ import { mqGetShop, useMultiqueue } from "../misc/multiqueue.js";
 export const RIOT_CLIENT_HEADERS = {
     // fix for HTTP 400 (thx Zxc and Manuel_Hexe)
     "X-Riot-ClientPlatform": "ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9",
-    "X-Riot-ClientVersion": "release-08.07-shipping-9-2444158",
+    "X-Riot-ClientVersion": "release-08.09-shipping-57-2521387",
     // todo: get ClientVersion from Valorant API to not have to automatically update it.
     // before that, got to make a cache for it, so that we don't need to fetch it
     // every time someone uses /shop, but make sure it doesn't interfere with all
