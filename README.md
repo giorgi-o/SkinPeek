@@ -101,10 +101,9 @@ For advanced users who want to deploy the bot using [Docker](https://www.docker.
 
 ## Acknowledgements
 
-- [Hamper](https://github.com/OwOHamper/) for the idea and [the code](https://github.com/OwOHamper/Valorant-item-shop-discord-bot/blob/main/item_shop_viewer.py) showing how to do it
+- [Hamper](https://github.com/OwOHamper/) for the inspiration and [the code](https://github.com/OwOHamper/Valorant-item-shop-discord-bot/blob/main/item_shop_viewer.py) showing how to do it
 - [Valorant-api](https://dash.valorant-api.com/) for the skin names and images
 - [muckelba](https://github.com/muckelba) for writing the battlepass calculator
-- [Spirit](https://github.com/SpiritLetsPlays) for his [API](https://docs.valtracker.gg/bundles) for getting previous bundle items and prices
 - [warriorzz](https://github.com/warriorzz) for setting up the Docker
 - [The dev discord server](https://discord.gg/a9yzrw3KAm), join here!
 
