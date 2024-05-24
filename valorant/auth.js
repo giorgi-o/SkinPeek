@@ -389,72 +389,12 @@ export const refreshToken = async (id, account=null) => {
     return response;
 }
 
-let riotClientVersion;
-let userAgentFetchPromise;
-export const fetchRiotClientVersion = async (attempt=1) => {
-    if(userAgentFetchPromise) return userAgentFetchPromise;
 
-    let resolve;
-    if(!userAgentFetchPromise) {
-        console.log("Fetching latest Riot user-agent..."); // only log it the first time
-        userAgentFetchPromise = new Promise(r => resolve = r);
-    }
 
-    const headers = {
-        "User-Agent": "giorgi-o/skinpeek",
-        "X-GitHub-Api-Version": "2022-11-28",
-    };
-    if(config.githubToken) headers["Authorization"] = `Bearer ${config.githubToken}`;
-
-    const githubReq = await fetch("https://api.github.com/repos/Morilli/riot-manifests/contents/Riot%20Client/KeystoneFoundationLiveWin?ref=master", {
-        headers
-    });
-
-    let json, versions, error = false;
-    try {
-        if(githubReq.statusCode !== 200) error = true;
-        else {
-            json = JSON.parse(githubReq.body);
-            versions = json.map(file => file.name.split('_')[0]);
-        }
-    } catch(e) {
-        error = true
-    }
-
-    if(error) {
-        if(attempt === 3) {
-            console.error("Failed to fetch latest Riot user-agent! (tried 3 times)");
-
-            const fallbackVersion = "65.0.2.5073401";
-            console.error(`Using version number ${fallbackVersion} instead...`);
-        }
-
-        console.error(`Failed to fetch latest Riot user-agent! (try ${attempt}/3`);
-        console.error(githubReq);
-
-        await wait(1000);
-        return fetchRiotClientVersion(attempt + 1);
-    }
-
-    const compareVersions = (a, b) => {
-        const aSplit = a.split(".");
-        const bSplit = b.split(".");
-        for(let i = 0; i < aSplit.length; i++) {
-            if(aSplit[i] > bSplit[i]) return 1;
-            if(aSplit[i] < bSplit[i]) return -1;
-        }
-        return 0;
-    }
-    versions.sort((a, b) => compareVersions(b, a));
-
-    riotClientVersion = versions[0];
-    userAgentFetchPromise = null;
-    resolve?.();
-}
 
 const getUserAgent = async () => {
     // temporary bypass for Riot adding hCaptcha (see github issue #93)
-    return "ShooterGame/11 Windows/10.0.22621.1.768.64bit";
+    return "ShooterGame/13 Windows/10.0.19043.1.256.64bit";
     
     if(!riotClientVersion) await fetchRiotClientVersion();
     return `RiotClient/${riotClientVersion}.1234567 rso-auth (Windows;10;;Professional, x64)`;

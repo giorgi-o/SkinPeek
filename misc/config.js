@@ -27,14 +27,17 @@ export const loadConfig = (filename="config.json") => {
         return console.error("You forgot to put your bot token in config.json!");
 
     if(loadedConfig.HDevTokenAlert && !loadedConfig.HDevToken || loadedConfig.HDevToken === ""){
-        console.error("You forgot to put your HDevToken in config.json!");
-        console.error("The Profile command works without an HDEV token, but you can view up to 2 different accounts per hour.");
-        console.error("If you need more than 2 accounts per hour, see https://discord.gg/B7AarTMZMK");
-        console.error("If you don't want to see this notification again, set HDevTokenAlert to false in config.json file");
+        console.error("Looks like you didn't put a HDevToken in config.json!");
+        console.error("The /profile command won't work without one. To get a key, see https://discord.gg/B7AarTMZMK");
+        console.error("If you don't want to see this notification again, set HDevTokenAlert to false in config.json");
     }
 
+    // backwards compatibility
     loadedConfig.fetchSkinPrices = loadedConfig.showSkinPrices;
     loadedConfig.fetchSkinRarities = loadedConfig.showSkinRarities;
+
+    // to see what these keys do, check here:
+    // https://github.com/giorgi-o/SkinPeek/wiki/SkinPeek-Admin-Guide#the-option-list
 
     applyConfig(loadedConfig, "token", "token goes here");
     applyConfig(loadedConfig, "HDevToken", "");

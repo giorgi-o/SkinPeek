@@ -428,6 +428,65 @@ export const itemTypes = {
     TITLE: "de7caa6b-adf7-4588-bbd1-143831e786c6"
 }
 
+// example riotVersionData: {
+//     "manifestId": "C330A20409C5FDF2",
+//     "branch": "release-08.09",
+//     "version": "08.09.00.2521387",
+//     "buildVersion": "57",
+//     "engineVersion": "4.27.2.0",
+//     "riotClientVersion": "release-08.09-shipping-57-2521387",
+//     "riotClientBuild": "86.0.3.1523.3366",
+//     "buildDate": "2024-05-13T00:00:00Z"
+// }
+let riotVersionData = null;
+
+export const getRiotVersionData = () => {
+    if(riotVersionData === null) {
+        throw "Tried to get Riot version data before it was loaded! Might be a race condition.";
+    }
+
+    return riotVersionData;
+}
+
+export const fetchRiotVersionData = async () => {
+    console.log("Fetching latest Valorant version number...");
+
+    const req = await fetch("https://valorant-api.com/v1/version");
+    if(req.statusCode !== 200) {
+        console.log(`Riot version data status code is ${req.statusCode}!`);
+        console.log(req);
+
+        return null;
+    }
+
+    const json = JSON.parse(req.body);
+    riotVersionData = json.data;
+
+    return riotVersionData;
+}
+
+// TODO: find out what how to automatically get the latest one of these
+const platformOsVersion = "10.0.19042.1.256.64bit";
+
+export const riotClientHeaders = () => {
+    const clientPlatformData = {
+        platformType: "PC",
+        platformOS: "Windows",
+        platformOSVersion: platformOsVersion,
+        platformChipset: "Unknown",
+    }
+
+    // JSON stringify prettyfied with 1 tab and \r\n, then base64 encode
+    const clientPlatformDataJson = JSON.stringify(clientPlatformData, null, "\t");
+    const clientPlatformDataBuffer = Buffer.from(clientPlatformDataJson.replace(/\n/g, "\r\n"));
+    const clientPlatformDataBase64 = clientPlatformDataBuffer.toString("base64");
+
+    return {
+        "X-Riot-ClientPlatform": clientPlatformDataBase64,
+        "X-Riot-ClientVersion": getRiotVersionData().riotClientVersion,
+    }
+}
+
 export const parseSetCookie = (setCookie) => {
     if(!setCookie) {
         console.error("Riot didn't return any cookies during the auth request! Cloudflare might have something to do with it...");

@@ -6,7 +6,7 @@ import fs from "fs";
 import { DEFAULT_VALORANT_LANG, discToValLang } from "../misc/languages.js";
 import { client } from "../discord/bot.js";
 import { sendShardMessage } from "../misc/shardMessage.js";
-import { RIOT_CLIENT_HEADERS } from "./shop.js";
+import { riotClientHeaders } from "../misc/util.js";
 
 const formatVersion = 14;
 let gameVersion;

@@ -9,8 +9,8 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ActivityType,
-    ModalBuilder, 
-    TextInputBuilder, 
+    ModalBuilder,
+    TextInputBuilder,
     TextInputStyle
 } from "discord.js";
 import cron from "node-cron";
@@ -37,7 +37,7 @@ import {
     renderProfile,
     renderCompetitiveMatchHistory
 } from "./embed.js";
-import { authUser, fetchRiotClientVersion, getUser, getUserList, getRegion, getUserInfo } from "../valorant/auth.js";
+import { authUser, getUser, getUserList, getRegion, getUserInfo } from "../valorant/auth.js";
 import { getBalance } from "../valorant/shop.js";
 import { getSkin, fetchData, searchSkin, searchBundle, getBundle, clearCache } from "../valorant/cache.js";
 import {
@@ -61,10 +61,11 @@ import {
     fetchChannel, fetchMaintenances, getProxyManager, initProxyManager,
     removeAlertActionRow,
     skinNameAndEmoji,
-    valNamesToDiscordNames, WeaponTypeUuid,
+    WeaponTypeUuid,
     WeaponType,
     fetch,
-    calcLength
+    calcLength,
+    fetchRiotVersionData,
 } from "../misc/util.js";
 import config, { loadConfig, saveConfig } from "../misc/config.js";
 import { localError, localLog, sendConsoleOutput } from "../misc/logger.js";
@@ -104,7 +105,7 @@ client.on("ready", async () => {
 
     console.log("Loading skins...");
     fetchData().then(() => console.log("Skins loaded!"));
-    fetchRiotClientVersion().then(() => console.log("Fetched latest Riot user-agent!"));
+    fetchRiotVersionData().then(() => console.log("Fetched latest Riot user-agent!"));
     initProxyManager().then(() => {
         if (getProxyManager().enabled) {
             console.log(`Proxy manager loaded ${getProxyManager().allProxies.length} proxies!`);
@@ -158,7 +159,7 @@ export const scheduleTasks = () => {
     if (config.logToChannel && config.logFrequency) cronTasks.push(cron.schedule(config.logFrequency, sendConsoleOutput));
 
     // check for a new riot client version (new user agent) every 15mins
-    if (config.updateUserAgent) cronTasks.push(cron.schedule(config.updateUserAgent, fetchRiotClientVersion));
+    if (config.updateUserAgent) cronTasks.push(cron.schedule(config.updateUserAgent, fetchRiotVersionData));
 }
 
 export const destroyTasks = () => {
@@ -905,7 +906,7 @@ client.on("interactionCreate", async (interaction) => {
                         embeds: [basicEmbed(s(interaction).info.ACCOUNT_UPDATED.f({ u: user.username }, interaction))],
                     });
                     break;
-            }
+                }
                 case "testalerts": {
                     if (!valorantUser) return await interaction.reply({
                         embeds: [basicEmbed(s(interaction).error.NOT_REGISTERED)],
@@ -925,7 +926,7 @@ client.on("interactionCreate", async (interaction) => {
                 }
                 case "login": {
                     await defer(interaction, true);
-                    
+
                     const json = readUserJson(interaction.user.id);
                     if (json && json.accounts.length >= config.maxAccountsPerUser) {
                         return await interaction.followUp({
@@ -979,7 +980,7 @@ client.on("interactionCreate", async (interaction) => {
 
                     break;
                 }
-                case "logout": 
+                case "logout":
                 case "forget": {
                     const accountCount = getNumberOfAccounts(interaction.user.id);
                     if (accountCount === 0) return await interaction.reply({
@@ -1631,14 +1632,14 @@ client.on("interactionCreate", async (interaction) => {
 
                 async function clwpage() {
                     const weaponType = Object.values(WeaponTypeUuid)[parseInt(weaponTypeIndex)];
-    
+
                     let user;
                     if (userId !== interaction.user.id) user = getUser(userId);
                     else user = valorantUser;
-    
+
                     const skinsResponse = await getSkins(user);
                     if (!skinsResponse.success) return await interaction.reply(authFailureMessage(interaction, skinsResponse, s(interaction).error.AUTH_ERROR_COLLECTION, userId !== interaction.user.id));
-    
+
                     await interaction.update(await collectionOfWeaponEmbed(interaction, userId, user, weaponType, skinsResponse.skins, parseInt(pageIndex-1)));
                 }
             }
