@@ -166,7 +166,7 @@ const getPrices = async (gameVersion, id = null) => {
         headers: {
             "Authorization": "Bearer " + user.auth.rso,
             "X-Riot-Entitlements-JWT": user.auth.ent,
-            ...RIOT_CLIENT_HEADERS,
+            ...riotClientHeaders(),
         }
     });
     console.assert(req.statusCode === 200, `Valorant skins prices code is ${req.statusCode}!`, req);

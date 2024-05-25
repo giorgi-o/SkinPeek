@@ -7,7 +7,8 @@ import {
     formatNightMarket,
     getPuuid,
     isMaintenance, isSameDay,
-    userRegion
+    userRegion,
+    riotClientHeaders,
 } from "../misc/util.js";
 import { addBundleData, getSkin, getSkinFromSkinUuid } from "./cache.js";
 import { addStore } from "../misc/stats.js";

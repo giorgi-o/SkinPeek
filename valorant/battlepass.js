@@ -129,7 +129,7 @@ export const getBattlepassProgress = async (interaction, maxlevel, id=interactio
             "Authorization": "Bearer " + user.auth.rso,
             "X-Riot-Entitlements-JWT": user.auth.ent,
             "X-Riot-ClientVersion": (await getValorantVersion()).riotClientVersion,
-            ...RIOT_CLIENT_HEADERS,
+            ...riotClientHeaders(),
         }
     });
 
