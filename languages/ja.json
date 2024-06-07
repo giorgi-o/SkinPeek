@@ -73,7 +73,7 @@
     "INFO_HEADER": ":pencil: 情報",
     "INFO_SERVERS": "サーバー",
     "INFO_MEMBERS": "メンバー",
-    "INFO_REGISTERED": "登録済み",
+    "INFO_REGISTERED": "ユーザー数",
     "INFO_WOOF": "わんわん",
     "INFO_OWNER": "オーナー",
     "INFO_STATUS": "ステータス",
@@ -146,7 +146,7 @@
     "SELECT_LEVEL_OF_SKIN":"スキンのレベルを選択してください：",
     "SHARDS_LOADING": "ボットはまだ起動中です！数秒待ってからもう一度お試しください。（シャードの読み込み中...）",
     "NO_MORE_ACCESSORIES": "あなたはすでにすべてのカッコよさを手に入れています！ :sunglasses:",
-    "PROFILE_PEAK_RANK": "ピークランク"
+    "PROFILE_PEAK_RANK": "最高ランク"
   },
   "battlepass": {
     "CALCULATIONS_TITLE": "\uD83D\uDCC8 バトルパス進捗状況",
@@ -155,7 +155,7 @@
     "GENERAL_COL": "一般",
     "XP_COL": "XP",
     "TOTAL_ROW": "合計XP",
-    "LVLUP_ROW": "レベルアップ",
+    "LVLUP_ROW": "次のレベルアップまで",
     "TIER50_ROW": "ティア {t}",
     "WEEKLY_LEFT_ROW": "残りのウィークリー XP",
     "BP_PURCHASED": "バトルパスを購入しました！",
@@ -164,7 +164,7 @@
     "INCL_WEEKLIES_COL": "ウィークリーを含む",
     "NORMAL_ROW": "アンレート/コンペティティブ",
     "SPIKERUSH_ROW": "スパイクラッシュ",
-    "ACT_END": "Actは {d} 日で終了します",
+    "ACT_END": "今Actはあと {d} 日で終了します",
     "XP_HEADER": "\uD83D\uDCC5 必要な XP",
     "AVERAGE_COL": "平均",
     "DAILY_XP_ROW": "デイリーXP",
