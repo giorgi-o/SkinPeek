@@ -76,7 +76,9 @@
 
 ## Useful Information
 
-- The bot should automatically deploy the slash commands globally. If they don't appear:
+- [Can I get banned for using SkinPeek?](https://github.com/giorgi-o/SkinPeek/wiki/Can-I-get-banned-for-using-SkinPeek%3F) (spoiler: nope, it's safe to use!)
+
+- After installing, the bot should automatically deploy the slash commands globally. If they don't appear:
   - If you're getting `DiscordAPIError: Missing Access`, you probably forgot to add the `applications.commands` scope in step 1
   - Discord global commands can take up to 1h to update due to caching. If you don't want to wait, send `@bot !deploy guild` in a text channel the bot can see (`@bot` being you @mentionning your bot). This will deploy the commands immediately in that guild.
   - If you see every command twice, just send `@bot !undeploy guild`!
