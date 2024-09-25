@@ -32,7 +32,8 @@ export const getShop = async (id, account = null) => {
             "Authorization": "Bearer " + user.auth.rso,
             "X-Riot-Entitlements-JWT": user.auth.ent,
             ...riotClientHeaders(),
-        }
+        },
+        body: JSON.stringify({})
     });
     console.assert(req.statusCode === 200, `Valorant skins offers code is ${req.statusCode}!`, req);
 
