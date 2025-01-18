@@ -73,6 +73,7 @@
 - [Open a command prompt in the same folder](https://www.thewindowsclub.com/how-to-open-command-prompt-from-right-click-menu#:~:text=To%20open%20a%20command%20prompt%20window%20in%20any%20folder%2C%20simply,the%20same%20inside%20any%20folder.) and type `npm i` to install dependencies
 - Run [SkinPeek.js](https://github.com/giorgi-o/SkinPeek/blob/master/SkinPeek.js) using `node SkinPeek.js` in the command prompt
 - And that's it! Don't forget too give the bot a [role](https://support.discord.com/hc/en-us/articles/206029707-Setting-Up-Permissions-FAQ) that allows it to send messages and create custom emojis.
+- Also note that you need to keep the window open for the bot to stay online. If you want it to run 24/7, consider using a [VPS](https://github.com/giorgi-o/SkinPeek/wiki/SkinPeek-Admin-Guide#which-vps-should-i-use).
 
 ## Useful Information
 
@@ -117,8 +118,8 @@ If you are fluent in another language and would like help translate the bot, eit
 
 1. Look up the language code for your language [here](https://discord.com/developers/docs/reference#locales) or [here](http://www.lingoes.net/en/translator/langcode.htm).
 2. Look in this repo's `languages` folder.
-3. If your language is already there, feel free to improve and modify it as much as you can. Otherwise if you're starting from scratch, copy the `en-GB.json` file and rename it to your language code.
-4. Open the file and do the thing.
+3. If your language is already there, feel free to improve and modify it as much as you can!
+4. Otherwise if you're starting from scratch, copy the `en-GB.json` and rename it to your language code.
 
 Once you're done translating, you can either [fork the repo](https://docs.github.com/en/get-started/quickstart/fork-a-repo) and [open a GitHub pull request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request), or you can just send me the JSON on discord and I'll upload it for you (with credit, of course).
 
