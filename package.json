@@ -5,7 +5,7 @@
   "dependencies": {
     "discord.js": "^14.11.0",
     "fuzzysort": "^2.0.4",
-    "node-cron": "3.0.0",
+    "node-cron": "3.0.3",
     "unofficial-valorant-api": "^2.3.1-stable.0"
   },
   "type": "module"
